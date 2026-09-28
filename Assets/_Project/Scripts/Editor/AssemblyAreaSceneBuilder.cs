@@ -22,15 +22,15 @@ namespace Harbourview.EditorTools
     /// </summary>
     public static class AssemblyAreaSceneBuilder
     {
-        private const string ScenePath = "Assets/_Project/Scenes/AssemblyArea_1F.unity";
+        private const string ScenePath = "Assets/1FScenes/AssemblyArea_1F.unity";
         private const string ArtRoot = "Assets/_Project/Art";
         private const string MaterialFolder = "Assets/_Project/Art/Materials";
         private const string MeshFolder = "Assets/_Project/Art/Meshes";
 
         // Deliverable per the group leader's "scene setup" note: every owner ships a floor PREFAB
         // that can be dropped into the assembled building scene, not just a private scene.
-        private const string PrefabFolder = "Assets/_Project/Prefabs";
-        private const string FloorPrefabPath = "Assets/_Project/Prefabs/PF_1F_AssemblyArea.prefab";
+        private const string PrefabFolder = "Assets/Playground Prefab";
+        private const string FloorPrefabPath = "Assets/Playground Prefab/AssemblyArea_1F.prefab";
 
         // Layout constants, grouped so the whole plan can be nudged in one place.
         private const float GroundScale = 12f;      // Unity plane primitive is 10x10 units
