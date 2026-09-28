@@ -23,9 +23,9 @@ namespace Harbourview.EditorTools
     public static class AssemblyAreaSceneBuilder
     {
         private const string ScenePath = "Assets/1FScenes/AssemblyArea_1F.unity";
-        private const string ArtRoot = "Assets/_Project/Art";
-        private const string MaterialFolder = "Assets/_Project/Art/Materials";
-        private const string MeshFolder = "Assets/_Project/Art/Meshes";
+        private const string ArtRoot = "Assets/1FArt";
+        private const string MaterialFolder = "Assets/1FArt/Materials";
+        private const string MeshFolder = "Assets/1FArt/Meshes";
 
         // Deliverable per the group leader's "scene setup" note: every owner ships a floor PREFAB
         // that can be dropped into the assembled building scene, not just a private scene.

@@ -10,7 +10,7 @@ Unity 2022.3.62f3 · URP 14 · XR Interaction Toolkit 2.5.4 · OpenXR（Quest 3�
 1. Unity Hub → Open → **Add project from disk** → 选中本文件夹（含 `Assets` / `Packages` / `ProjectSettings`）。
 2. 打开后 Unity 会自动安装 `Packages/manifest.json` 里声明的依赖，首次导入约需几分钟。
 3. 菜单 **Harbourview → Check Project Setup**：确认 URP / Input System / XRI 三项都是 `[OK]`。
-4. 菜单 **Harbourview → Apply URP Settings**：把 `_Project/Settings/` 下的渲染管线资产挂到 Graphics Settings。
+4. 菜单 **Harbourview → Apply URP Settings**：把 `Assets/New Universal Render Pipeline Asset.asset`（团队那份）挂到 Graphics Settings。
 5. **Edit → Project Settings → Player → Active Input Handling** 改为 `Input System Package (New)`，否则 XRI 不工作（Unity 会弹对话框，点 Yes 也会自动重启编辑器）。
 6. 菜单 **Harbourview → Build 1F Assembly Area Scene**：生成本次交付的一楼集合点场景。
 7. 跑之前按 Docs 里的《Git 协作规范》先配好 git 身份。
@@ -18,18 +18,19 @@ Unity 2022.3.62f3 · URP 14 · XR Interaction Toolkit 2.5.4 · OpenXR（Quest 3�
 ## 目录约定
 
 ```
-Assets/_Project/
-  Scenes/        各阶段场景；AssemblyArea_1F.unity 为一楼安全终点
-  Art/
-    Materials/   场景构建器生成的共享材质（改这里 = 全局生效）
-    Meshes/      程序化生成的网格（跑道环、集合点轮廓）
-  Settings/      URP 管线资产（复用组里验证过的配置）
-  Scripts/
-    Runtime/     运行时：JourneyDirector / GeoFence / SessionLogger / SafeZoneEndpoint / NotableCue
-    Editor/      编辑器工具：场景构建器与工程自检
+Assets/1FScenes/
+  AssemblyArea_1F.unity          一楼集合点场景（一楼安全终点）
+Assets/Playground Prefab/
+  AssemblyArea_1F.prefab         交付用楼层 Prefab（可塞进总装场景）
+Assets/1FArt/
+  Materials/                     场景构建器生成的共享材质（改这里 = 全局生效）
+  Meshes/                        程序化生成的网格（跑道环、集合点轮廓）
+Assets/1FScripts/
+  Runtime/                       运行时：JourneyDirector / GeoFence / SessionLogger / SafeZoneEndpoint / NotableCue
+  Editor/                        编辑器工具：场景构建器与工程自检
 ```
 
-**只有 `_Project/` 是我们自己写的东西。** 第三方素材一律放 `Assets/Vendor/<来源>/`，不要在里面改东西，方便后续整体替换。
+**以 `1F` 开头的四个目录是我们自己写的东西。** 第三方素材一律放 `Assets/Vendor/<来源>/`，不要在里面改东西，方便后续整体替换。
 
 ## 场景构建器
 
@@ -47,11 +48,11 @@ Assets/_Project/
 
 构建器可反复运行；材质和网格会被复用而不是重复创建。
 
-## 交付物：楼层 Prefab `PF_1F_AssemblyArea`
+## 交付物：楼层 Prefab `AssemblyArea_1F`
 
 按组长《场景建立》的要求，每个人交付的是一个**可以塞进总装场景的楼层 Prefab**，不是私有的场景文件。
 
-- 路径：`Assets/_Project/Prefabs/PF_1F_AssemblyArea.prefab`
+- 路径：`Assets/Playground Prefab/AssemblyArea_1F.prefab`
 - 内容：`Environment/` 下的全部地面与建筑内容，含 `T12_GroundReached_Zone` 终点触发器与集合点指示牌
 - **不含**：`PlayerStart_BuildingExit`、`Systems/`（XR 设备与 JourneyDirector 属于场景级，不能跟着楼层 Prefab 走，否则总装后会出现多个 director）
 - 单独导出：菜单 **Harbourview → Export 1F Assembly Area Prefab**（跑 Build 时也会自动导出一次）
