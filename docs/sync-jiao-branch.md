@@ -11,8 +11,9 @@
   `Assets/Scenes/classroom2corridorstair.unity`、`Assets/prefab/{elevator,refuge area}.prefab`、
   `Assets/Scenes/refuge area and elavator scene.unity` 从 main 里**删掉**，并回退 144 个 `.mat`。
   → 提 PR 前必须先和组长确认口径。
-- **本地开发分支 `d-1f-henry`（`9648efa`）**：基底 = 纯 Henry，叠加 `Assets/_Project`、`Assets/XR`、`Assets/XRI`、
-  `docs/`、`README.md` 与 5 个 XR 依赖。**无 upstream，不会误推。**
+- **本地开发分支 `d-1f-henry`**：基底 = 纯 Henry，叠加我们的一楼内容 + `docs/`、`README.md` 与 5 个 XR 依赖。**无 upstream，不会误推。**
+  - 目录已扁平化（2026-09-29）：`Assets/1FScenes/`（场景）、`Assets/Playground Prefab/`（交付 Prefab）、
+    `Assets/1FArt/`（材质+网格）、`Assets/1FScripts/`（Runtime+Editor 脚本）。旧的 `Assets/_Project`、`Assets/XR`、`Assets/XRI` 已删除。
 - 另有两个历史分支保留内容：`d-1f-work`（基于旧 main，含教室/WU 内容）、`JIAO-backup`（`e6f701f`）。
 - 交付时若要把 `d-1f-henry` 并回 JIAO：`git switch JIAO && git merge d-1f-henry && git push origin JIAO`（先确认删内容是否可接受）。
 
