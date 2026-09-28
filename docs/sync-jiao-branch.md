@@ -2,7 +2,19 @@
 
 > 仓库：`https://github.com/zhangoyini/VR-fire-simulation`
 > 本地仓库：`D:\NOW\PolyU\1st Sem\COMP5424 XR\group11\XR-Fire-Evacuation`
-> 状态：**2026-09-28 已完成**，JIAO 分支 = `7970ec2..5302ec0`，一楼场景 + Prefab + Module D 脚本已上传到远端。
+
+## ⚠️ 最新状态（2026-09-29 更新，以此为准，下方「结论先说」是旧版）
+
+- **远端 `JIAO` = `679984a`（= `Henry-asset-import`），只含 Henry 素材**，已按本人要求清掉 WU 与 Classroom-1 的内容。
+  执行方式：`git reset --hard origin/Henry-asset-import` + `git push --force-with-lease origin JIAO`；旧状态备份在本地 `JIAO-prev-main`（`7970ec2`）。
+- **JIAO 现在落后于 `main`（`7970ec2`）**。若直接 base `main` ← compare `JIAO` 提 PR，合并后会把
+  `Assets/Scenes/classroom2corridorstair.unity`、`Assets/prefab/{elevator,refuge area}.prefab`、
+  `Assets/Scenes/refuge area and elavator scene.unity` 从 main 里**删掉**，并回退 144 个 `.mat`。
+  → 提 PR 前必须先和组长确认口径。
+- **本地开发分支 `d-1f-henry`（`9648efa`）**：基底 = 纯 Henry，叠加 `Assets/_Project`、`Assets/XR`、`Assets/XRI`、
+  `docs/`、`README.md` 与 5 个 XR 依赖。**无 upstream，不会误推。**
+- 另有两个历史分支保留内容：`d-1f-work`（基于旧 main，含教室/WU 内容）、`JIAO-backup`（`e6f701f`）。
+- 交付时若要把 `d-1f-henry` 并回 JIAO：`git switch JIAO && git merge d-1f-henry && git push origin JIAO`（先确认删内容是否可接受）。
 
 ## 结论先说
 
