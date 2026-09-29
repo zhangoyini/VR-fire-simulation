@@ -51,7 +51,7 @@ namespace Harbourview.EditorTools
             report.Append(Line("XR Interaction Toolkit", xri));
             report.Append(Line("XR Plug-in Management", openXrManagement));
 
-            bool scene = AssetDatabase.LoadAssetAtPath<Object>("Assets/1FScenes/AssemblyArea_1F.unity") != null;
+            bool scene = AssetDatabase.LoadAssetAtPath<Object>("Assets/1F/Scenes/AssemblyArea_1F.unity") != null;
             report.Append(Line("Assembly area scene generated", scene));
 
             if (inputSystem && !UsesNewInputSystem())
