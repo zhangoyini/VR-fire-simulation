@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/1F/Scenes/AssemblyArea_1F.unity.meta
 guid: 26e621f462c52db4fa2213561b1a4c36
+========
+guid: 80fae35780e87554a8fc99afdf89ac96
+>>>>>>>> main:Assets/Scenes/LibraryRoom.unity.meta
 DefaultImporter:
   externalObjects: {}
   userData: 
