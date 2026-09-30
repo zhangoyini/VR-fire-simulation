@@ -9,4 +9,4 @@ EditorBuildSettings:
     path: Assets/1F/Scenes/AssemblyArea_1F.unity
     guid: 26e621f462c52db4fa2213561b1a4c36
   m_configObjects:
-    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: cfbec8c1b07cc4caaaf1607260b22dc4, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: fa62bdc543dcb89499dc774a1b63185d, type: 2}
