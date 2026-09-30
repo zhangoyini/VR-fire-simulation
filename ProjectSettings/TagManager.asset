@@ -5,11 +5,14 @@ TagManager:
   serializedVersion: 2
   tags:
   - Door
+  - projectile
+  - FxTemporaire
+  - Floor
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Floor
   - Water
   - UI
   - 
