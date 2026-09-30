@@ -23,6 +23,7 @@ public class VRTeleporter : MonoBehaviour
     private Vector3 teleportTarget;
     private bool isValidLocationFound;
     private bool isAimingTeleport;
+    private readonly RaycastHit[] raycastHits = new RaycastHit[32];
 
     private void Awake()
     {
@@ -78,16 +79,19 @@ public class VRTeleporter : MonoBehaviour
             Vector3 directVector = nextPosition - currentPosition;
 
             
-            if (Physics.Raycast(currentPosition, directVector.normalized, out RaycastHit hit, directVector.magnitude, teleportLayer))
+            if (TryGetFirstBlockingHit(currentPosition, directVector.normalized, directVector.magnitude, out RaycastHit hit))
             {
-                
-                if (hit.collider.GetComponent<TeleportArea>() != null)
+                arcPoints.Add(hit.point);
+
+                bool isTeleportLayer = (teleportLayer.value & (1 << hit.collider.gameObject.layer)) != 0;
+                if (isTeleportLayer && hit.collider.GetComponent<TeleportArea>() != null)
                 {
-                    arcPoints.Add(hit.point);
                     teleportTarget = hit.point;
                     isValidLocationFound = true;
                 }
-                break; 
+
+                // Any first solid hit stops the arc. Only marked floor hits are valid targets.
+                break;
             }
 
             
@@ -102,6 +106,43 @@ public class VRTeleporter : MonoBehaviour
 
         lineRenderer.startColor = isValidLocationFound ? Color.green : Color.red;
         lineRenderer.endColor = isValidLocationFound ? Color.green : Color.red;
+    }
+
+    private bool TryGetFirstBlockingHit(Vector3 origin, Vector3 direction, float distance, out RaycastHit firstHit)
+    {
+        int hitCount = Physics.RaycastNonAlloc(
+            origin,
+            direction,
+            raycastHits,
+            distance,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore);
+
+        bool foundHit = false;
+        firstHit = default;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider candidate = raycastHits[i].collider;
+            if (candidate == null)
+                continue;
+
+            Transform hitTransform = candidate.transform;
+            if (hitTransform == transform || hitTransform.IsChildOf(transform))
+                continue;
+
+            // Do not let the player's own body or rig block its teleport arc.
+            if (playerRoot != null && (hitTransform == playerRoot || hitTransform.IsChildOf(playerRoot)))
+                continue;
+
+            if (!foundHit || raycastHits[i].distance < firstHit.distance)
+            {
+                firstHit = raycastHits[i];
+                foundHit = true;
+            }
+        }
+
+        return foundHit;
     }
 
     private void ExecuteTeleport()
