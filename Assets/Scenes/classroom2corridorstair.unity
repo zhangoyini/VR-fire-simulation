@@ -10523,6 +10523,63 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4558593196022300, guid: 991e8973513e2ad408232c1afeb3a9df, type: 3}
   m_PrefabInstance: {fileID: 1141993240}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1143231485
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 18.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -3.81
+      objectReference: {fileID: 0}
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7322560162931340266, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7635879458783457662, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
+      propertyPath: m_Name
+      value: Blockage_Debris_WestStair
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 057c92082e9d26c46828ddf1fef038ea, type: 3}
 --- !u!1 &1146639088
 GameObject:
   m_ObjectHideFlags: 0
@@ -19539,91 +19596,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4895497590064792, guid: 288b229db858c114299d1bf70ffc95cd, type: 3}
   m_PrefabInstance: {fileID: 2097242874}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &8905334123462095083
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 17.96
-      objectReference: {fileID: 0}
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -3.32
-      objectReference: {fileID: 0}
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 1.21
-      objectReference: {fileID: 0}
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1714596449863584345, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1733908421012382439, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 5.3444963
-      objectReference: {fileID: 0}
-    - target: {fileID: 1733908421012382439, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -2.26
-      objectReference: {fileID: 0}
-    - target: {fileID: 1733908421012382439, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.93
-      objectReference: {fileID: 0}
-    - target: {fileID: 1733908421012382439, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.55
-      objectReference: {fileID: 0}
-    - target: {fileID: 3122380091704424807, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0.29
-      objectReference: {fileID: 0}
-    - target: {fileID: 3122380091704424807, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1.05
-      objectReference: {fileID: 0}
-    - target: {fileID: 3122380091704424807, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.74
-      objectReference: {fileID: 0}
-    - target: {fileID: 6766049114670478922, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
-      propertyPath: m_Name
-      value: Blockage_Debris_WestStair
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 95256d86545a7e448a1f2b231dd98636, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -19644,4 +19616,4 @@ SceneRoots:
   - {fileID: 202809972}
   - {fileID: 1254448925}
   - {fileID: 1941647948}
-  - {fileID: 8905334123462095083}
+  - {fileID: 1143231485}
