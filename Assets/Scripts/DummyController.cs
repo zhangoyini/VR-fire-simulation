@@ -43,7 +43,7 @@ public class DummyController : MonoBehaviour
 
         if (heldInteractable != null && grabAction.GetStateUp(inputSource))
         {
-            heldInteractable.OnInteractEnd(transform);
+            EndHeldInteraction();
             heldInteractable = null;
         }
     }
@@ -121,11 +121,19 @@ public class DummyController : MonoBehaviour
         currentInteractable.OnHoverEnter();
     }
 
+    private void EndHeldInteraction()
+    {
+        if (heldInteractable == null)
+            return;
+
+        heldInteractable.OnInteractEnd(transform);
+    }
+
     private void OnDisable()
     {
         if (heldInteractable != null)
         {
-            heldInteractable.OnInteractEnd(transform);
+            EndHeldInteraction();
             heldInteractable = null;
         }
 

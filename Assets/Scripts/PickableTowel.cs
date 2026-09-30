@@ -2,14 +2,15 @@ using UnityEngine;
 
 public class PickableTowel : MonoBehaviour, IInteractable
 {
-    private Transform originalParent;
     private Rigidbody body;
     private bool wasKinematic;
+    private bool wasUsingGravity;
     private Transform holdingHand;
+    private Vector3 handLocalPosition;
+    private Quaternion handLocalRotation;
 
     private void Awake()
     {
-        originalParent = transform.parent;
         body = GetComponent<Rigidbody>();
     }
 
@@ -23,21 +24,41 @@ public class PickableTowel : MonoBehaviour, IInteractable
             return;
 
         holdingHand = handTransform;
+        handLocalPosition = handTransform.InverseTransformPoint(transform.position);
+        handLocalRotation = Quaternion.Inverse(handTransform.rotation) * transform.rotation;
+
         if (body != null)
         {
             wasKinematic = body.isKinematic;
-            body.isKinematic = true;
-            body.velocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
-        }
+            wasUsingGravity = body.useGravity;
+            if (!wasKinematic)
+            {
+                body.velocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+            }
 
-        // Preserve the towel's hand-relative position and rotation when picked up.
-        transform.SetParent(handTransform, true);
+            body.isKinematic = true;
+            body.useGravity = false;
+        }
     }
 
     public void OnInteract(Transform handTransform)
     {
-        // Parenting makes the towel follow the controller for the duration of the hold.
+        if (holdingHand != handTransform)
+            return;
+
+        Vector3 targetPosition = handTransform.TransformPoint(handLocalPosition);
+        Quaternion targetRotation = handTransform.rotation * handLocalRotation;
+
+        if (body != null)
+        {
+            body.position = targetPosition;
+            body.rotation = targetRotation;
+        }
+        else
+        {
+            transform.SetPositionAndRotation(targetPosition, targetRotation);
+        }
     }
 
     public void OnInteractEnd(Transform handTransform)
@@ -45,9 +66,11 @@ public class PickableTowel : MonoBehaviour, IInteractable
         if (holdingHand != handTransform)
             return;
 
-        transform.SetParent(originalParent, true);
         if (body != null)
+        {
             body.isKinematic = wasKinematic;
+            body.useGravity = wasUsingGravity;
+        }
 
         holdingHand = null;
     }
