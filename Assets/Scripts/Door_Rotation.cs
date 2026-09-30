@@ -1,46 +1,57 @@
-﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class Door_Rotation : MonoBehaviour
+public class Door_Rotation : MonoBehaviour, IInteractable
 {
-    [Header("Rotation Setting")]
-    [SerializeField] private float openAngle = 90f; 
-    [SerializeField] private float openSpeed = 3f;  
+    [Header("Door hinge")]
+    [Tooltip("Assign the door hinge pivot. If empty, this object's transform is used.")]
+    [SerializeField] private Transform hinge;
+    [SerializeField, Min(0f)] private float maxSwingAngle = 110f;
 
-    private bool isOpening = false;
-    private Quaternion startRotation;
-    private Quaternion targetRotation;
+    private Transform activeHand;
+    private Vector3 previousHandPosition;
+    private float currentSwingAngle;
 
-    void Start()
+    private Transform Hinge => hinge != null ? hinge : transform;
+
+    public void OnHoverEnter() { }
+
+    public void OnHoverExit() { }
+
+    public void OnInteractStart(Transform handTransform)
     {
-        startRotation = transform.localRotation;
-
-        targetRotation = startRotation * Quaternion.Euler(0, openAngle, 0);
+        activeHand = handTransform;
+        previousHandPosition = handTransform.position;
     }
 
-    void Update()
+    public void OnInteract(Transform handTransform)
     {
-        if (isOpening)
-        {
-            
-            transform.localRotation = Quaternion.Slerp(transform.localRotation, targetRotation, Time.deltaTime * openSpeed);
+        if (activeHand != handTransform)
+            return;
 
-            if (Quaternion.Angle(transform.localRotation, targetRotation) < 0.1f)
+        Transform pivot = Hinge;
+        Vector3 hingeAxis = pivot.up;
+        Vector3 previousOffset = Vector3.ProjectOnPlane(previousHandPosition - pivot.position, hingeAxis);
+        Vector3 currentOffset = Vector3.ProjectOnPlane(handTransform.position - pivot.position, hingeAxis);
+
+        if (previousOffset.sqrMagnitude > 0.0001f && currentOffset.sqrMagnitude > 0.0001f)
+        {
+            float requestedDelta = Vector3.SignedAngle(previousOffset, currentOffset, hingeAxis);
+            float nextAngle = Mathf.Clamp(currentSwingAngle + requestedDelta, -maxSwingAngle, maxSwingAngle);
+            float appliedDelta = nextAngle - currentSwingAngle;
+
+            if (!Mathf.Approximately(appliedDelta, 0f))
             {
-                transform.localRotation = targetRotation;
-                isOpening = false; 
+                transform.RotateAround(pivot.position, hingeAxis, appliedDelta);
+                currentSwingAngle = nextAngle;
             }
         }
+
+        previousHandPosition = handTransform.position;
     }
 
-    
-    private void OnTriggerEnter(Collider other)
+    public void OnInteractEnd(Transform handTransform)
     {
-        // 檢查掂到道門嘅物體，係咪帶有 "Player" 嘅標籤（Tag）
-        if (other.CompareTag("Player"))
-        {
-            isOpening = true;
-        }
+        if (activeHand == handTransform)
+            activeHand = null;
     }
 }
