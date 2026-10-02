@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 835161721547064672}
   m_Layer: 0
-  m_Name: refuge area+wu
+  m_Name: refuge area 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

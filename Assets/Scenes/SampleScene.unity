@@ -1789,6 +1789,7 @@ GameObject:
   - component: {fileID: 297745386}
   - component: {fileID: 297745388}
   - component: {fileID: 297745387}
+  - component: {fileID: 297745389}
   m_Layer: 0
   m_Name: RightControllerDummy
   m_TagString: Untagged
@@ -1810,6 +1811,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   controller: {fileID: 1348731026}
   inputSource: 2
+--- !u!114 &297745389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 297745382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a0e9df315e945eea4f17e302b1d5f72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputSource: 2
+  triggerAction:
+    actionPath: /actions/default/in/GrabPinch
+    needsReinit: 0
+    isActive: 0
+  rayOrigin: {fileID: 0}
+  directionLine: {fileID: 297745387}
+  maxInteractionDistance: 20
+  interactionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  directionLineColor: {r: 0.2, g: 0.85, b: 1, a: 1}
+  targetLineColor: {r: 1, g: 0.85, b: 0.1, a: 1}
+  targetOutlineColor: {r: 1, g: 0.85, b: 0.1, a: 1}
+  targetOutlineWidth: 0.018
+  vrCamera: {fileID: 20000015370962522}
+  messageDistance: 1
+  messageDuration: 5
 --- !u!4 &297745384
 Transform:
   m_ObjectHideFlags: 0
@@ -7523,7 +7554,7 @@ Transform:
   m_GameObject: {fileID: 1348752354}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 98.32, y: 4.58, z: -7.4}
+  m_LocalPosition: {x: 98.32, y: 4.58, z: -5.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
