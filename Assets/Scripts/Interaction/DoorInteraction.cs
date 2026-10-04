@@ -13,11 +13,11 @@ public class DoorInteraction : MonoBehaviour,IInteractable
     [SerializeField] private DoorType doorType = DoorType.Single;
 
     [Header("Single Door")]
-    [SerializeField] private Transform singleDoorHinge;
+    [SerializeField] private Transform singleDoorPanel;
 
     [Header("Double Door")]
-    [SerializeField] private Transform leftDoorHinge;
-    [SerializeField] private Transform rightDoorHinge;
+    [SerializeField] private Transform leftDoorPanel;
+    [SerializeField] private Transform rightDoorPanel;
 
     [Header("Interaction Reference")]
     [Tooltip("Used to determine which side of the door the user is standing on.")]
@@ -30,6 +30,9 @@ public class DoorInteraction : MonoBehaviour,IInteractable
     [Tooltip("If the door opens in the wrong direction, change this between 1 and -1.")]
     [SerializeField] private float frontOpenDirection = 1f;
 
+    [Header("Interaction Hint")]
+    [SerializeField] private GameObject interactionHint;
+
     private Quaternion singleClosedRotation;
 
     private Quaternion leftClosedRotation;
@@ -38,6 +41,30 @@ public class DoorInteraction : MonoBehaviour,IInteractable
     private bool isOpening = false;
     private bool isOpen = false;
 
+    private void Start()
+    {
+        if (interactionHint != null)
+        {
+            interactionHint.SetActive(false);
+        }
+    }
+
+    public void ShowHint()
+    {
+        if (interactionHint != null)
+        {
+            interactionHint.SetActive(true);
+        }
+    }
+
+    public void HideHint()
+    {
+        if (interactionHint != null)
+        {
+            interactionHint.SetActive(false);
+        }
+    }
+
     private void Awake()
     {
         if (doorReference == null)
@@ -45,21 +72,21 @@ public class DoorInteraction : MonoBehaviour,IInteractable
             doorReference = transform;
         }
 
-        if (doorType == DoorType.Single && singleDoorHinge != null)
+        if (doorType == DoorType.Single && singleDoorPanel != null)
         {
-            singleClosedRotation = singleDoorHinge.localRotation;
+            singleClosedRotation = singleDoorPanel.localRotation;
         }
 
         if (doorType == DoorType.Double)
         {
-            if (leftDoorHinge != null)
+            if (leftDoorPanel != null)
             {
-                leftClosedRotation = leftDoorHinge.localRotation;
+                leftClosedRotation = leftDoorPanel.localRotation;
             }
 
-            if (rightDoorHinge != null)
+            if (rightDoorPanel != null)
             {
-                rightClosedRotation = rightDoorHinge.localRotation;
+                rightClosedRotation = rightDoorPanel.localRotation;
             }
         }
     }
@@ -82,11 +109,13 @@ public class DoorInteraction : MonoBehaviour,IInteractable
     //按下 Grab / Pinch 开始交互时
     public void OnInteractStart(Transform handTransform)
     {
+        Debug.Log("Door OnInteractStart called");
         if (isOpening || isOpen || handTransform == null)
         {
             return;
         }
 
+        HideHint();
         float side = GetUserSide(handTransform);
 
         if (doorType == DoorType.Single)
@@ -132,9 +161,9 @@ public class DoorInteraction : MonoBehaviour,IInteractable
 
     private void OpenSingleDoor(float userSide)
     {
-        if (singleDoorHinge == null)
+        if (singleDoorPanel == null)
         {
-            Debug.LogWarning("Single door hinge is not assigned.");
+            Debug.LogWarning("Single door panel is not assigned.");
             return;
         }
 
@@ -159,9 +188,9 @@ public class DoorInteraction : MonoBehaviour,IInteractable
 
     private void OpenDoubleDoor(float userSide)
     {
-        if (leftDoorHinge == null || rightDoorHinge == null)
+        if (leftDoorPanel == null || rightDoorPanel == null)
         {
-            Debug.LogWarning("Double door hinges are not assigned.");
+            Debug.LogWarning("Double door panel are not assigned.");
             return;
         }
 
@@ -191,12 +220,12 @@ public class DoorInteraction : MonoBehaviour,IInteractable
 
         while (
             Quaternion.Angle(
-                singleDoorHinge.localRotation,
+                singleDoorPanel.localRotation,
                 targetRotation) > 0.1f)
         {
-            singleDoorHinge.localRotation =
+            singleDoorPanel.localRotation =
                 Quaternion.RotateTowards(
-                    singleDoorHinge.localRotation,
+                    singleDoorPanel.localRotation,
                     targetRotation,
                     openSpeed * Time.deltaTime
                 );
@@ -204,7 +233,7 @@ public class DoorInteraction : MonoBehaviour,IInteractable
             yield return null;
         }
 
-        singleDoorHinge.localRotation = targetRotation;
+        singleDoorPanel.localRotation = targetRotation;
 
         isOpening = false;
         isOpen = true;
@@ -218,23 +247,23 @@ public class DoorInteraction : MonoBehaviour,IInteractable
 
         while (
             Quaternion.Angle(
-                leftDoorHinge.localRotation,
+                leftDoorPanel.localRotation,
                 leftTarget) > 0.1f
             ||
             Quaternion.Angle(
-                rightDoorHinge.localRotation,
+                rightDoorPanel.localRotation,
                 rightTarget) > 0.1f)
         {
-            leftDoorHinge.localRotation =
+            leftDoorPanel.localRotation =
                 Quaternion.RotateTowards(
-                    leftDoorHinge.localRotation,
+                    leftDoorPanel.localRotation,
                     leftTarget,
                     openSpeed * Time.deltaTime
                 );
 
-            rightDoorHinge.localRotation =
+            rightDoorPanel.localRotation =
                 Quaternion.RotateTowards(
-                    rightDoorHinge.localRotation,
+                    rightDoorPanel.localRotation,
                     rightTarget,
                     openSpeed * Time.deltaTime
                 );
@@ -242,12 +271,90 @@ public class DoorInteraction : MonoBehaviour,IInteractable
             yield return null;
         }
 
-        leftDoorHinge.localRotation = leftTarget;
-        rightDoorHinge.localRotation = rightTarget;
+        leftDoorPanel.localRotation = leftTarget;
+        rightDoorPanel.localRotation = rightTarget;
 
         isOpening = false;
         isOpen = true;
     }
 
+    public void CloseDoor()
+    {
+        if (isOpening || !isOpen)
+        {
+            return;
+        }
+
+        if (doorType == DoorType.Single)
+        {
+            StartCoroutine(RotateSingleDoorClosed());
+        }
+        else
+        {
+            StartCoroutine(RotateDoubleDoorClosed());
+        }
+    }
+
+    private IEnumerator RotateSingleDoorClosed()
+    {
+        isOpening = true;
+
+        while (
+            Quaternion.Angle(
+                singleDoorPanel.localRotation,
+                singleClosedRotation) > 0.1f)
+        {
+            singleDoorPanel.localRotation =
+                Quaternion.RotateTowards(
+                    singleDoorPanel.localRotation,
+                    singleClosedRotation,
+                    openSpeed * Time.deltaTime
+                );
+
+            yield return null;
+        }
+
+        singleDoorPanel.localRotation = singleClosedRotation;
+
+        isOpening = false;
+        isOpen = false;
+    }
+
+    private IEnumerator RotateDoubleDoorClosed()
+    {
+        isOpening = true;
+
+        while (
+            Quaternion.Angle(
+                leftDoorPanel.localRotation,
+                leftClosedRotation) > 0.1f
+            ||
+            Quaternion.Angle(
+                rightDoorPanel.localRotation,
+                rightClosedRotation) > 0.1f)
+        {
+            leftDoorPanel.localRotation =
+                Quaternion.RotateTowards(
+                    leftDoorPanel.localRotation,
+                    leftClosedRotation,
+                    openSpeed * Time.deltaTime
+                );
+
+            rightDoorPanel.localRotation =
+                Quaternion.RotateTowards(
+                    rightDoorPanel.localRotation,
+                    rightClosedRotation,
+                    openSpeed * Time.deltaTime
+                );
+
+            yield return null;
+        }
+
+        leftDoorPanel.localRotation = leftClosedRotation;
+        rightDoorPanel.localRotation = rightClosedRotation;
+
+        isOpening = false;
+        isOpen = false;
+    }
 
 }
