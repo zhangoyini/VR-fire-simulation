@@ -24,6 +24,7 @@ public class Window_Reminder : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        if (GetComponent<RuntimeFireWindow>() != null) return;
         // Use collision.gameObject to check the tag
         if (collision.gameObject.CompareTag("Player"))
         {

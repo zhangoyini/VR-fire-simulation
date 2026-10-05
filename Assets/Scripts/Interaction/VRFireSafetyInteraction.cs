@@ -7,8 +7,8 @@ using Valve.VR;
 [RequireComponent(typeof(LineRenderer))]
 public class VRFireSafetyInteraction : MonoBehaviour
 {
-    private const string ElevatorWarning = "Do not use the elevator in case of fire!";
-    private const string WindowWarning = "Do not attempt to jump out of a window to escape during a fire";
+    private const string ElevatorWarning = "发生火灾时，请勿使用电梯！\nDo not use the elevator in case of fire!";
+    private const string WindowWarning = "发生火灾时，请勿试图跳窗逃生！\nDo not attempt to jump out of a window to escape during a fire";
 
     private enum SafetyTargetType
     {
@@ -30,6 +30,8 @@ public class VRFireSafetyInteraction : MonoBehaviour
     [SerializeField] private LayerMask interactionLayers = ~0;
     [SerializeField] private Color directionLineColor = new Color(0.2f, 0.85f, 1f, 1f);
     [SerializeField] private Color targetLineColor = new Color(1f, 0.85f, 0.1f, 1f);
+    [Tooltip("Maximum distance from the headset to the elevator button, in metres.")]
+    [SerializeField, Min(0.1f)] private float elevatorInteractionDistance = 1.5f;
 
     [Header("Target edge highlight")]
     [SerializeField] private Color targetOutlineColor = new Color(1f, 0.85f, 0.1f, 1f);
@@ -45,14 +47,27 @@ public class VRFireSafetyInteraction : MonoBehaviour
     private FireSafetyTargetOutline targetOutline;
     private Transform activeTarget;
     private SafetyTargetType activeTargetType;
+    private RuntimeFireWindow activeWindow;
     private bool triggerWasHeld;
     private GameObject messageRoot;
     private TMP_Text messageText;
+    private TMP_FontAsset bilingualFont;
     private float messageHideTime = -1f;
     private bool cameraLookupWarningShown;
     private readonly RaycastHit[] raycastHits = new RaycastHit[64];
 
     private Transform RayTransform => rayOrigin != null ? rayOrigin : transform;
+
+    private Vector3 ViewerPosition
+    {
+        get
+        {
+            if (vrCamera == null) vrCamera = FindVRCamera();
+            return vrCamera != null ? vrCamera.transform.position : RayTransform.position;
+        }
+    }
+
+    private void Start() => RuntimeFireWindow.PrepareScene();
 
     private void Awake()
     {
@@ -94,6 +109,8 @@ public class VRFireSafetyInteraction : MonoBehaviour
         }
         else if (triggerWasHeld)
         {
+            // Recheck aim and proximity at release, not just the preceding frame.
+            UpdateInteractionRay();
             EndInteraction();
         }
 
@@ -151,7 +168,17 @@ public class VRFireSafetyInteraction : MonoBehaviour
         if (activeTargetType == SafetyTargetType.ElevatorButton)
             ShowMessage(ElevatorWarning);
         else if (activeTargetType == SafetyTargetType.Window)
-            ShowMessage(WindowWarning);
+        {
+            if (activeWindow != null && activeWindow.CanInteract(ViewerPosition))
+            {
+                if (activeWindow.IsOpen)
+                {
+                    ShowMessage(WindowWarning);
+                    activeWindow.WarnAndClose();
+                }
+                else activeWindow.Open(ViewerPosition);
+            }
+        }
 
         HideTargetOutline();
 
@@ -169,14 +196,27 @@ public class VRFireSafetyInteraction : MonoBehaviour
             raycastHits,
             maxInteractionDistance,
             interactionLayers,
-            QueryTriggerInteraction.Ignore);
+            QueryTriggerInteraction.Collide);
+
+        RaycastHit[] hits = raycastHits;
+        if (hitCount == raycastHits.Length)
+        {
+            // NonAlloc results are unordered; a full buffer may omit the nearest wall.
+            hits = Physics.RaycastAll(origin, direction, maxInteractionDistance,
+                interactionLayers, QueryTriggerInteraction.Collide);
+            hitCount = hits.Length;
+        }
 
         bool foundHit = false;
 
         for (int i = 0; i < hitCount; i++)
         {
-            RaycastHit candidate = raycastHits[i];
+            RaycastHit candidate = hits[i];
             if (candidate.collider == null)
+                continue;
+
+            // Ignore unrelated trigger volumes; only the open-window target participates.
+            if (candidate.collider.isTrigger && !RuntimeFireWindow.TryFind(candidate.collider, out _))
                 continue;
 
             Transform hitTransform = candidate.collider.transform;
@@ -193,11 +233,20 @@ public class VRFireSafetyInteraction : MonoBehaviour
         return foundHit;
     }
 
-    private static bool TryGetSafetyTarget(
+    private bool TryGetSafetyTarget(
         RaycastHit hit,
         out Transform target,
         out SafetyTargetType targetType)
     {
+        activeWindow = null;
+        if (RuntimeFireWindow.TryFind(hit.collider, out RuntimeFireWindow window) &&
+            window.CanInteract(ViewerPosition))
+        {
+            activeWindow = window;
+            target = window.HighlightTarget;
+            targetType = SafetyTargetType.Window;
+            return true;
+        }
         Transform candidate = hit.collider.transform;
 
         while (candidate != null)
@@ -207,15 +256,10 @@ public class VRFireSafetyInteraction : MonoBehaviour
             if (string.Equals(objectName, "up", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(objectName, "down", StringComparison.OrdinalIgnoreCase))
             {
+                if (Vector3.Distance(ViewerPosition, candidate.position) > elevatorInteractionDistance)
+                    break;
                 target = candidate;
                 targetType = SafetyTargetType.ElevatorButton;
-                return true;
-            }
-
-            if (objectName.StartsWith("Wall_3m_Window_H", StringComparison.OrdinalIgnoreCase))
-            {
-                target = candidate;
-                targetType = SafetyTargetType.Window;
                 return true;
             }
 
@@ -243,6 +287,7 @@ public class VRFireSafetyInteraction : MonoBehaviour
     {
         activeTarget = null;
         activeTargetType = SafetyTargetType.None;
+        activeWindow = null;
 
         if (targetOutline != null)
             targetOutline.Hide();
@@ -291,7 +336,7 @@ public class VRFireSafetyInteraction : MonoBehaviour
         scaler.dynamicPixelsPerUnit = 10f;
 
         RectTransform canvasRect = messageRoot.GetComponent<RectTransform>();
-        canvasRect.sizeDelta = new Vector2(1200f, 300f);
+        canvasRect.sizeDelta = new Vector2(1200f, 400f);
         canvasRect.localScale = Vector3.one * 0.001f;
 
         GameObject backgroundObject = new GameObject("Background");
@@ -308,8 +353,19 @@ public class VRFireSafetyInteraction : MonoBehaviour
         GameObject textObject = new GameObject("Warning Text");
         textObject.transform.SetParent(messageRoot.transform, false);
         messageText = textObject.AddComponent<TextMeshProUGUI>();
-        messageText.font = TMP_Settings.defaultFontAsset;
-        messageText.fontSize = 54f;
+        Font sourceFont = Resources.Load<Font>("NotoSansCJKsc-Regular");
+        if (sourceFont != null)
+        {
+            bilingualFont = TMP_FontAsset.CreateFontAsset(sourceFont);
+            if (!bilingualFont.TryAddCharacters((ElevatorWarning + WindowWarning).Replace("\n", "")))
+                Debug.LogWarning("Some warning characters could not be added to the font atlas.", this);
+        }
+        else Debug.LogError("Missing bundled Chinese font: NotoSansCJKsc-Regular.", this);
+        messageText.font = bilingualFont != null ? bilingualFont : TMP_Settings.defaultFontAsset;
+        messageText.fontSize = 48f;
+        messageText.enableAutoSizing = true;
+        messageText.fontSizeMin = 32f;
+        messageText.fontSizeMax = 48f;
         messageText.color = Color.white;
         messageText.alignment = TextAlignmentOptions.Center;
         messageText.enableWordWrapping = true;
@@ -375,5 +431,13 @@ public class VRFireSafetyInteraction : MonoBehaviour
 
         if (messageRoot != null)
             Destroy(messageRoot);
+
+        if (bilingualFont != null)
+        {
+            foreach (Texture2D atlas in bilingualFont.atlasTextures)
+                if (atlas != null) Destroy(atlas);
+            if (bilingualFont.material != null) Destroy(bilingualFont.material);
+            Destroy(bilingualFont);
+        }
     }
 }
