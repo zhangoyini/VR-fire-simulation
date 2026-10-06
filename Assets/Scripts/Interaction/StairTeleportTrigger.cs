@@ -47,27 +47,27 @@ public class StairTeleportTrigger : MonoBehaviour
         playerRig.rotation = teleportTarget.rotation;
     }
 
-#if UNITY_EDITOR
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            TestTeleportDown();
-        }
-    }
+//#if UNITY_EDITOR
+//    private void Update()
+//    {
+//        if (Input.GetKeyDown(KeyCode.T))
+//        {
+//            TestTeleportDown();
+//        }
+//    }
 
-    private void TestTeleportDown()
-    {
-        if (!floorManager.CanGoDown())
-        {
-            Debug.Log("Already on 1F. Cannot go down.");
-            return;
-        }
+//    private void TestTeleportDown()
+//    {
+//        if (!floorManager.CanGoDown())
+//        {
+//            Debug.Log("Already on 1F. Cannot go down.");
+//            return;
+//        }
 
-        if (floorManager.GoDown())
-        {
-            TeleportPlayer();
-        }
-    }
-#endif
+//        if (floorManager.GoDown())
+//        {
+//            TeleportPlayer();
+//        }
+//    }
+//#endif
 }
