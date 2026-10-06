@@ -57,6 +57,7 @@ namespace Jiao.HealthTime
             if (HealthTimeController.Instance != null)
             {
                 HealthTimeController.Instance.LowHealth += OnLowHealth;
+                HealthTimeController.Instance.LowHealthRecovered += OnLowHealthRecovered;
                 HealthTimeController.Instance.Depleted += OnDepleted;
             }
         }
@@ -66,6 +67,7 @@ namespace Jiao.HealthTime
             if (HealthTimeController.Instance != null)
             {
                 HealthTimeController.Instance.LowHealth -= OnLowHealth;
+                HealthTimeController.Instance.LowHealthRecovered -= OnLowHealthRecovered;
                 HealthTimeController.Instance.Depleted -= OnDepleted;
             }
 
@@ -116,6 +118,11 @@ namespace Jiao.HealthTime
         {
             if (lowHealthWarningClip != null)
                 StartWarning(lowHealthWarningClip);
+        }
+
+        private void OnLowHealthRecovered()
+        {
+            StopWarning();
         }
 
         private void OnDepleted()

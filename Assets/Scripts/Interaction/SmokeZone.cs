@@ -18,6 +18,19 @@ namespace Jiao.HealthTime
         [Tooltip("进入/离开烟雾区时开关的视觉效果，例如粒子系统或半透明烟雾模型")]
         [SerializeField] private GameObject visualEffect;
 
+        [Header("HUD 提示")]
+        [Tooltip("进入烟雾区时是否在 HUD 血条下方显示提示")]
+        [SerializeField] private bool showEnterPrompt = true;
+
+        [Tooltip("提示文字颜色")]
+        [SerializeField] private Color promptColor = new Color(1f, 0.55f, 0.2f);
+
+        [Tooltip("进入烟雾区时的英文提示")]
+        [SerializeField] private string enterPromptEnglish = "Smoke Zone! Time drains faster";
+
+        [Tooltip("进入烟雾区时的中文提示")]
+        [SerializeField] private string enterPromptChinese = "烟雾区！时间流失加快";
+
         private string MultiplierKey => $"smoke_{gameObject.GetInstanceID()}";
         private int _overlappingPlayers = 0;
 
@@ -47,6 +60,11 @@ namespace Jiao.HealthTime
             {
                 HealthTimeController.Instance?.ApplyMultiplier(MultiplierKey, drainMultiplier);
                 SessionLogger.Write("SMOKE_ENTER", $"{{\"zone\":\"{gameObject.name}\",\"multiplier\":{drainMultiplier}}}");
+
+                if (showEnterPrompt)
+                {
+                    FloatingTextManager.ShowLocalizedAtHUD(enterPromptEnglish, enterPromptChinese, promptColor);
+                }
             }
         }
 

@@ -43,6 +43,7 @@ namespace Jiao.HealthTime
         public event System.Action<float> HealthChanged;
         public event System.Action Depleted;
         public event System.Action LowHealth;
+        public event System.Action LowHealthRecovered;
 
         private void Awake()
         {
@@ -82,6 +83,15 @@ namespace Jiao.HealthTime
                     SessionLogger.Write("HEALTH_LOW", $"{{\"percent\":{HealthPercent:F2}}}");
             }
 
+            if (hasTriggeredLowHealth && HealthPercent > lowHealthThreshold)
+            {
+                hasTriggeredLowHealth = false;
+                LowHealthRecovered?.Invoke();
+
+                if (logEvents)
+                    SessionLogger.Write("HEALTH_RECOVERED", $"{{\"percent\":{HealthPercent:F2}}}");
+            }
+
             if (currentHealth <= 0f)
             {
                 Depleted?.Invoke();
@@ -110,9 +120,15 @@ namespace Jiao.HealthTime
             currentHealth = maxHealth;
             multipliers.Clear();
             multiplierExpiry.Clear();
-            hasTriggeredLowHealth = false;
             isPaused = false;
+
+            bool wasLowHealth = hasTriggeredLowHealth;
+            hasTriggeredLowHealth = false;
+
             HealthChanged?.Invoke(HealthPercent);
+
+            if (wasLowHealth)
+                LowHealthRecovered?.Invoke();
 
             if (logEvents)
                 SessionLogger.Write("HEALTH_RESET", $"{{\"maxHealth\":{maxHealth:F2}}}");
@@ -129,6 +145,16 @@ namespace Jiao.HealthTime
         {
             currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
             HealthChanged?.Invoke(HealthPercent);
+
+            // 如果回血后脱离低血量状态，立即触发恢复事件
+            if (hasTriggeredLowHealth && HealthPercent > lowHealthThreshold)
+            {
+                hasTriggeredLowHealth = false;
+                LowHealthRecovered?.Invoke();
+
+                if (logEvents)
+                    SessionLogger.Write("HEALTH_RECOVERED", $"{{\"percent\":{HealthPercent:F2}}}");
+            }
         }
 
         /// <summary>叠加一个外部掉血倍率，例如烟雾区或毛巾减速效果。</summary>

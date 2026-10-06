@@ -23,6 +23,19 @@ namespace Jiao.HealthTime
         [Tooltip("拾取时播放的音效")]
         [SerializeField] private AudioClip pickupSound;
 
+        [Header("浮出文字提示")]
+        [Tooltip("拾取后是否在世界位置显示浮出文字提示")]
+        [SerializeField] private bool showFloatingPrompt = true;
+
+        [Tooltip("提示文字颜色")]
+        [SerializeField] private Color promptColor = new Color(0.2f, 0.85f, 0.4f);
+
+        [Tooltip("英文提示，{0} 会被替换为实际回复数值")]
+        [SerializeField] private string promptEnglishFormat = "+{0} Time";
+
+        [Tooltip("中文提示，{0} 会被替换为实际回复数值")]
+        [SerializeField] private string promptChineseFormat = "+{0} 时间";
+
         [Header("可选视觉")]
         [Tooltip("平时显示的毛巾模型，拾取后隐藏")]
         [SerializeField] private GameObject visualObject;
@@ -74,6 +87,14 @@ namespace Jiao.HealthTime
 
             // 1. 立即回血
             HealthTimeController.Instance?.AddHealth(healAmount);
+
+            // 1.5 浮出文字提示
+            if (showFloatingPrompt)
+            {
+                string english = string.Format(promptEnglishFormat, healAmount);
+                string chinese = string.Format(promptChineseFormat, healAmount);
+                FloatingTextManager.ShowLocalizedAtHUD(english, chinese, promptColor);
+            }
 
             // 2. 限时减速掉血（由 HealthTimeController 内部计时并自动移除）
             HealthTimeController.Instance?.ApplyTimedMultiplier(

@@ -43,6 +43,7 @@ namespace Jiao.HealthTime
             {
                 HealthTimeController.Instance.HealthChanged += OnHealthChanged;
                 HealthTimeController.Instance.LowHealth += OnLowHealth;
+                HealthTimeController.Instance.LowHealthRecovered += OnLowHealthRecovered;
                 HealthTimeController.Instance.Depleted += OnDepleted;
                 OnHealthChanged(HealthTimeController.Instance.HealthPercent);
             }
@@ -72,6 +73,7 @@ namespace Jiao.HealthTime
             {
                 HealthTimeController.Instance.HealthChanged -= OnHealthChanged;
                 HealthTimeController.Instance.LowHealth -= OnLowHealth;
+                HealthTimeController.Instance.LowHealthRecovered -= OnLowHealthRecovered;
                 HealthTimeController.Instance.Depleted -= OnDepleted;
             }
         }
@@ -115,6 +117,11 @@ namespace Jiao.HealthTime
         {
             if (warningImage != null && _flashCoroutine == null)
                 _flashCoroutine = StartCoroutine(FlashWarning());
+        }
+
+        private void OnLowHealthRecovered()
+        {
+            StopWarning();
         }
 
         private IEnumerator FlashWarning()
