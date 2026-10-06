@@ -6,9 +6,13 @@ public class DummyController : MonoBehaviour
     [SerializeField] private GameObject controller;
     [SerializeField] private SteamVR_Input_Sources inputSource = SteamVR_Input_Sources.Any;
 
+    private GameObject holdingHand;
+    private GameObject pushingHand;
+
     private SteamVR_Action_Boolean grabAction;
     private IInteractable currentInteractable;
     private IInteractable heldInteractable;
+    private bool pushingDoor;
     private readonly System.Collections.Generic.List<IInteractable> nearbyInteractables =
         new System.Collections.Generic.List<IInteractable>();
     private readonly System.Collections.Generic.Dictionary<IInteractable, int> colliderCounts =
@@ -17,6 +21,17 @@ public class DummyController : MonoBehaviour
     private void Awake()
     {
         grabAction = SteamVR_Input.GetBooleanAction("GrabPinch");
+
+        if (controller != null)
+        {
+            // Replace the tracked device mesh with a hand model while keeping the
+            // controller pose as the source for this interaction proxy.
+            Transform controllerModel = controller.transform.Find("Model");
+            if (controllerModel != null)
+                controllerModel.gameObject.SetActive(false);
+        }
+
+        BuildHandVisual();
     }
 
     private void Update()
@@ -30,9 +45,12 @@ public class DummyController : MonoBehaviour
         if (grabAction == null)
             return;
 
+        UpdateHandGesture(grabAction.GetState(inputSource), pushingDoor);
+
         if (grabAction.GetStateDown(inputSource) && currentInteractable != null)
         {
             heldInteractable = currentInteractable;
+            pushingDoor = heldInteractable is Door_Rotation || heldInteractable is DoorInteraction;
             heldInteractable.OnInteractStart(transform);
         }
 
@@ -45,7 +63,187 @@ public class DummyController : MonoBehaviour
         {
             EndHeldInteraction();
             heldInteractable = null;
+            pushingDoor = false;
         }
+    }
+
+    private void BuildHandVisual()
+    {
+        Shader iconShader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (iconShader == null)
+            iconShader = Shader.Find("Unlit/Color");
+
+        Material outline = new Material(iconShader);
+        Material fill = new Material(iconShader);
+        if (fill.HasProperty("_Cull"))
+            fill.SetFloat("_Cull", 0f);
+        SetMaterialColor(outline, Color.black);
+        SetMaterialColor(fill, Color.white);
+
+        Vector2[] holdingShape =
+        {
+            new Vector2(-0.030f, -0.105f), new Vector2(-0.032f, -0.155f),
+            new Vector2(0.032f, -0.155f), new Vector2(0.034f, -0.095f),
+            new Vector2(0.061f, -0.072f), new Vector2(0.078f, -0.045f),
+            new Vector2(0.081f, -0.024f), new Vector2(0.073f, -0.008f),
+            new Vector2(0.060f, -0.006f), new Vector2(0.055f, 0.025f),
+            new Vector2(0.044f, 0.041f), new Vector2(0.031f, 0.036f),
+            new Vector2(0.025f, 0.049f), new Vector2(0.011f, 0.051f),
+            new Vector2(0.001f, 0.037f), new Vector2(-0.006f, 0.050f),
+            new Vector2(-0.020f, 0.048f), new Vector2(-0.031f, 0.030f),
+            new Vector2(-0.041f, 0.043f), new Vector2(-0.055f, 0.036f),
+            new Vector2(-0.061f, 0.017f), new Vector2(-0.057f, -0.006f),
+            new Vector2(-0.070f, -0.026f), new Vector2(-0.064f, -0.055f),
+            new Vector2(-0.050f, -0.083f)
+        };
+
+        Vector2[] openPalmShape =
+        {
+            new Vector2(-0.030f, -0.105f), new Vector2(-0.032f, -0.155f),
+            new Vector2(0.032f, -0.155f), new Vector2(0.034f, -0.095f),
+            new Vector2(0.060f, -0.070f), new Vector2(0.080f, -0.035f),
+            new Vector2(0.124f, 0.020f), new Vector2(0.151f, 0.052f),
+            new Vector2(0.160f, 0.066f), new Vector2(0.155f, 0.080f),
+            new Vector2(0.140f, 0.080f), new Vector2(0.095f, 0.040f),
+            new Vector2(0.075f, 0.020f), new Vector2(0.052f, 0.030f),
+            new Vector2(0.052f, 0.125f), new Vector2(0.046f, 0.142f),
+            new Vector2(0.032f, 0.142f), new Vector2(0.025f, 0.126f),
+            new Vector2(0.025f, 0.045f), new Vector2(0.014f, 0.045f),
+            new Vector2(0.014f, 0.150f), new Vector2(0.006f, 0.168f),
+            new Vector2(-0.010f, 0.168f), new Vector2(-0.018f, 0.150f),
+            new Vector2(-0.018f, 0.045f), new Vector2(-0.030f, 0.045f),
+            new Vector2(-0.033f, 0.125f), new Vector2(-0.040f, 0.140f),
+            new Vector2(-0.055f, 0.140f), new Vector2(-0.063f, 0.124f),
+            new Vector2(-0.060f, 0.044f), new Vector2(-0.070f, 0.040f),
+            new Vector2(-0.080f, 0.060f), new Vector2(-0.092f, 0.065f),
+            new Vector2(-0.104f, 0.056f), new Vector2(-0.102f, 0.040f),
+            new Vector2(-0.080f, -0.020f), new Vector2(-0.060f, -0.075f),
+            new Vector2(-0.034f, -0.100f)
+        };
+
+        holdingHand = CreateIconHand("Holding controller hand", holdingShape, outline, fill);
+        holdingHand.transform.localRotation = Quaternion.Euler(0f, 60f, 60f);
+        pushingHand = CreateIconHand("Open palm", openPalmShape, outline, fill);
+        pushingHand.SetActive(false);
+    }
+
+    private static void SetMaterialColor(Material material, Color color)
+    {
+        if (material.HasProperty("_BaseColor"))
+            material.SetColor("_BaseColor", color);
+        if (material.HasProperty("_Color"))
+            material.SetColor("_Color", color);
+    }
+
+    private GameObject CreateIconHand(string handName, Vector2[] outlinePoints, Material outlineMaterial, Material fillMaterial)
+    {
+        GameObject hand = new GameObject(handName);
+        hand.transform.SetParent(transform, false);
+        hand.transform.localScale = Vector3.one * 0.65f;
+
+        Mesh fillMesh = new Mesh { name = handName + " fill" };
+        Vector3[] vertices = new Vector3[outlinePoints.Length];
+        for (int i = 0; i < outlinePoints.Length; i++)
+            vertices[i] = new Vector3(outlinePoints[i].x, outlinePoints[i].y, 0.001f);
+        fillMesh.vertices = vertices;
+        fillMesh.triangles = Triangulate(outlinePoints);
+        fillMesh.RecalculateNormals();
+
+        GameObject fillObject = new GameObject("White fill");
+        fillObject.transform.SetParent(hand.transform, false);
+        fillObject.AddComponent<MeshFilter>().sharedMesh = fillMesh;
+        fillObject.AddComponent<MeshRenderer>().sharedMaterial = fillMaterial;
+
+        GameObject outlineObject = new GameObject("Black outline");
+        outlineObject.transform.SetParent(hand.transform, false);
+        LineRenderer line = outlineObject.AddComponent<LineRenderer>();
+        line.useWorldSpace = false;
+        line.loop = true;
+        line.positionCount = outlinePoints.Length;
+        line.startWidth = 0.009f;
+        line.endWidth = 0.009f;
+        line.numCapVertices = 4;
+        line.numCornerVertices = 4;
+        line.sharedMaterial = outlineMaterial;
+        for (int i = 0; i < outlinePoints.Length; i++)
+            line.SetPosition(i, new Vector3(outlinePoints[i].x, outlinePoints[i].y, -0.001f));
+        return hand;
+    }
+
+    private static int[] Triangulate(Vector2[] points)
+    {
+        System.Collections.Generic.List<int> remaining = new System.Collections.Generic.List<int>();
+        for (int i = 0; i < points.Length; i++)
+            remaining.Add(i);
+        System.Collections.Generic.List<int> triangles = new System.Collections.Generic.List<int>();
+
+        int guard = points.Length * points.Length;
+        while (remaining.Count > 3 && guard-- > 0)
+        {
+            bool earFound = false;
+            for (int i = 0; i < remaining.Count; i++)
+            {
+                int previous = remaining[(i + remaining.Count - 1) % remaining.Count];
+                int current = remaining[i];
+                int next = remaining[(i + 1) % remaining.Count];
+                if (Cross(points[previous], points[current], points[next]) <= 0f)
+                    continue;
+
+                bool containsPoint = false;
+                for (int j = 0; j < remaining.Count; j++)
+                {
+                    int candidate = remaining[j];
+                    if (candidate == previous || candidate == current || candidate == next)
+                        continue;
+                    if (PointInTriangle(points[candidate], points[previous], points[current], points[next]))
+                    {
+                        containsPoint = true;
+                        break;
+                    }
+                }
+                if (containsPoint)
+                    continue;
+
+                triangles.Add(previous);
+                triangles.Add(current);
+                triangles.Add(next);
+                remaining.RemoveAt(i);
+                earFound = true;
+                break;
+            }
+            if (!earFound)
+                break;
+        }
+
+        if (remaining.Count == 3)
+        {
+            triangles.Add(remaining[0]);
+            triangles.Add(remaining[1]);
+            triangles.Add(remaining[2]);
+        }
+        return triangles.ToArray();
+    }
+
+    private static float Cross(Vector2 a, Vector2 b, Vector2 c)
+    {
+        return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    }
+
+    private static bool PointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
+    {
+        float ab = Cross(a, b, p);
+        float bc = Cross(b, c, p);
+        float ca = Cross(c, a, p);
+        return ab >= 0f && bc >= 0f && ca >= 0f;
+    }
+
+    private void UpdateHandGesture(bool gripping, bool doorPush)
+    {
+        if (holdingHand == null || pushingHand == null)
+            return;
+        bool showOpenPalm = doorPush && gripping;
+        holdingHand.SetActive(!showOpenPalm);
+        pushingHand.SetActive(showOpenPalm);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -136,6 +334,7 @@ public class DummyController : MonoBehaviour
             EndHeldInteraction();
             heldInteractable = null;
         }
+        pushingDoor = false;
 
         if (currentInteractable != null)
             currentInteractable.OnHoverExit();
