@@ -8,6 +8,7 @@ public class DummyController : MonoBehaviour
 
     private GameObject holdingHand;
     private GameObject pushingHand;
+    private GameObject buttonPressHand;
 
     private SteamVR_Action_Boolean grabAction;
     private IInteractable currentInteractable;
@@ -45,7 +46,9 @@ public class DummyController : MonoBehaviour
         if (grabAction == null)
             return;
 
-        UpdateHandGesture(grabAction.GetState(inputSource), pushingDoor);
+        UpdateHandGesture(grabAction.GetState(inputSource),
+            pushingDoor || VRFireSafetyInteraction.IsWindowPushGestureActive,
+            VRFireSafetyInteraction.IsElevatorButtonPressGestureActive);
 
         if (grabAction.GetStateDown(inputSource) && currentInteractable != null)
         {
@@ -106,25 +109,51 @@ public class DummyController : MonoBehaviour
             new Vector2(0.160f, 0.066f), new Vector2(0.155f, 0.080f),
             new Vector2(0.140f, 0.080f), new Vector2(0.095f, 0.040f),
             new Vector2(0.075f, 0.020f), new Vector2(0.052f, 0.030f),
-            new Vector2(0.052f, 0.125f), new Vector2(0.046f, 0.142f),
-            new Vector2(0.032f, 0.142f), new Vector2(0.025f, 0.126f),
-            new Vector2(0.025f, 0.045f), new Vector2(0.014f, 0.045f),
-            new Vector2(0.014f, 0.150f), new Vector2(0.006f, 0.168f),
+            new Vector2(0.052f, 0.120f), new Vector2(0.046f, 0.140f),
+            new Vector2(0.032f, 0.140f), new Vector2(0.025f, 0.120f),
+            new Vector2(0.025f, 0.040f), new Vector2(0.012f, 0.040f),
+            new Vector2(0.012f, 0.150f), new Vector2(0.004f, 0.168f),
             new Vector2(-0.010f, 0.168f), new Vector2(-0.018f, 0.150f),
-            new Vector2(-0.018f, 0.045f), new Vector2(-0.030f, 0.045f),
-            new Vector2(-0.033f, 0.125f), new Vector2(-0.040f, 0.140f),
-            new Vector2(-0.055f, 0.140f), new Vector2(-0.063f, 0.124f),
-            new Vector2(-0.060f, 0.044f), new Vector2(-0.070f, 0.040f),
-            new Vector2(-0.080f, 0.060f), new Vector2(-0.092f, 0.065f),
-            new Vector2(-0.104f, 0.056f), new Vector2(-0.102f, 0.040f),
-            new Vector2(-0.080f, -0.020f), new Vector2(-0.060f, -0.075f),
-            new Vector2(-0.034f, -0.100f)
+            new Vector2(-0.018f, 0.040f), new Vector2(-0.030f, 0.040f),
+            new Vector2(-0.035f, 0.130f), new Vector2(-0.043f, 0.145f),
+            new Vector2(-0.057f, 0.145f), new Vector2(-0.064f, 0.130f),
+            new Vector2(-0.063f, 0.040f), new Vector2(-0.075f, 0.040f),
+            new Vector2(-0.080f, 0.105f), new Vector2(-0.088f, 0.120f),
+            new Vector2(-0.102f, 0.118f), new Vector2(-0.108f, 0.105f),
+            new Vector2(-0.102f, 0.035f), new Vector2(-0.080f, -0.020f),
+            new Vector2(-0.060f, -0.075f), new Vector2(-0.034f, -0.100f)
+        };
+
+        Vector2[] buttonPressShape =
+        {
+            new Vector2(-0.030f, -0.105f), new Vector2(-0.032f, -0.155f),
+            new Vector2(0.032f, -0.155f), new Vector2(0.034f, -0.095f),
+            new Vector2(0.065f, -0.055f), new Vector2(0.086f, -0.008f),
+            new Vector2(0.083f, 0.012f), new Vector2(0.068f, 0.018f),
+            new Vector2(0.052f, -0.008f), new Vector2(0.043f, -0.005f),
+            new Vector2(0.043f, 0.050f), new Vector2(0.038f, 0.066f),
+            new Vector2(0.024f, 0.066f), new Vector2(0.019f, 0.053f),
+            new Vector2(0.018f, 0.023f), new Vector2(0.006f, 0.022f),
+            new Vector2(0.005f, 0.133f), new Vector2(-0.002f, 0.150f),
+            new Vector2(-0.016f, 0.150f), new Vector2(-0.024f, 0.134f),
+            new Vector2(-0.024f, 0.012f), new Vector2(-0.038f, 0.050f),
+            new Vector2(-0.052f, 0.067f), new Vector2(-0.066f, 0.060f),
+            new Vector2(-0.067f, 0.044f), new Vector2(-0.048f, 0.002f),
+            new Vector2(-0.055f, -0.045f)
         };
 
         holdingHand = CreateIconHand("Holding controller hand", holdingShape, outline, fill);
         holdingHand.transform.localRotation = Quaternion.Euler(0f, 60f, 60f);
         pushingHand = CreateIconHand("Open palm", openPalmShape, outline, fill);
         pushingHand.SetActive(false);
+        buttonPressHand = CreateIconHand("Button press finger", buttonPressShape, outline, fill);
+        buttonPressHand.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+        CreateIconDigitBump(buttonPressHand.transform, new Vector2(-0.060f, 0.012f),
+            new Vector2(0.024f, 0.016f), outline, fill);
+        LineRenderer buttonOutline = buttonPressHand.GetComponentInChildren<LineRenderer>();
+        buttonOutline.startWidth = 0.011f;
+        buttonOutline.endWidth = 0.011f;
+        buttonPressHand.SetActive(false);
     }
 
     private static void SetMaterialColor(Material material, Color color)
@@ -133,6 +162,49 @@ public class DummyController : MonoBehaviour
             material.SetColor("_BaseColor", color);
         if (material.HasProperty("_Color"))
             material.SetColor("_Color", color);
+    }
+
+    private static void CreateIconDigitBump(Transform parent, Vector2 center, Vector2 radius,
+        Material outlineMaterial, Material fillMaterial)
+    {
+        const int segments = 16;
+        Vector3[] vertices = new Vector3[segments + 1];
+        vertices[0] = new Vector3(center.x, center.y, 0.003f);
+        Vector3[] linePoints = new Vector3[segments];
+        int[] triangles = new int[segments * 3];
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = i * Mathf.PI * 2f / segments;
+            float x = center.x + Mathf.Cos(angle) * radius.x;
+            float y = center.y + Mathf.Sin(angle) * radius.y;
+            vertices[i + 1] = new Vector3(x, y, 0.003f);
+            linePoints[i] = new Vector3(x, y, 0.005f);
+            triangles[i * 3] = 0;
+            triangles[i * 3 + 1] = i + 1;
+            triangles[i * 3 + 2] = (i + 1) % segments + 1;
+        }
+
+        GameObject digit = new GameObject("Extra curled finger");
+        digit.transform.SetParent(parent, false);
+        Mesh mesh = new Mesh { name = "Extra curled finger fill" };
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        digit.AddComponent<MeshFilter>().sharedMesh = mesh;
+        digit.AddComponent<MeshRenderer>().sharedMaterial = fillMaterial;
+
+        GameObject outline = new GameObject("Extra curled finger outline");
+        outline.transform.SetParent(parent, false);
+        LineRenderer line = outline.AddComponent<LineRenderer>();
+        line.useWorldSpace = false;
+        line.loop = true;
+        line.positionCount = segments;
+        line.startWidth = 0.011f;
+        line.endWidth = 0.011f;
+        line.numCapVertices = 4;
+        line.numCornerVertices = 4;
+        line.sharedMaterial = outlineMaterial;
+        line.SetPositions(linePoints);
     }
 
     private GameObject CreateIconHand(string handName, Vector2[] outlinePoints, Material outlineMaterial, Material fillMaterial)
@@ -237,13 +309,15 @@ public class DummyController : MonoBehaviour
         return ab >= 0f && bc >= 0f && ca >= 0f;
     }
 
-    private void UpdateHandGesture(bool gripping, bool doorPush)
+    private void UpdateHandGesture(bool gripping, bool doorPush, bool buttonPress)
     {
-        if (holdingHand == null || pushingHand == null)
+        if (holdingHand == null || pushingHand == null || buttonPressHand == null)
             return;
-        bool showOpenPalm = doorPush && gripping;
-        holdingHand.SetActive(!showOpenPalm);
+        bool showButtonPress = buttonPress && gripping;
+        bool showOpenPalm = doorPush && gripping && !showButtonPress;
+        holdingHand.SetActive(!showOpenPalm && !showButtonPress);
         pushingHand.SetActive(showOpenPalm);
+        buttonPressHand.SetActive(showButtonPress);
     }
 
     private void OnTriggerEnter(Collider other)

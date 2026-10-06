@@ -10,6 +10,9 @@ public class VRFireSafetyInteraction : MonoBehaviour
     private const string ElevatorWarning = "发生火灾时，请勿使用电梯！\nDo not use the elevator in case of fire!";
     private const string WindowWarning = "发生火灾时，请勿试图跳窗逃生！\nDo not attempt to jump out of a window to escape during a fire";
 
+    public static bool IsWindowPushGestureActive { get; private set; }
+    public static bool IsElevatorButtonPressGestureActive { get; private set; }
+
     private enum SafetyTargetType
     {
         None,
@@ -96,7 +99,11 @@ public class VRFireSafetyInteraction : MonoBehaviour
         UpdateMessageTimer();
 
         if (triggerAction == null)
+        {
+            IsWindowPushGestureActive = false;
+            IsElevatorButtonPressGestureActive = false;
             return;
+        }
 
         bool triggerHeld = triggerAction.GetState(inputSource);
 
@@ -113,6 +120,9 @@ public class VRFireSafetyInteraction : MonoBehaviour
             UpdateInteractionRay();
             EndInteraction();
         }
+
+        IsWindowPushGestureActive = triggerHeld && activeTargetType == SafetyTargetType.Window;
+        IsElevatorButtonPressGestureActive = triggerHeld && activeTargetType == SafetyTargetType.ElevatorButton;
 
         triggerWasHeld = triggerHeld;
     }
@@ -418,6 +428,8 @@ public class VRFireSafetyInteraction : MonoBehaviour
     private void OnDisable()
     {
         triggerWasHeld = false;
+        IsWindowPushGestureActive = false;
+        IsElevatorButtonPressGestureActive = false;
         HideTargetOutline();
 
         if (directionLine != null)
