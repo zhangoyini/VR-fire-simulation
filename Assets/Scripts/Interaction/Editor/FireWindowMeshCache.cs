@@ -22,7 +22,7 @@ public sealed class FireWindowMeshCache : IPreprocessBuildWithReport
 
     public void OnPreprocessBuild(BuildReport report) => EnsureCache();
 
-    private static void EnsureCache()
+    public static void EnsureCache()
     {
         if (EditorApplication.isPlaying) return;
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);

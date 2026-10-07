@@ -390,6 +390,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 843391191410719319}
+  - component: {fileID: 3593041846650090645}
+  - component: {fileID: 4110627735272961480}
   m_Layer: 0
   m_Name: elevator(button))+wu
   m_TagString: Untagged
@@ -418,6 +420,35 @@ Transform:
   - {fileID: 360942683919652294}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -270, z: 0}
+--- !u!114 &3593041846650090645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2607722358494575993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d16ed8aa2cc498c94db618f42155a13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  warningFont: {fileID: 12800000, guid: cd6e86ec44e9b0c42a3929ddd8953cbe, type: 3}
+  rayMaterial: {fileID: 2100000, guid: 43258d180a8c8e845b7086ededd74716, type: 2}
+--- !u!114 &4110627735272961480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2607722358494575993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc0302f797b6475aaa8704569864e222, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  upButton: {fileID: 488880391697292535}
+  downButton: {fileID: 8145184904947268872}
+  interactionDistance: 1.5
 --- !u!1001 &3270553693840991859
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -2,8 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[DisallowMultipleComponent]
+[RequireComponent(typeof(FireSafetyPrefabSupport))]
 public sealed class RuntimeFireWindow : MonoBehaviour
 {
+    [SerializeField] private Mesh readableWindowMesh;
     private static readonly Dictionary<Collider, RuntimeFireWindow> Panes = new Dictionary<Collider, RuntimeFireWindow>();
     private Mesh wallMesh, paneMesh;
     private Material glassMaterial;
@@ -17,20 +20,15 @@ public sealed class RuntimeFireWindow : MonoBehaviour
     public bool IsOpen => open;
     public float Reach { get; private set; }
 
-    public static void PrepareScene()
+    private void Awake()
     {
-        Mesh source = Resources.Load<Mesh>("FireWindowMesh");
+        Mesh source = readableWindowMesh != null ? readableWindowMesh : Resources.Load<Mesh>("FireWindowMesh");
         if (source == null)
         {
             Debug.LogError("FireWindowMesh cache is missing. Exit Play mode and allow the editor to generate it.");
             return;
         }
-        foreach (MeshFilter filter in Resources.FindObjectsOfTypeAll<MeshFilter>())
-        {
-            if (!filter.gameObject.scene.IsValid() || !filter.name.StartsWith("Wall_3m_Window_H") ||
-                filter.GetComponent<RuntimeFireWindow>() != null) continue;
-            filter.gameObject.AddComponent<RuntimeFireWindow>().Build(source, filter);
-        }
+        Build(source, GetComponent<MeshFilter>());
     }
 
     public static bool TryFind(Collider collider, out RuntimeFireWindow window)

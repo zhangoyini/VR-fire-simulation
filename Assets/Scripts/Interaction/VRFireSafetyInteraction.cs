@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,8 +32,6 @@ public class VRFireSafetyInteraction : MonoBehaviour
     [SerializeField] private LayerMask interactionLayers = ~0;
     [SerializeField] private Color directionLineColor = new Color(0.2f, 0.85f, 1f, 1f);
     [SerializeField] private Color targetLineColor = new Color(1f, 0.85f, 0.1f, 1f);
-    [Tooltip("Maximum distance from the headset to the elevator button, in metres.")]
-    [SerializeField, Min(0.1f)] private float elevatorInteractionDistance = 1.5f;
 
     [Header("Target edge highlight")]
     [SerializeField] private Color targetOutlineColor = new Color(1f, 0.85f, 0.1f, 1f);
@@ -55,6 +52,7 @@ public class VRFireSafetyInteraction : MonoBehaviour
     private GameObject messageRoot;
     private TMP_Text messageText;
     private TMP_FontAsset bilingualFont;
+    private Font prefabWarningFont;
     private float messageHideTime = -1f;
     private bool cameraLookupWarningShown;
     private readonly RaycastHit[] raycastHits = new RaycastHit[64];
@@ -70,7 +68,10 @@ public class VRFireSafetyInteraction : MonoBehaviour
         }
     }
 
-    private void Start() => RuntimeFireWindow.PrepareScene();
+    public void ConfigurePrefabResources(Font warningFont)
+    {
+        if (warningFont != null) prefabWarningFont = warningFont;
+    }
 
     private void Awake()
     {
@@ -257,23 +258,11 @@ public class VRFireSafetyInteraction : MonoBehaviour
             targetType = SafetyTargetType.Window;
             return true;
         }
-        Transform candidate = hit.collider.transform;
-
-        while (candidate != null)
+        FireSafetyElevator elevator = hit.collider.GetComponentInParent<FireSafetyElevator>();
+        if (elevator != null && elevator.TryGetButton(hit.collider, ViewerPosition, out target))
         {
-            string objectName = candidate.name;
-
-            if (string.Equals(objectName, "up", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(objectName, "down", StringComparison.OrdinalIgnoreCase))
-            {
-                if (Vector3.Distance(ViewerPosition, candidate.position) > elevatorInteractionDistance)
-                    break;
-                target = candidate;
-                targetType = SafetyTargetType.ElevatorButton;
-                return true;
-            }
-
-            candidate = candidate.parent;
+            targetType = SafetyTargetType.ElevatorButton;
+            return true;
         }
 
         target = null;
@@ -363,7 +352,7 @@ public class VRFireSafetyInteraction : MonoBehaviour
         GameObject textObject = new GameObject("Warning Text");
         textObject.transform.SetParent(messageRoot.transform, false);
         messageText = textObject.AddComponent<TextMeshProUGUI>();
-        Font sourceFont = Resources.Load<Font>("NotoSansCJKsc-Regular");
+        Font sourceFont = prefabWarningFont != null ? prefabWarningFont : Resources.Load<Font>("NotoSansCJKsc-Regular");
         if (sourceFont != null)
         {
             bilingualFont = TMP_FontAsset.CreateFontAsset(sourceFont);
