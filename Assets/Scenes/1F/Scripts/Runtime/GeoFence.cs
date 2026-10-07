@@ -12,6 +12,8 @@ namespace Harbourview.Journey
     public sealed class GeoFence : MonoBehaviour
     {
         [SerializeField] private LayerMask targetLayers = ~0;
+        [Tooltip("Optional exact player-body collider. Other colliders cannot enter or reset this zone.")]
+        [SerializeField] private Collider requiredCollider;
         [SerializeField] private bool requireStateMatch;
         [SerializeField] private JourneyState expectedState = JourneyState.CorridorDecision;
         [SerializeField] private float dwellSeconds = 0.8f;
@@ -103,7 +105,8 @@ namespace Harbourview.Journey
 
         private bool IsTarget(Collider other)
         {
-            return (targetLayers.value & (1 << other.gameObject.layer)) != 0;
+            return (requiredCollider == null || other == requiredCollider)
+                && (targetLayers.value & (1 << other.gameObject.layer)) != 0;
         }
 
         private bool StateMatches()
