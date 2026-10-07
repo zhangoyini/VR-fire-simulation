@@ -47,14 +47,9 @@ public class DummyController : MonoBehaviour
             return;
 
         bool gripping = grabAction.GetState(inputSource);
-        bool windowPushGesture = VRFireSafetyInteraction.IsWindowPushGestureActive;
-        bool elevatorButtonGesture = VRFireSafetyInteraction.IsElevatorButtonPressGestureActive;
-
-        // The safety interaction component currently tracks the right controller.
-        // Let the left dummy identify the same targets from its own pose so its
-        // gesture follows the left hand rather than the right hand's target state.
-        if (inputSource == SteamVR_Input_Sources.LeftHand)
-            GetLeftHandSafetyGesture(out windowPushGesture, out elevatorButtonGesture);
+        // Determine the safety gesture from this hand's own pose. The interaction
+        // component's shared gesture flags can be overwritten by the other hand.
+        GetSafetyGesture(out bool windowPushGesture, out bool elevatorButtonGesture);
 
         UpdateHandGesture(gripping,
             pushingDoor || windowPushGesture,
@@ -80,7 +75,7 @@ public class DummyController : MonoBehaviour
         }
     }
 
-    private void GetLeftHandSafetyGesture(out bool windowPush, out bool buttonPress)
+    private void GetSafetyGesture(out bool windowPush, out bool buttonPress)
     {
         windowPush = false;
         buttonPress = false;
