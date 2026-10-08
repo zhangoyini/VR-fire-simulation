@@ -1,0 +1,38 @@
+System UI audio sources
+
+Author: Kenney
+Pack: Interface Sounds 1.0
+Source: https://kenney.nl/assets/interface-sounds
+Official archive: https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip
+License: CC0 1.0 Universal (public-domain dedication)
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+Attribution is not required. Original audio bytes preserved; only filenames changed.
+
+UI_Click.ogg <- Audio/click_001.ogg (0.100 seconds)
+GameOver.ogg <- Audio/error_003.ogg (0.533 seconds)
+Victory.ogg <- Audio/confirmation_002.ogg (0.539 seconds; deliberately brief confirmation)
+
+Importer: Decompress On Load, PCM, original sample rate, preload enabled, normalization disabled.
+Looping is controlled by existing PlayOneShot playback, not by the AudioImporter.
+
+Original pack license:
+Interface Sounds (1.0)
+
+	Created/distributed by Kenney (www.kenney.nl)
+	Creation date: 11-02-2020
+
+			------------------------------
+
+	License: (Creative Commons Zero, CC0)
+	http://creativecommons.org/publicdomain/zero/1.0/
+
+	This content is free to use in personal, educational and commercial projects.
+	Support us by crediting Kenney or www.kenney.nl (this is not mandatory)
+
+			------------------------------
+
+	Donate:   http://support.kenney.nl
+	Patreon:  http://patreon.com/kenney/
+
+	Follow on Twitter for updates:
+	http://twitter.com/KenneyNL
