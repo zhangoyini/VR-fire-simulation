@@ -642,6 +642,12 @@ MonoBehaviour:
   upStairGroup: {fileID: 1230783169923881419}
   downStairGroup: {fileID: 2385097290607202768}
   groundFloorFill: {fileID: 578773856973774635}
+  objectsToDestroyOnSecondFloor:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &6085859978757844091
 GameObject:
   m_ObjectHideFlags: 0
