@@ -7,15 +7,39 @@ public class Door_Rotation : MonoBehaviour, IInteractable
     [SerializeField] private Transform hinge;
     [SerializeField, Min(0f)] private float maxSwingAngle = 110f;
 
+    [Header("Interaction Hint")]
+    [SerializeField] private GameObject interactionHint;
+
     private Transform activeHand;
     private Vector3 previousHandPosition;
     private float currentSwingAngle;
 
     private Transform Hinge => hinge != null ? hinge : transform;
 
-    public void OnHoverEnter() { }
+    private void Start()
+    {
+        if (interactionHint != null)
+        {
+            interactionHint.SetActive(false);
+        }
+    }
 
-    public void OnHoverExit() { }
+
+    public void OnHoverEnter() {
+        Debug.Log("Door hover enter");
+        if (interactionHint != null)
+        {
+            interactionHint.SetActive(true);
+        }
+    }
+
+    public void OnHoverExit() {
+        Debug.Log("Door hover exist");
+        if (interactionHint != null)
+        {
+            interactionHint.SetActive(false);
+        }
+    }
 
     public void OnInteractStart(Transform handTransform)
     {
