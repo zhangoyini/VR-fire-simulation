@@ -46,9 +46,14 @@ public class DummyController : MonoBehaviour
         if (grabAction == null)
             return;
 
-        UpdateHandGesture(grabAction.GetState(inputSource),
-            pushingDoor || VRFireSafetyInteraction.IsWindowPushGestureActive,
-            VRFireSafetyInteraction.IsElevatorButtonPressGestureActive);
+        bool gripping = grabAction.GetState(inputSource);
+        // Determine the safety gesture from this hand's own pose. The interaction
+        // component's shared gesture flags can be overwritten by the other hand.
+        GetSafetyGesture(out bool windowPushGesture, out bool elevatorButtonGesture);
+
+        UpdateHandGesture(gripping,
+            pushingDoor || windowPushGesture,
+            elevatorButtonGesture);
 
         if (grabAction.GetStateDown(inputSource) && currentInteractable != null)
         {
@@ -67,6 +72,48 @@ public class DummyController : MonoBehaviour
             EndHeldInteraction();
             heldInteractable = null;
             pushingDoor = false;
+        }
+    }
+
+    private void GetSafetyGesture(out bool windowPush, out bool buttonPress)
+    {
+        windowPush = false;
+        buttonPress = false;
+
+        Vector3 viewerPosition = Camera.main != null ? Camera.main.transform.position : transform.position;
+        RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward, 20f,
+            ~0, QueryTriggerInteraction.Collide);
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null || (hitCollider.isTrigger &&
+                !RuntimeFireWindow.TryFind(hitCollider, out _)))
+                continue;
+
+            if (RuntimeFireWindow.TryFind(hitCollider, out RuntimeFireWindow window) &&
+                window.CanInteract(viewerPosition))
+            {
+                windowPush = true;
+                return;
+            }
+
+            Transform candidate = hitCollider.transform;
+            while (candidate != null)
+            {
+                if ((string.Equals(candidate.name, "up", System.StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(candidate.name, "down", System.StringComparison.OrdinalIgnoreCase)) &&
+                    Vector3.Distance(viewerPosition, candidate.position) <= 1.5f)
+                {
+                    buttonPress = true;
+                    return;
+                }
+                candidate = candidate.parent;
+            }
+
+            // A nearer solid surface blocks safety targets behind it.
+            return;
         }
     }
 

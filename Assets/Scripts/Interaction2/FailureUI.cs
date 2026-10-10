@@ -14,6 +14,9 @@ namespace Jiao.HealthTime
         [Tooltip("失败面板根物体，默认应处于隐藏状态")]
         [SerializeField] private GameObject failurePanel;
 
+        [Tooltip("Optional shared outcome gate; leave unassigned for existing failure-only scenes.")]
+        [SerializeField] private ResolutionCoordinator resolutionCoordinator;
+
         [Tooltip("失败提示文字的双语组件（可选）。显示内容在 Inspector 的 LocalizedText 里填写")]
         [SerializeField] private LocalizedText failureMessageLocalized;
 
@@ -45,6 +48,9 @@ namespace Jiao.HealthTime
 
         private void ShowFailure()
         {
+            if (resolutionCoordinator != null && !resolutionCoordinator.TryClaimGameOver())
+                return;
+
             if (failurePanel != null)
                 failurePanel.SetActive(true);
 

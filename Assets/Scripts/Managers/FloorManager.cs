@@ -17,6 +17,11 @@ public class FloorManager : MonoBehaviour
     [SerializeField] private GameObject downStairGroup;
     [SerializeField] private GameObject groundFloorFill;
 
+    [Header("Objects to Destroy on 2F")]
+    [SerializeField] private GameObject[] objectsToDestroyOnSecondFloor;
+
+    private bool secondFloorObjectsDestroyed;
+
     public int CurrentFloor => currentFloor;
 
     private void Start()
@@ -46,6 +51,11 @@ public class FloorManager : MonoBehaviour
         currentFloor--;
         UpdateFloorDisplay();
         UpdateStairVisibility();
+
+        if (currentFloor == 2)
+        {
+            DestroySecondFloorObjects();
+        }
 
         Debug.Log("Current Floor: " + currentFloor);
         return true;
@@ -77,13 +87,13 @@ public class FloorManager : MonoBehaviour
 
     private void UpdateStairVisibility()
     {
-        // Ä¬ÈÏ¶¼ÏÔÊ¾
+        // é»˜è®¤éƒ½æ˜¾ç¤º
         topFloorFill.SetActive(true);
         upStairGroup.SetActive(true);
         downStairGroup.SetActive(true);
         groundFloorFill.SetActive(false);
 
-        // 4F£ºÃ»ÓÐ¸ü¸ßÂ¥²ã
+        // 4Fï¼šæ²¡æœ‰æ›´é«˜æ¥¼å±‚
         if (currentFloor == maxFloor)
         {
             upStairGroup.SetActive(false);
@@ -93,11 +103,34 @@ public class FloorManager : MonoBehaviour
             topFloorFill.SetActive(false);
         }
 
-        // 1F£ºÃ»ÓÐ¸üµÍÂ¥²ã
+        // 1Fï¼šæ²¡æœ‰æ›´ä½Žæ¥¼å±‚
         if (currentFloor == minFloor)
         {
             downStairGroup.SetActive(false);
             groundFloorFill.SetActive(true);
+        }
+    }
+
+    private void DestroySecondFloorObjects()
+    {
+        if (secondFloorObjectsDestroyed)
+        {
+            return;
+        }
+
+        secondFloorObjectsDestroyed = true;
+
+        if (objectsToDestroyOnSecondFloor == null)
+        {
+            return;
+        }
+
+        foreach (GameObject target in objectsToDestroyOnSecondFloor)
+        {
+            if (target != null)
+            {
+                Destroy(target);
+            }
         }
     }
 }
