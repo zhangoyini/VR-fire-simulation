@@ -1,73 +1,43 @@
+using System;
 using UnityEngine;
 
 public class StairTeleportTrigger : MonoBehaviour
 {
+    [Serializable]
+    private class FloorRoute
+    {
+        [SerializeField] private int fromFloor;
+        [SerializeField] private int toFloor;
+        [SerializeField] private Transform landingTarget;
+
+        public int FromFloor => fromFloor;
+        public int ToFloor => toFloor;
+        public Transform LandingTarget => landingTarget;
+    }
+
     [Header("References")]
     [SerializeField] private FloorManager floorManager;
-    [SerializeField] private Transform teleportTarget;
     [SerializeField] private Transform playerRig;
+    [SerializeField] private string playerTag = "Player";
 
-    private bool isTeleporting = false;
+    [Header("Routes")]
+    [Tooltip("Add one route per starting floor. Assign each route's destination floor and landing Transform in the Inspector.")]
+    [SerializeField] private FloorRoute[] routes;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (isTeleporting)
-            return;
-
-        if (!other.CompareTag("Player"))
-            return;
-
-        if (!floorManager.CanGoDown())
+        if (!other.CompareTag(playerTag) || floorManager == null || routes == null)
         {
-            Debug.Log("Already on 1F. Cannot go down.");
             return;
         }
 
-        isTeleporting = true;
-
-        bool success = floorManager.GoDown();
-
-        if (success)
+        foreach (FloorRoute route in routes)
         {
-            TeleportPlayer();
+            if (route != null && route.FromFloor == floorManager.CurrentFloor)
+            {
+                floorManager.TryTransition(route.ToFloor, route.LandingTarget, playerRig);
+                return;
+            }
         }
-
-        isTeleporting = false;
     }
-
-    private void TeleportPlayer()
-    {
-        if (teleportTarget == null || playerRig == null)
-        {
-            Debug.LogWarning("Teleport Target or Player Rig is not assigned.");
-            return;
-        }
-
-        playerRig.position = teleportTarget.position;
-        playerRig.rotation = teleportTarget.rotation;
-    }
-
-//#if UNITY_EDITOR
-//    private void Update()
-//    {
-//        if (Input.GetKeyDown(KeyCode.T))
-//        {
-//            TestTeleportDown();
-//        }
-//    }
-
-//    private void TestTeleportDown()
-//    {
-//        if (!floorManager.CanGoDown())
-//        {
-//            Debug.Log("Already on 1F. Cannot go down.");
-//            return;
-//        }
-
-//        if (floorManager.GoDown())
-//        {
-//            TeleportPlayer();
-//        }
-//    }
-//#endif
 }
