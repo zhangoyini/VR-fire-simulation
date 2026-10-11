@@ -33,8 +33,7 @@ public class VRTeleporter : MonoBehaviour
         if (teleportAction == null)
             teleportAction = SteamVR_Input.GetBooleanAction("Teleport");
 
-        if (vrCamera != null && vrCamera.GetComponent<VRControlTutorial>() == null)
-            vrCamera.gameObject.AddComponent<VRControlTutorial>();
+
     }
 
     private void LateUpdate()
