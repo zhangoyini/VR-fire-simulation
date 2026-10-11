@@ -48,11 +48,16 @@ namespace Jiao.HealthTime
 
         private void ShowFailure()
         {
-            if (resolutionCoordinator != null && !resolutionCoordinator.TryClaimGameOver())
-                return;
-
-            if (failurePanel != null)
+            // 优先使用 SystemUI 的 GameOver 面板
+            if (resolutionCoordinator != null)
+            {
+                resolutionCoordinator.ShowGameOver();
+            }
+            // 只有没有 SystemUI 时，才 fallback 到自己的面板
+            else if (failurePanel != null)
+            {
                 failurePanel.SetActive(true);
+            }
 
             // 暂停血量流失，防止失败后面板还继续扣血
             HealthTimeController.Instance?.Pause(true);
@@ -74,6 +79,7 @@ namespace Jiao.HealthTime
             if (failureMessageLocalized != null)
                 failureMessageLocalized.Refresh();
         }
+
 
         /// <summary>Restart 按钮点击事件。</summary>
         public void OnRestartButton()
