@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +6,8 @@ using UnityEngine;
 public sealed class RuntimeFireWindow : MonoBehaviour
 {
     [SerializeField] private Mesh readableWindowMesh;
+    [SerializeField, Min(0.01f)] private float maxPushDistance = 0.35f;
+    [SerializeField, Range(1f, 170f)] private float maxOpenAngle = 85f;
     private static readonly Dictionary<Collider, RuntimeFireWindow> Panes = new Dictionary<Collider, RuntimeFireWindow>();
     private Mesh wallMesh, paneMesh;
     private Material glassMaterial;
@@ -14,10 +15,19 @@ public sealed class RuntimeFireWindow : MonoBehaviour
     private BoxCollider paneCollider;
     private BoxCollider openWindowTarget;
     private Bounds glassBounds;
-    private bool open, busy;
+    private bool open, pushing;
     private float angle;
-    public Transform HighlightTarget => open ? transform : pane;
+    private float openingAmount;
+    private float openingSign;
+    private float pushStartAmount;
+    private Vector3 pushStartPosition;
+    private Vector3 outwardNormal;
+
+    public Transform HighlightTarget => pane != null ? pane : transform;
     public bool IsOpen => open;
+    public bool IsPushing => pushing;
+    public float OpeningAmount => openingAmount;
+    public float LastPushDelta { get; private set; }
     public float Reach { get; private set; }
 
     private void Awake()
@@ -74,10 +84,15 @@ public sealed class RuntimeFireWindow : MonoBehaviour
         openWindowTarget.isTrigger = true;
         openWindowTarget.enabled = false;
 
-        pivot = new GameObject("Window right hinge (runtime)").transform;
+        // The real window hinges along its upper edge, so the handle/bottom edge
+        // moves away from the wall when the user pushes it.
+        pivot = new GameObject("Window top hinge (runtime)").transform;
         UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(pivot.gameObject, gameObject.scene);
-        pivot.position = transform.TransformPoint(glassBounds.center);
-        pivot.rotation = Quaternion.LookRotation(transform.forward, transform.up);
+        pivot.position = transform.TransformPoint(new Vector3(
+            glassBounds.center.x,
+            glassBounds.max.y,
+            glassBounds.center.z));
+        pivot.rotation = transform.rotation;
         pane = new GameObject("Opening glass (runtime)").transform;
         pane.SetParent(pivot, false);
         pane.gameObject.layer = gameObject.layer;
@@ -121,6 +136,7 @@ public sealed class RuntimeFireWindow : MonoBehaviour
         paneCollider.size = size;
         Panes[paneCollider] = this;
         Reach = Mathf.Clamp(size.x * 0.75f, 1.5f, 2f);
+        ApplyOpening(0f);
         // Retire the old collision-triggered warning for this window.
         var reminder = GetComponent<Window_Reminder>();
         if (reminder != null) reminder.enabled = false;
@@ -129,70 +145,104 @@ public sealed class RuntimeFireWindow : MonoBehaviour
 
     public bool CanInteract(Vector3 viewer)
     {
-        if (busy || pane == null || !isActiveAndEnabled) return false;
+        if (pane == null || !isActiveAndEnabled) return false;
         Vector3 nearest = transform.TransformPoint(glassBounds.ClosestPoint(transform.InverseTransformPoint(viewer)));
         return Vector3.Distance(viewer, nearest) <= Reach;
     }
 
-    public void Open(Vector3 viewer)
+    /// <summary>
+    /// Locks this window to the controller for the duration of a trigger hold.
+    /// The sign is based on which side of the window the hand is on.
+    /// </summary>
+    public bool BeginPush(Vector3 handPosition, Vector3 viewerPosition)
     {
-        if (!CanInteract(viewer) || open) return;
-        // Viewed from +Z, screen-right is local -X; from -Z it is +X.
-        float side = Vector3.Dot(viewer - pivot.position, pivot.forward) >= 0 ? 1f : -1f;
-        Vector3 rightEdge = paneMesh.bounds.center + Vector3.right * (-side * paneMesh.bounds.extents.x);
-        Vector3 hinge = pane.TransformPoint(rightEdge);
-        Vector3 panePosition = pane.position;
-        pivot.position = hinge;
-        pane.position = panePosition;
-        StartCoroutine(RotateTo(90f, true));
+        if (pane == null || !isActiveAndEnabled)
+            return false;
+
+        Vector3 planePoint = transform.TransformPoint(glassBounds.center);
+        float side = Vector3.Dot(handPosition - planePoint, transform.forward);
+        if (Mathf.Abs(side) < 0.01f)
+            side = Vector3.Dot(viewerPosition - planePoint, transform.forward);
+        if (Mathf.Abs(side) < 0.01f)
+            side = 1f;
+
+        // Keep the existing opening direction when closing an already open
+        // window. This prevents the hinge from changing sides mid-interaction.
+        if (openingAmount <= 0.001f || Mathf.Abs(openingSign) < 0.01f)
+            openingSign = Mathf.Sign(side);
+
+        outwardNormal = transform.forward * Mathf.Sign(side);
+        pushStartPosition = handPosition;
+        pushStartAmount = openingAmount;
+        LastPushDelta = 0f;
+        pushing = true;
+        return true;
     }
 
-    public void WarnAndClose()
+    /// <summary>
+    /// Applies controller displacement along the window normal. Moving toward
+    /// the wall opens the window; moving back closes it. Releasing the trigger
+    /// leaves the window at the current opening amount.
+    /// </summary>
+    public float UpdatePush(Vector3 handPosition)
     {
-        if (!open || busy) return;
-        StartCoroutine(CloseAfterWarning());
+        if (!pushing || pane == null)
+            return openingAmount;
+
+        float previousAmount = openingAmount;
+        float inwardDistance = -Vector3.Dot(handPosition - pushStartPosition, outwardNormal);
+        openingAmount = Mathf.Clamp01(pushStartAmount + inwardDistance / Mathf.Max(0.01f, maxPushDistance));
+        ApplyOpening(openingAmount);
+        LastPushDelta = openingAmount - previousAmount;
+        return openingAmount;
     }
 
-    private IEnumerator CloseAfterWarning()
+    public void EndPush()
     {
-        busy = true;
-        openWindowTarget.enabled = false;
-        yield return new WaitForSeconds(2f);
-        yield return RotateTo(0f, false);
-    }
-
-    private IEnumerator RotateTo(float target, bool opened)
-    {
-        busy = true;
-        Quaternion baseRotation = Quaternion.LookRotation(transform.forward, transform.up);
-        float start = angle;
-        for (float elapsed = 0; elapsed < 0.65f; elapsed += Time.deltaTime)
+        pushing = false;
+        LastPushDelta = 0f;
+        if (openingAmount <= 0.001f)
         {
-            angle = Mathf.Lerp(start, target, Mathf.SmoothStep(0, 1, elapsed / 0.65f));
-            pivot.rotation = baseRotation * Quaternion.Euler(0, angle, 0);
-            yield return null;
+            openingAmount = 0f;
+            openingSign = 0f;
         }
-        angle = target;
-        pivot.rotation = baseRotation * Quaternion.Euler(0, angle, 0);
-        open = opened;
-        busy = false;
-        openWindowTarget.enabled = opened;
+    }
+
+    private void ApplyOpening(float amount)
+    {
+        openingAmount = Mathf.Clamp01(amount);
+        angle = openingSign * maxOpenAngle * openingAmount;
+        if (pivot != null)
+            pivot.rotation = transform.rotation * Quaternion.Euler(angle, 0f, 0f);
+        open = openingAmount > 0.001f;
+        if (openWindowTarget != null)
+            openWindowTarget.enabled = open;
     }
 
     private void OnDisable()
     {
         StopAllCoroutines();
-        busy = open = false;
-        angle = 0;
+        open = pushing = false;
+        openingAmount = 0f;
+        openingSign = 0f;
+        LastPushDelta = 0f;
+        angle = 0f;
         if (openWindowTarget != null) openWindowTarget.enabled = false;
         if (pivot != null)
         {
-            pivot.rotation = Quaternion.LookRotation(transform.forward, transform.up);
+            pivot.rotation = transform.rotation;
             pivot.gameObject.SetActive(false);
         }
     }
 
-    private void OnEnable() { if (pivot != null) pivot.gameObject.SetActive(true); }
+    private void OnEnable()
+    {
+        if (pivot != null)
+        {
+            pivot.gameObject.SetActive(true);
+            ApplyOpening(openingAmount);
+        }
+    }
     private void OnDestroy()
     {
         if (paneCollider != null) Panes.Remove(paneCollider);

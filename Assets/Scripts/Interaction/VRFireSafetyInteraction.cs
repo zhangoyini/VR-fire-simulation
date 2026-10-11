@@ -7,8 +7,6 @@ using Valve.VR;
 public class VRFireSafetyInteraction : MonoBehaviour
 {
     private const string ElevatorWarning = "发生火灾时，请勿使用电梯！\nDo not use the elevator in case of fire!";
-    private const string WindowWarning = "发生火灾时，请勿试图跳窗逃生！\nDo not attempt to jump out of a window to escape during a fire";
-
     public static bool IsWindowPushGestureActive { get; private set; }
     public static bool IsElevatorButtonPressGestureActive { get; private set; }
 
@@ -23,6 +21,10 @@ public class VRFireSafetyInteraction : MonoBehaviour
     [SerializeField] private SteamVR_Input_Sources inputSource = SteamVR_Input_Sources.RightHand;
     [Tooltip("GrabPinch is already bound to the Quest Touch trigger in this project.")]
     [SerializeField] private SteamVR_Action_Boolean triggerAction;
+    [SerializeField] private SteamVR_Action_Vibration hapticAction;
+    [SerializeField, Min(0.01f)] private float hapticInterval = 0.04f;
+    [SerializeField, Min(0.001f)] private float hapticDuration = 0.012f;
+    [SerializeField, Range(1f, 320f)] private float hapticFrequency = 90f;
 
     [Header("Interaction ray")]
     [Tooltip("The pose used as the start and direction of the interaction ray. Empty uses this object.")]
@@ -48,7 +50,9 @@ public class VRFireSafetyInteraction : MonoBehaviour
     private Transform activeTarget;
     private SafetyTargetType activeTargetType;
     private RuntimeFireWindow activeWindow;
+    private RuntimeFireWindow pushedWindow;
     private bool triggerWasHeld;
+    private float nextHapticTime;
     private GameObject messageRoot;
     private TMP_Text messageText;
     private TMP_FontAsset bilingualFont;
@@ -77,6 +81,9 @@ public class VRFireSafetyInteraction : MonoBehaviour
     {
         if (triggerAction == null)
             triggerAction = SteamVR_Input.GetBooleanAction("GrabPinch");
+
+        if (hapticAction == null)
+            hapticAction = SteamVR_Input.GetVibrationAction("Haptic");
 
         if (directionLine == null)
             directionLine = GetComponent<LineRenderer>();
@@ -114,15 +121,14 @@ public class VRFireSafetyInteraction : MonoBehaviour
                 BeginInteraction();
 
             UpdateInteractionRay();
+            UpdateWindowPush();
         }
         else if (triggerWasHeld)
         {
-            // Recheck aim and proximity at release, not just the preceding frame.
-            UpdateInteractionRay();
             EndInteraction();
         }
 
-        IsWindowPushGestureActive = triggerHeld && activeTargetType == SafetyTargetType.Window;
+        IsWindowPushGestureActive = triggerHeld && pushedWindow != null;
         IsElevatorButtonPressGestureActive = triggerHeld && activeTargetType == SafetyTargetType.ElevatorButton;
 
         triggerWasHeld = triggerHeld;
@@ -149,14 +155,25 @@ public class VRFireSafetyInteraction : MonoBehaviour
         {
             endPoint = hit.point;
 
-            Transform target;
-            SafetyTargetType targetType;
-            if (TryGetSafetyTarget(hit, out target, out targetType))
-                SetActiveTarget(target, targetType);
+            if (pushedWindow != null)
+            {
+                // Once the trigger has locked a window, keep the same target
+                // even if the hand passes through the moving pane or the ray
+                // briefly hits the wall behind it.
+                activeWindow = pushedWindow;
+                SetActiveTarget(pushedWindow.HighlightTarget, SafetyTargetType.Window);
+            }
             else
-                HideTargetOutline();
+            {
+                Transform target;
+                SafetyTargetType targetType;
+                if (TryGetSafetyTarget(hit, out target, out targetType))
+                    SetActiveTarget(target, targetType);
+                else
+                    HideTargetOutline();
+            }
         }
-        else
+        else if (pushedWindow == null)
         {
             HideTargetOutline();
         }
@@ -178,23 +195,53 @@ public class VRFireSafetyInteraction : MonoBehaviour
     {
         if (activeTargetType == SafetyTargetType.ElevatorButton)
             ShowMessage(ElevatorWarning);
-        else if (activeTargetType == SafetyTargetType.Window)
+
+        if (pushedWindow != null)
         {
-            if (activeWindow != null && activeWindow.CanInteract(ViewerPosition))
-            {
-                if (activeWindow.IsOpen)
-                {
-                    ShowMessage(WindowWarning);
-                    activeWindow.WarnAndClose();
-                }
-                else activeWindow.Open(ViewerPosition);
-            }
+            // Releasing the trigger stops direct manipulation but intentionally
+            // does not toggle or auto-close the window.
+            pushedWindow.EndPush();
+            pushedWindow = null;
         }
 
         HideTargetOutline();
 
         if (directionLine != null)
             directionLine.enabled = false;
+    }
+
+    private void UpdateWindowPush()
+    {
+        if (pushedWindow == null && activeTargetType == SafetyTargetType.Window && activeWindow != null)
+        {
+            if (activeWindow.BeginPush(RayTransform.position, ViewerPosition))
+            {
+                pushedWindow = activeWindow;
+                PulseHaptic(0.2f);
+            }
+        }
+
+        if (pushedWindow == null)
+            return;
+
+        float previousAmount = pushedWindow.OpeningAmount;
+        pushedWindow.UpdatePush(RayTransform.position);
+        float amountDelta = pushedWindow.OpeningAmount - previousAmount;
+        if (Mathf.Abs(amountDelta) > 0.0005f)
+        {
+            float movement = Mathf.Clamp01(Mathf.Abs(amountDelta) / 0.03f);
+            PulseHaptic(Mathf.Lerp(0.18f, 0.8f, movement));
+        }
+    }
+
+    private void PulseHaptic(float amplitude)
+    {
+        if (hapticAction == null || Time.unscaledTime < nextHapticTime)
+            return;
+
+        hapticAction.Execute(0f, hapticDuration, hapticFrequency,
+            Mathf.Clamp01(amplitude), inputSource);
+        nextHapticTime = Time.unscaledTime + hapticInterval;
     }
 
     private bool TryGetFirstBlockingHit(Vector3 origin, Vector3 direction, out RaycastHit firstHit)
@@ -356,7 +403,7 @@ public class VRFireSafetyInteraction : MonoBehaviour
         if (sourceFont != null)
         {
             bilingualFont = TMP_FontAsset.CreateFontAsset(sourceFont);
-            if (!bilingualFont.TryAddCharacters((ElevatorWarning + WindowWarning).Replace("\n", "")))
+            if (!bilingualFont.TryAddCharacters(ElevatorWarning.Replace("\n", "")))
                 Debug.LogWarning("Some warning characters could not be added to the font atlas.", this);
         }
         else Debug.LogError("Missing bundled Chinese font: NotoSansCJKsc-Regular.", this);
@@ -416,6 +463,11 @@ public class VRFireSafetyInteraction : MonoBehaviour
 
     private void OnDisable()
     {
+        if (pushedWindow != null)
+        {
+            pushedWindow.EndPush();
+            pushedWindow = null;
+        }
         triggerWasHeld = false;
         IsWindowPushGestureActive = false;
         IsElevatorButtonPressGestureActive = false;
