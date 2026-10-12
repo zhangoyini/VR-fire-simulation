@@ -40,6 +40,19 @@ namespace Jiao.HealthTime
         public bool IsDepleted => currentHealth <= 0f;
         public bool IsPaused => isPaused;
 
+        /// <summary>当前总掉血倍率。</summary>
+        public float CurrentMultiplier => GetTotalMultiplier();
+
+        /// <summary>基于当前总倍率估算的剩余秒数。</summary>
+        public float RemainingSeconds
+        {
+            get
+            {
+                float drainPerSecond = baseDrainPerSecond * GetTotalMultiplier();
+                return drainPerSecond > 0f ? currentHealth / drainPerSecond : 0f;
+            }
+        }
+
         public event System.Action<float> HealthChanged;
         public event System.Action Depleted;
         public event System.Action LowHealth;
