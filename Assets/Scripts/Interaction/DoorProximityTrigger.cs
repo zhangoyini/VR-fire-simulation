@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class DoorProximityTrigger : MonoBehaviour
 {
-    [SerializeField] private DoorInteraction doorInteraction;
+    //[SerializeField] private DoorInteraction doorInteraction;
+
+    [SerializeField] private Door_Rotation doorRotation;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -15,7 +17,7 @@ public class DoorProximityTrigger : MonoBehaviour
         {
             Debug.Log("Controller entered door proximity");
 
-            doorInteraction.ShowHint();
+            doorRotation.ShowHint();
         }
 
         //if (other.CompareTag("Player"))
@@ -33,8 +35,8 @@ public class DoorProximityTrigger : MonoBehaviour
 
         if (controller != null)
         {
-            doorInteraction.HideHint();
-            doorInteraction.CloseDoor();
+            doorRotation.HideHint();
+            doorRotation.CloseDoor();
         }
 
         //if (other.CompareTag("Player"))

@@ -1,5 +1,7 @@
 using UnityEngine;
+using System.Collections;
 using Valve.VR;
+using System.Collections.Generic;
 
 public class Door_Rotation : MonoBehaviour, IInteractable
 {
@@ -19,6 +21,12 @@ public class Door_Rotation : MonoBehaviour, IInteractable
     [SerializeField] private float hapticAmplitude = 0.25f;
     [SerializeField] private float hapticInterval = 0.06f;
 
+    [Header("Auto Close")]
+    [SerializeField] private float closeSpeed = 90f;
+
+    private Quaternion closedRotation;
+    private bool isClosing;
+
     private float nextHapticTime;
 
     private Transform activeHand;
@@ -29,6 +37,8 @@ public class Door_Rotation : MonoBehaviour, IInteractable
 
     private void Start()
     {
+        closedRotation = transform.localRotation;
+
         if (interactionHint != null)
         {
             interactionHint.SetActive(false);
@@ -92,6 +102,36 @@ public class Door_Rotation : MonoBehaviour, IInteractable
             activeHand = null;
     }
 
+
+    public void CloseDoor()
+    {
+        if (!isClosing)
+        {
+            StartCoroutine(CloseDoorCoroutine());
+        }
+    }
+
+    private IEnumerator CloseDoorCoroutine()
+    {
+        isClosing = true;
+
+        while (Quaternion.Angle(transform.localRotation, closedRotation) > 0.1f)
+        {
+            transform.localRotation =
+                Quaternion.RotateTowards(
+                    transform.localRotation,
+                    closedRotation,
+                    closeSpeed * Time.deltaTime
+                );
+
+            yield return null;
+        }
+
+        transform.localRotation = closedRotation;
+        currentSwingAngle = 0f;
+        isClosing = false;
+    }
+
     private void PlayHaptic()
     {
         if (hapticAction == null)
@@ -109,5 +149,21 @@ public class Door_Rotation : MonoBehaviour, IInteractable
         );
 
         nextHapticTime = Time.time + hapticInterval;
+    }
+
+    public void ShowHint()
+    {
+        if (interactionHint != null)
+        {
+            interactionHint.SetActive(true);
+        }
+    }
+
+    public void HideHint()
+    {
+        if (interactionHint != null)
+        {
+            interactionHint.SetActive(false);
+        }
     }
 }
