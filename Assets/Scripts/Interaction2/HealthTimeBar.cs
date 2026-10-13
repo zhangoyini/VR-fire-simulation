@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using VRFire.Utils;
 
 namespace Jiao.HealthTime
 {
@@ -211,6 +212,8 @@ namespace Jiao.HealthTime
             rt.sizeDelta = textSize;
 
             TextMeshProUGUI text = go.AddComponent<TextMeshProUGUI>();
+            // 使用内置中文字体资产，避免 labelString 填中文时显示方块
+            text.font = ChineseFontProvider.GetFontOrDefault();
             text.alignment = alignment;
             return text;
         }

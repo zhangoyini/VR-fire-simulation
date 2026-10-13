@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VRFire.Utils;
 
 /// <summary>Shows the two essential VR controls when the player starts.</summary>
 public sealed class VRControlTutorial : MonoBehaviour
@@ -138,7 +139,8 @@ public sealed class VRControlTutorial : MonoBehaviour
         rect.sizeDelta = size;
         TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
         text.text = value;
-        text.font = TMP_Settings.defaultFontAsset;
+        // 使用内置中文字体资产，避免中文显示为方块（LiberationSans 默认不含中文 glyph）
+        text.font = ChineseFontProvider.GetFontOrDefault();
         text.fontSize = fontSize;
         text.fontStyle = style;
         text.color = color;

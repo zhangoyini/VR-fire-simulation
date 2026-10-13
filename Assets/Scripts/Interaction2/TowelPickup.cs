@@ -85,7 +85,7 @@ namespace Jiao.HealthTime
 
             isConsumed = true;
 
-            // 1. 立即回血
+            // 1. 立即回血（血量会被 clamp 到满血上限，不会超过初始八分钟对应的满血值）
             HealthTimeController.Instance?.AddHealth(healAmount);
 
             // 1.5 浮出文字提示
@@ -97,8 +97,26 @@ namespace Jiao.HealthTime
             }
 
             // 2. 限时减速掉血（由 HealthTimeController 内部计时并自动移除）
+            //    计算"安全减速倍率"，保证回血+减速后的等效剩余时间不超过初始八分钟：
+            //    约束 回血后血量 / (基础掉血率 × 总倍率 × 安全倍率) ≤ 初始上限
+            //      => 安全倍率 ≥ 回血后血量 / (满血 × 总倍率)
+            //    这样低血量时保留原始减速救急，高血量(接近满血)时减速自动减弱/取消，
+            //    避免"锦上添花"让总剩余时间突破初始八分钟。
+            float effectiveMultiplier = slowDrainMultiplier;
+            if (HealthTimeController.Instance != null)
+            {
+                float healthAfterHeal = HealthTimeController.Instance.CurrentHealth;
+                float maxHealth = HealthTimeController.Instance.MaxHealth;
+                float totalMultBeforeTowel = HealthTimeController.Instance.CurrentMultiplier;
+                if (maxHealth > 0f && totalMultBeforeTowel > 0f)
+                {
+                    float required = healthAfterHeal / (maxHealth * totalMultBeforeTowel);
+                    effectiveMultiplier = Mathf.Max(slowDrainMultiplier, Mathf.Min(1f, required));
+                }
+            }
+
             HealthTimeController.Instance?.ApplyTimedMultiplier(
-                MultiplierKey, slowDrainMultiplier, slowDurationSeconds);
+                MultiplierKey, effectiveMultiplier, slowDurationSeconds);
 
             // 3. 音效
             if (pickupSound != null)
@@ -110,7 +128,7 @@ namespace Jiao.HealthTime
 
             // 5. 日志
             SessionLogger.Write("TOWEL_PICKED_UP",
-                $"{{\"heal\":{healAmount},\"slowMultiplier\":{slowDrainMultiplier},\"duration\":{slowDurationSeconds}}}");
+                $"{{\"heal\":{healAmount},\"slowMultiplier\":{slowDrainMultiplier},\"effectiveMultiplier\":{effectiveMultiplier},\"duration\":{slowDurationSeconds}}}");
 
             // 6. 隐藏物体：优先隐藏 visualObject，保留 Collider 不破坏交互管理器的状态
             if (visualObject != null)

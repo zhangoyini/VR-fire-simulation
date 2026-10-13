@@ -53,6 +53,15 @@ namespace Jiao.HealthTime
             }
         }
 
+        /// <summary>当前血量（用于外部按血量计算约束）。</summary>
+        public float CurrentHealth => currentHealth;
+
+        /// <summary>满血上限（初始剩余时间的基准）。</summary>
+        public float MaxHealth => maxHealth;
+
+        /// <summary>初始满血、1× 倍率下的剩余秒数，即"初始八分钟"上限（maxHealth / baseDrainPerSecond）。</summary>
+        public float InitialRemainingSeconds => maxHealth / baseDrainPerSecond;
+
         public event System.Action<float> HealthChanged;
         public event System.Action Depleted;
         public event System.Action LowHealth;
