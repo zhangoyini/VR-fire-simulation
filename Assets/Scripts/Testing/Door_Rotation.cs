@@ -1,4 +1,5 @@
 using UnityEngine;
+using Valve.VR;
 
 public class Door_Rotation : MonoBehaviour, IInteractable
 {
@@ -9,6 +10,16 @@ public class Door_Rotation : MonoBehaviour, IInteractable
 
     [Header("Interaction Hint")]
     [SerializeField] private GameObject interactionHint;
+
+    [Header("Haptic Feedback")]
+    [SerializeField] private SteamVR_Action_Vibration hapticAction;
+    [SerializeField] private SteamVR_Input_Sources hapticSource = SteamVR_Input_Sources.RightHand;
+    [SerializeField] private float hapticDuration = 0.03f;
+    [SerializeField] private float hapticFrequency = 80f;
+    [SerializeField] private float hapticAmplitude = 0.25f;
+    [SerializeField] private float hapticInterval = 0.06f;
+
+    private float nextHapticTime;
 
     private Transform activeHand;
     private Vector3 previousHandPosition;
@@ -67,6 +78,8 @@ public class Door_Rotation : MonoBehaviour, IInteractable
             {
                 transform.RotateAround(pivot.position, hingeAxis, appliedDelta);
                 currentSwingAngle = nextAngle;
+
+                PlayHaptic();
             }
         }
 
@@ -77,5 +90,24 @@ public class Door_Rotation : MonoBehaviour, IInteractable
     {
         if (activeHand == handTransform)
             activeHand = null;
+    }
+
+    private void PlayHaptic()
+    {
+        if (hapticAction == null)
+            return;
+
+        if (Time.time < nextHapticTime)
+            return;
+
+        hapticAction.Execute(
+            0f,
+            hapticDuration,
+            hapticFrequency,
+            hapticAmplitude,
+            hapticSource
+        );
+
+        nextHapticTime = Time.time + hapticInterval;
     }
 }
