@@ -68,8 +68,6 @@ namespace Jiao.HealthTime
 
         private void Start()
         {
-            Debug.Log($"[HealthTimeBar] 启动: {gameObject.name}, instanceID={GetInstanceID()}", this);
-
             ResolveSlider();
 
             // 清理旧版本脚本残留的文字对象，避免位置/样式冲突
@@ -142,12 +140,6 @@ namespace Jiao.HealthTime
                 ApplyTextStyle(valueText);
             }
 
-            // 调试：每帧打印 Inspector 字段和实际 RectTransform 值，确认是否同步
-            if (labelText != null && valueText != null && Time.frameCount % 30 == 0)
-            {
-                Debug.Log($"[HealthTimeBar] Inspector offset: label={labelOffset}, value={valueOffset} | " +
-                          $"Actual: label={labelText.rectTransform.anchoredPosition}, value={valueText.rectTransform.anchoredPosition}", this);
-            }
         }
 
         private void ResolveSlider()
@@ -166,7 +158,6 @@ namespace Jiao.HealthTime
             {
                 if (child != transform && child.name == name)
                 {
-                    Debug.Log($"[HealthTimeBar] 清理旧文字对象: {child.name}", this);
                     Destroy(child.gameObject);
                 }
             }
@@ -231,10 +222,6 @@ namespace Jiao.HealthTime
             text.overflowMode = TextOverflowModes.Overflow;
             text.enableWordWrapping = false;
             text.ForceMeshUpdate(true, true);
-
-            Debug.Log($"[HealthTimeBar] 已应用样式到 {text.name}: fontSize={text.fontSize}, color={text.color}, " +
-                      $"pos={text.rectTransform.anchoredPosition}, size={text.rectTransform.sizeDelta}, " +
-                      $"labelOffset={labelOffset}, valueOffset={valueOffset}", this);
         }
 
         private void OnDepleted()
