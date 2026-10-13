@@ -48,20 +48,38 @@ public sealed class CampusLocomotion : MonoBehaviour
     }
     public void Step(Vector2 input, float turnInput, float dt)
     {
-        // MODEL API PLACEHOLDER: basic walking only; module 02 restores comfort, heading latch and footsteps.
-        if (scriptedLock || trackedHead == null || body == null || !body.enabled || dt <= 0) return;
-        if (Time.timeScale == 0 || (CampusLessonDirector.Instance != null && CampusLessonDirector.Instance.MovementLocked) ||
-            (resolution != null && resolution.CurrentOutcome != ResolutionCoordinator.Outcome.None)) return;
+        // Keep the test/legacy signature; right-stick input is deliberately ignored.
+        if (scriptedLock || trackedHead == null || body == null || !body.enabled) return;
+        if (Time.timeScale == 0 || (CampusLessonDirector.Instance!=null && CampusLessonDirector.Instance.MovementLocked) || (resolution != null && resolution.CurrentOutcome != ResolutionCoordinator.Outcome.None))
+        { currentSpeed = 0; headingLatched = false; comfortVignette?.ResetMotion(); return; }
+        if (dt <= 0) return;
         Vector3 local = transform.InverseTransformPoint(trackedHead.position);
-        body.height = Mathf.Clamp(local.y, 1, 2.15f);
-        body.center = new Vector3(local.x, body.height * .5f, local.z);
+        body.height = Mathf.Clamp(local.y, 1, 2.15f); body.center = new Vector3(local.x, body.height * .5f, local.z);
         if (input.magnitude < .18f) input = Vector2.zero;
         input = Vector2.ClampMagnitude(input, 1);
-        Vector3 forward = Vector3.ProjectOnPlane(trackedHead.forward, Vector3.up).normalized;
-        if (forward.sqrMagnitude < .01f) forward = transform.forward;
-        Vector3 right = Vector3.Cross(Vector3.up, forward);
+        if (input == Vector2.zero) { headingLatched = false; currentSpeed = 0; }
+        else
+        {
+            // Looking around during a walk does not unexpectedly steer the player.
+            if (!headingLatched)
+            {
+                walkingForward = Vector3.ProjectOnPlane(trackedHead.forward, Vector3.up).normalized;
+                if (walkingForward.sqrMagnitude < .01f) walkingForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+                headingLatched = true;
+            }
+            currentSpeed = Mathf.MoveTowards(currentSpeed, walkingSpeed * input.magnitude, acceleration * dt);
+        }
+        Vector3 right = Vector3.Cross(Vector3.up, walkingForward);
+        Vector3 horizontal = (walkingForward * input.y + right * input.x).normalized * currentSpeed;
         verticalSpeed = body.isGrounded && verticalSpeed < 0 ? -2 : Mathf.Max(-12, verticalSpeed - 15 * dt);
-        body.Move(((forward * input.y + right * input.x) * walkingSpeed + Vector3.up * verticalSpeed) * dt);
+        Vector3 before = transform.position;
+        body.Move((horizontal + Vector3.up * verticalSpeed) * dt);
+        float travelled = Vector3.ProjectOnPlane(transform.position - before, Vector3.up).magnitude;
+        comfortVignette?.ReportMotion(Mathf.Clamp01(travelled / dt / walkingSpeed), false);
+        if (input.sqrMagnitude > 0 && body.isGrounded) stepDistance += travelled;
+        if (stepDistance > .65f && footsteps != null && footstepClips != null && footstepClips.Length > 0)
+        { stepDistance = 0; footsteps.pitch = Random.Range(.94f, 1.06f); footsteps.PlayOneShot(footstepClips[nextClip++ % footstepClips.Length], .7f); }
+        if (input == Vector2.zero) stepDistance = 0;
     }
     private void OnDisable() { currentSpeed = 0; headingLatched = false; comfortVignette?.ResetMotion(); }
 }

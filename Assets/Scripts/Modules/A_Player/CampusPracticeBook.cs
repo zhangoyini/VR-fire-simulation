@@ -9,7 +9,7 @@ public sealed class CampusPracticeBook : MonoBehaviour,IInteractable
     private Quaternion homeRotation;
     public bool IsHeld => owner!=null;
     public bool Practised { get; private set; }
-    public bool CanGrab(Transform hand) => false; // MODEL API PLACEHOLDER: fixed practice book.
+    public bool CanGrab(Transform hand) => hand!=null && (!IsHeld || owner==hand) && Time.timeScale>0;
     private void Awake()
     {
         body=GetComponent<Rigidbody>(); home=transform.position; homeRotation=transform.rotation;
