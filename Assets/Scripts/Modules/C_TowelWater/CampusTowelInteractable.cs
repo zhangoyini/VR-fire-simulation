@@ -40,7 +40,7 @@ public sealed class CampusTowelInteractable : MonoBehaviour,IInteractable
     private void OnEnable() { Active.Add(this); }
     private void OnDisable() { Active.Remove(this); if(owner!=null) OnInteractEnd(owner); }
     private bool Blocked => Time.timeScale==0 || (resolution!=null && resolution.CurrentOutcome!=ResolutionCoordinator.Outcome.None);
-    public bool CanGrab(Transform hand) => false; // MODEL API PLACEHOLDER: dry towel is a fixed prop.
+    public bool CanGrab(Transform hand) => isActiveAndEnabled && hand!=null && !Blocked && (!IsHeld || owner==hand);
     public void OnHoverEnter() { }
     public void OnHoverExit() { }
     public void OnInteractStart(Transform hand)

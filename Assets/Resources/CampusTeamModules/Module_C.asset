@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Module_C
   m_EditorClassIdentifier: 
   module: C
-  integrated: 0
+  integrated: 1

@@ -28,10 +28,7 @@ public sealed class CampusFaucet : MonoBehaviour,IInteractable
     public void OnHoverEnter() { }
     public void OnHoverExit() { }
     public void OnInteractStart(Transform hand)
-    {
-        // MODEL API PLACEHOLDER: faucet stays off. Module 04 restores switch, running water and wetting.
-        if (hand != null && pressingHand == null && !Blocked) pressingHand = hand;
-    }
+    { if(hand==null || pressingHand!=null || Blocked) return; pressingHand=hand; SetWater(!IsOn); }
     public void OnInteract(Transform hand) { }
     public void OnInteractEnd(Transform hand) { if(pressingHand==hand) pressingHand=null; }
     public void SetWater(bool on)
