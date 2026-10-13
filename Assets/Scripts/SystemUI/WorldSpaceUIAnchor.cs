@@ -10,8 +10,10 @@ public class WorldSpaceUIAnchor : MonoBehaviour
 
     private void OnEnable()
     {
+        Application.onBeforeRender+=Place;
         Place();
     }
+    private void OnDisable() { Application.onBeforeRender-=Place; }
 
     private void LateUpdate()
     {
@@ -40,8 +42,9 @@ public class WorldSpaceUIAnchor : MonoBehaviour
         Quaternion facing = Quaternion.LookRotation(forward.normalized, Vector3.up);
         Vector3 offset = facing * headLocalOffset;
 
-        // Placement clearance only; button input continues to use Henry's trigger system.
-        if (Physics.Raycast(trackedHead.position, offset.normalized, out RaycastHit hit,
+        // Foreground UI preserves its readable distance; do not crush menus against the face
+        // when a wall is close. Legacy scenes without it retain the old clearance placement.
+        if (presentationRoot.GetComponentInParent<CampusUIForeground>() == null && Physics.Raycast(trackedHead.position, offset.normalized, out RaycastHit hit,
             offset.magnitude, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
             offset = offset.normalized * Mathf.Max(0.05f, hit.distance - 0.05f);
 

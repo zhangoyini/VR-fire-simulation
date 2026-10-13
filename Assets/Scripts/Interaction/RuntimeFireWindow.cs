@@ -7,6 +7,7 @@ using UnityEngine;
 public sealed class RuntimeFireWindow : MonoBehaviour
 {
     [SerializeField] private Mesh readableWindowMesh;
+    [SerializeField] private bool physicalHandInteraction;
     private static readonly Dictionary<Collider, RuntimeFireWindow> Panes = new Dictionary<Collider, RuntimeFireWindow>();
     private Mesh wallMesh, paneMesh;
     private Material glassMaterial;
@@ -16,9 +17,11 @@ public sealed class RuntimeFireWindow : MonoBehaviour
     private Bounds glassBounds;
     private bool open, busy;
     private float angle;
-    public Transform HighlightTarget => open ? transform : pane;
-    public bool IsOpen => open;
+    private CampusHingeInteractable physicalHinge;
+    public Transform HighlightTarget => physicalHandInteraction ? pane : open ? transform : pane;
+    public bool IsOpen => physicalHinge != null ? physicalHinge.Angle > .1f : open;
     public float Reach { get; private set; }
+    public bool UsesPhysicalHands => physicalHandInteraction;
 
     private void Awake()
     {
@@ -121,6 +124,18 @@ public sealed class RuntimeFireWindow : MonoBehaviour
         paneCollider.size = size;
         Panes[paneCollider] = this;
         Reach = Mathf.Clamp(size.x * 0.75f, 1.5f, 2f);
+        if (physicalHandInteraction)
+        {
+            Vector3 hinge = pane.TransformPoint(paneMesh.bounds.center - Vector3.right * paneMesh.bounds.extents.x);
+            Vector3 panePosition = pane.position;
+            pivot.position = hinge; pane.position = panePosition;
+            // Parent in world-preserving mode: tracked hand displacement now drives this hinge.
+            // Remain unscaled in world space: the original wall has non-uniform scale.
+            // Parenting the rotating glass under it would shear the pane during rotation.
+            pivot.SetParent(null, true);
+            physicalHinge = pivot.gameObject.AddComponent<CampusHingeInteractable>();
+            physicalHinge.Configure(pivot, 1, true);
+        }
         // Retire the old collision-triggered warning for this window.
         var reminder = GetComponent<Window_Reminder>();
         if (reminder != null) reminder.enabled = false;
@@ -136,6 +151,7 @@ public sealed class RuntimeFireWindow : MonoBehaviour
 
     public void Open(Vector3 viewer)
     {
+        if (physicalHandInteraction) return;
         if (!CanInteract(viewer) || open) return;
         // Viewed from +Z, screen-right is local -X; from -Z it is +X.
         float side = Vector3.Dot(viewer - pivot.position, pivot.forward) >= 0 ? 1f : -1f;
@@ -184,6 +200,7 @@ public sealed class RuntimeFireWindow : MonoBehaviour
         StopAllCoroutines();
         busy = open = false;
         angle = 0;
+        if (physicalHinge != null) physicalHinge.SetAngle(0);
         if (openWindowTarget != null) openWindowTarget.enabled = false;
         if (pivot != null)
         {

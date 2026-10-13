@@ -1,0 +1,362 @@
+PASS: No teleport or interaction/menu ray adapters remain in the new scene
+PASS: Left and right contact inputs are separately bound
+PASS: Left-stick Walk action exists
+PASS: Walking retains three varied footstep clips
+PASS: Every floor starts with one dry held towel and two switchable faucets
+PASS: Four elevator banks remain accessible from the corridor
+PASS: 4F reading room retains ten bookcases
+PASS: Only the 4F reading room is the main fire source
+PASS: Smoke retains 62 staged four-floor volumes plus the gated lesson doorway plume
+PASS: All standalone stair floor plates are removed
+PASS: Obsolete CLOSED sign and route-closed trigger are removed
+PASS: The storage pile remains without the artificial route blocker
+PASS: All visible mesh filters have geometry
+PASS: All visible renderers have supported materials
+PASS: Clear air causes no passive countdown damage
+PASS: Continuous left-stick direction (0.00, 1.00)
+PASS: Continuous left-stick direction (0.00, -1.00)
+PASS: Continuous left-stick direction (-1.00, 0.00)
+PASS: Continuous left-stick direction (1.00, 0.00)
+PASS: Right-stick hold, reverse and re-centre never turn the rig or tracked head
+PASS: Walking reaches 1.8 m/s
+PASS: Natural head turns do not steer an ongoing walk
+PASS: Stick release stops without coasting
+PASS: Comfort vignette stays bound to the tracked camera
+PASS: Comfort shading activates without changing FOV
+PASS: Comfort shading fades when standing still
+PASS: The character cannot walk through the building wall
+PASS: Walking ascends physical stair B
+PASS: Walking descends to the landing
+PASS: The minimap updates floor and player position
+PASS: Ground-floor map includes outdoor assembly
+PASS: Both hands detect a door surface without rays
+PASS: A held trigger can acquire a hinge upon contact
+PASS: Contact gold-highlights only the target
+PASS: Leaving one hand retains the other hand's highlight
+PASS: Leaving both hands restores original materials
+PASS: Press alone never automatically opens a door
+PASS: 15 cm push produces 45 degrees independent of hinge radius 0.25
+PASS: Released door retains its angle
+PASS: Press alone never automatically opens a door
+PASS: 15 cm push produces 45 degrees independent of hinge radius 0.65
+PASS: Released door retains its angle
+PASS: Press alone never automatically opens a door
+PASS: 15 cm push produces 45 degrees independent of hinge radius 1.2
+PASS: Released door retains its angle
+PASS: Body movement never creates fake physical push distance
+PASS: Either hand can own the hinge
+PASS: Either hand reaches 90 degrees with 30 cm push
+PASS: Either hand can own the hinge
+PASS: Either hand reaches 90 degrees with 30 cm push
+PASS: Two hands cannot simultaneously own the same hinge
+PASS: All 78 original windows retain split glass and physical hinges
+PASS: Window press alone does not open it
+PASS: Window outward push respects the angle limit
+PASS: Glass rotation is not sheared by non-uniform wall scale
+PASS: Existing window warning stays bilingual
+PASS: Warning remains world-space at one metre
+PASS: Window stays open during its two-second warning
+PASS: Window closes after the warning
+PASS: Elevator contact retains the bilingual warning
+PASS: Smoke initially accumulates only inside the reading room
+PASS: Doorway leakage precedes distant smoke
+PASS: An open reading-room door accelerates smoke escape
+PASS: Exposure follows the nearby visible smoke front
+PASS: Fourth-floor smoke forms before first-floor exposure
+PASS: All smoke uses bounded pools and physical collision
+PASS: Textured 31-bone glove replaces the flat hand: RightControllerDummy
+PASS: 3D glove has no legacy icon outlines
+PASS: Trigger curls fingers without moving the tracked hand
+PASS: Finger pose deforms the actual skinned mesh, not only empty joints
+PASS: Door/window push restores the relaxed palm pose
+PASS: Glove skinning remains at a plausible hand scale
+PASS: Textured 31-bone glove replaces the flat hand: LeftControllerDummy
+PASS: 3D glove has no legacy icon outlines
+PASS: Trigger curls fingers without moving the tracked hand
+PASS: Finger pose deforms the actual skinned mesh, not only empty joints
+PASS: Door/window push restores the relaxed palm pose
+PASS: Glove skinning remains at a plausible hand scale
+PASS: Both tracked hands use articulated 3D geometry
+PASS: EXIT arrow points toward the nearest staircase at (13.00, 6.45, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (-17.00, 10.25, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (3.00, 6.45, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (-17.00, 6.45, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (3.00, 14.05, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (3.00, 6.45, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (-17.00, 6.45, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (-17.00, 2.65, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (-17.00, 14.05, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (-17.00, 2.65, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (13.00, 14.05, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (3.00, 2.65, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (13.00, 2.65, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (13.00, 10.25, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (3.00, 14.05, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (13.00, 10.25, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (13.00, 6.45, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (13.00, 14.05, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (3.00, 10.25, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (3.00, 2.65, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (-17.00, 14.05, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (13.00, 2.65, -1.86)
+PASS: EXIT arrow points toward the nearest staircase at (-17.00, 10.25, 1.86)
+PASS: EXIT arrow points toward the nearest staircase at (3.00, 10.25, 1.86)
+PASS: Floor arrows agree with nearest-stair EXIT signs
+PASS: Every A/B stair landing has an interactive window on all four floors
+PASS: Stair moving glass is dynamic geometry, not frozen static batches
+PASS: Actual reachable palm contact selects A/B stair window: (23.00, 13.30, -1.20) / RightHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: Actual reachable palm contact selects A/B stair window: (23.00, 13.30, -1.20) / LeftHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: A 15 cm outward push opens the stair glass by 45 degrees: (23.00, 13.30, -1.20)
+PASS: Stair glass stops at 90 degrees
+PASS: Stair moving glass is dynamic geometry, not frozen static batches
+PASS: Actual reachable palm contact selects A/B stair window: (-23.00, 5.70, -1.20) / RightHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: Actual reachable palm contact selects A/B stair window: (-23.00, 5.70, -1.20) / LeftHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: A 15 cm outward push opens the stair glass by 45 degrees: (-23.00, 5.70, -1.20)
+PASS: Stair glass stops at 90 degrees
+PASS: Stair moving glass is dynamic geometry, not frozen static batches
+PASS: Actual reachable palm contact selects A/B stair window: (23.00, 1.90, -1.20) / RightHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: Actual reachable palm contact selects A/B stair window: (23.00, 1.90, -1.20) / LeftHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: A 15 cm outward push opens the stair glass by 45 degrees: (23.00, 1.90, -1.20)
+PASS: Stair glass stops at 90 degrees
+PASS: Stair moving glass is dynamic geometry, not frozen static batches
+PASS: Actual reachable palm contact selects A/B stair window: (-23.00, 13.30, -1.20) / RightHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: Actual reachable palm contact selects A/B stair window: (-23.00, 13.30, -1.20) / LeftHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: A 15 cm outward push opens the stair glass by 45 degrees: (-23.00, 13.30, -1.20)
+PASS: Stair glass stops at 90 degrees
+PASS: Stair moving glass is dynamic geometry, not frozen static batches
+PASS: Actual reachable palm contact selects A/B stair window: (23.00, 9.50, -1.20) / RightHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: Actual reachable palm contact selects A/B stair window: (23.00, 9.50, -1.20) / LeftHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: A 15 cm outward push opens the stair glass by 45 degrees: (23.00, 9.50, -1.20)
+PASS: Stair glass stops at 90 degrees
+PASS: Stair moving glass is dynamic geometry, not frozen static batches
+PASS: Actual reachable palm contact selects A/B stair window: (23.00, 5.70, -1.20) / RightHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: Actual reachable palm contact selects A/B stair window: (23.00, 5.70, -1.20) / LeftHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: A 15 cm outward push opens the stair glass by 45 degrees: (23.00, 5.70, -1.20)
+PASS: Stair glass stops at 90 degrees
+PASS: Stair moving glass is dynamic geometry, not frozen static batches
+PASS: Actual reachable palm contact selects A/B stair window: (-23.00, 1.90, -1.20) / RightHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: Actual reachable palm contact selects A/B stair window: (-23.00, 1.90, -1.20) / LeftHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: A 15 cm outward push opens the stair glass by 45 degrees: (-23.00, 1.90, -1.20)
+PASS: Stair glass stops at 90 degrees
+PASS: Stair moving glass is dynamic geometry, not frozen static batches
+PASS: Actual reachable palm contact selects A/B stair window: (-23.00, 9.50, -1.20) / RightHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: Actual reachable palm contact selects A/B stair window: (-23.00, 9.50, -1.20) / LeftHand
+PASS: Actual trigger and physical push opens visible stair pane fully
+PASS: A 15 cm outward push opens the stair glass by 45 degrees: (-23.00, 9.50, -1.20)
+PASS: Stair glass stops at 90 degrees
+PASS: Second grip on a stair window presents the bilingual no-jump warning
+PASS: Stair glass stays open for the warning interval
+PASS: Stair glass automatically closes after two seconds plus the closing animation
+PASS: Physical descent reaches 3F using Stair B
+PASS: Physical descent reaches 2F using Stair B
+PASS: Physical descent reaches 1F using Stair B
+PASS: The cabinet and cartons are restored at original 3F A-stair scale/position
+PASS: Real debris remains collidable, without the CLOSED sign or an invisible blockade
+PASS: Both corridor directions use identical smoke speed, density and size parameters
+PASS: Smoke arrival depends on path length, not a preferred escape side
+PASS: Nearby smoke appears first without immediate lower-floor exposure
+PASS: Smoke enters lower corridors in 3F, 2F, 1F order
+PASS: Visible staged smoke activates exposure on 3F
+PASS: No lower corridor fills before the 3F front
+PASS: Visible staged smoke activates exposure on 2F
+PASS: No lower corridor fills before the 2F front
+PASS: Visible staged smoke activates exposure on 1F
+PASS: No lower corridor fills before the 1F front
+PASS: A sustained fire can eventually spread throughout all four floors
+PASS: The staged smoke pool is capped below 2500 particles
+PASS: All player canvases, including inactive menus, use protected foreground presentation
+PASS: Foreground modifier covers Fade
+PASS: UI background/font ignores wall depth: Fade
+PASS: Foreground modifier covers Background
+PASS: UI background/font ignores wall depth: Background
+PASS: Foreground modifier covers Fill
+PASS: UI background/font ignores wall depth: Fill
+PASS: Foreground modifier covers LowHealthWarning
+PASS: UI background/font ignores wall depth: LowHealthWarning
+PASS: Foreground modifier covers Campus Floor HUD
+PASS: UI background/font ignores wall depth: Campus Floor HUD
+PASS: Foreground modifier covers TMP SubMeshUI [NotoSansCJKsc-Regular SDF Material + NotoSansCJKsc-Regular SDF Atlas 2]
+PASS: UI background/font ignores wall depth: TMP SubMeshUI [NotoSansCJKsc-Regular SDF Material + NotoSansCJKsc-Regular SDF Atlas 2]
+PASS: Foreground modifier covers Map background
+PASS: UI background/font ignores wall depth: Map background
+PASS: Foreground modifier covers Outdoor assembly
+PASS: Foreground modifier covers Map floor
+PASS: UI background/font ignores wall depth: Map floor
+PASS: Foreground modifier covers TMP SubMeshUI [NotoSansCJKsc-Regular SDF Material + NotoSansCJKsc-Regular SDF Atlas 2]
+PASS: UI background/font ignores wall depth: TMP SubMeshUI [NotoSansCJKsc-Regular SDF Material + NotoSansCJKsc-Regular SDF Atlas 2]
+PASS: Foreground modifier covers Map key
+PASS: UI background/font ignores wall depth: Map key
+PASS: Foreground modifier covers TMP SubMeshUI [NotoSansCJKsc-Regular SDF Material + NotoSansCJKsc-Regular SDF Atlas]
+PASS: UI background/font ignores wall depth: TMP SubMeshUI [NotoSansCJKsc-Regular SDF Material + NotoSansCJKsc-Regular SDF Atlas]
+PASS: Foreground modifier covers TMP SubMeshUI [NotoSansCJKsc-Regular SDF Material + NotoSansCJKsc-Regular SDF Atlas 2]
+PASS: UI background/font ignores wall depth: TMP SubMeshUI [NotoSansCJKsc-Regular SDF Material + NotoSansCJKsc-Regular SDF Atlas 2]
+PASS: Foreground modifier covers Corridor
+PASS: UI background/font ignores wall depth: Corridor
+PASS: Foreground modifier covers Room
+PASS: UI background/font ignores wall depth: Room
+PASS: Foreground modifier covers Room
+PASS: UI background/font ignores wall depth: Room
+PASS: Foreground modifier covers Room
+PASS: UI background/font ignores wall depth: Room
+PASS: Foreground modifier covers Room
+PASS: UI background/font ignores wall depth: Room
+PASS: Foreground modifier covers Room
+PASS: UI background/font ignores wall depth: Room
+PASS: Foreground modifier covers Room
+PASS: UI background/font ignores wall depth: Room
+PASS: Foreground modifier covers Room
+PASS: UI background/font ignores wall depth: Room
+PASS: Foreground modifier covers Room
+PASS: UI background/font ignores wall depth: Room
+PASS: Foreground modifier covers Stair A
+PASS: UI background/font ignores wall depth: Stair A
+PASS: Foreground modifier covers Stair B
+PASS: UI background/font ignores wall depth: Stair B
+PASS: Foreground modifier covers A
+PASS: UI background/font ignores wall depth: A
+PASS: Foreground modifier covers B
+PASS: UI background/font ignores wall depth: B
+PASS: Foreground modifier covers Player position
+PASS: UI background/font ignores wall depth: Player position
+PASS: Foreground modifier covers Player facing
+PASS: UI background/font ignores wall depth: Player facing
+PASS: Foreground modifier covers GameOverPanel
+PASS: Foreground modifier covers Title
+PASS: Foreground modifier covers RestartButton
+PASS: Foreground modifier covers Text
+PASS: Foreground modifier covers MainMenuButton
+PASS: Foreground modifier covers Text
+PASS: Foreground modifier covers PausePanel
+PASS: Foreground modifier covers Title
+PASS: Foreground modifier covers RestartButton
+PASS: Foreground modifier covers Text
+PASS: Foreground modifier covers MainMenuButton
+PASS: Foreground modifier covers Text
+PASS: Foreground modifier covers ResumeButton
+PASS: Foreground modifier covers Text
+PASS: Foreground modifier covers VictoryPanel
+PASS: Foreground modifier covers Title
+PASS: Foreground modifier covers RestartButton
+PASS: Foreground modifier covers Text
+PASS: Foreground modifier covers MainMenuButton
+PASS: Foreground modifier covers Text
+PASS: Foreground modifier covers Learning Review
+PASS: Runtime bilingual warning uses native SDF overlay, not merely canvas sorting order (actual: TextMeshPro/Distance Field Overlay, queue=4000, configured=TextMeshPro/Distance Field Overlay (UnityEngine.Shader))
+PASS: Warning keeps the one-metre distance without modifying the shared font asset
+PASS: VR canvases stay world-space; none are converted to Screen Space Overlay
+PASS: The dynamically-spawned health/towel notice prefab retains its foreground shaders
+PASS: Corridor extinguisher models and their decoration parts are removed
+PASS: The scene contains hundreds of additional environmental mesh details
+PASS: Every floor has water facilities and a corridor clock
+PASS: Outdoor bicycles and reading-room task lamps enrich the setting
+PASS: Smoke velocity axes use compatible curve modes, without particle-system errors
+PASS: The smoke layer gradually lowers as the ceiling fills
+PASS: Reset restores the initial high smoke layer and clears exposure
+PASS: Brief smoke exposure retains its six-second grace period
+PASS: Prolonged exposure removes 2 HP per second
+PASS: Leaving smoke resets exposure without extra damage
+PASS: All eight faucets initially have water off and no active wetting volume
+PASS: Every faucet has a spatial running-water loop
+PASS: New restroom towels replace the old consumed/healing pickups without duplicate interactions
+PASS: Lightweight solid towels use continuous collision for dropping and re-grabbing
+PASS: All eight bowls have sealed oval countertop surrounds
+PASS: A towel can reach inside the open bowl; no counter slab blocks it
+PASS: Countertop corners around the oval bowl are closed rather than leaving gaps
+PASS: A towel can reach inside the open bowl; no counter slab blocks it
+PASS: Countertop corners around the oval bowl are closed rather than leaving gaps
+PASS: A towel can reach inside the open bowl; no counter slab blocks it
+PASS: Countertop corners around the oval bowl are closed rather than leaving gaps
+PASS: A towel can reach inside the open bowl; no counter slab blocks it
+PASS: Countertop corners around the oval bowl are closed rather than leaving gaps
+PASS: A towel can reach inside the open bowl; no counter slab blocks it
+PASS: Countertop corners around the oval bowl are closed rather than leaving gaps
+PASS: A towel can reach inside the open bowl; no counter slab blocks it
+PASS: Countertop corners around the oval bowl are closed rather than leaving gaps
+PASS: A towel can reach inside the open bowl; no counter slab blocks it
+PASS: Countertop corners around the oval bowl are closed rather than leaving gaps
+PASS: A towel can reach inside the open bowl; no counter slab blocks it
+PASS: Countertop corners around the oval bowl are closed rather than leaving gaps
+PASS: A hand selects the dry towel surface without a ray: RightHand
+PASS: Held trigger attaches the towel to RightHand
+PASS: Pickup routes one vibration request to the owning controller: RightHand
+PASS: A second hand cannot steal the same held towel
+PASS: A dry towel near the mouth does not stop smoke damage
+PASS: Water-off basin contact cannot wet a towel
+PASS: Only the faucet switch is selected at direct contact
+PASS: Free hand toggles the faucet on while the other hand holds the towel
+PASS: Holding the faucet trigger does not repeatedly toggle water
+PASS: The towel needs sustained contact rather than instantly becoming wet
+PASS: Moving away from the water interrupts wetting
+PASS: A short watering interval still leaves the towel dry
+PASS: Sustained running water changes the cloth to its wet material/state
+PASS: Wetting never releases or consumes the held towel
+PASS: A wet towel grants no permanent or timed health multiplier
+PASS: Only the faucet switch is selected at direct contact
+PASS: A second press turns water and its wetting volume off
+PASS: Turning the tap off does not instantly dry a wet towel
+PASS: A wet towel held away from the face does not stop smoke damage
+PASS: A towel behind the head is not treated as mouth/nose coverage
+PASS: Sustained wet cloth coverage reduces but never eliminates smoke damage for RightHand
+PASS: Protection does not reset the ongoing smoke exposure clock
+PASS: Moving the wet towel away restores damage without a fresh grace exploit
+PASS: Bringing the still-held wet towel back slows damage again
+PASS: Trigger release drops a real, reusable towel rather than hiding it
+PASS: Release routes one vibration request to the same controller: RightHand
+PASS: Dropped wet cloth immediately loses smoke protection, even beside the face
+PASS: Released wet towel falls under gravity and keeps its wet state
+PASS: The other hand can re-grab a dropped wet towel
+PASS: A missing trigger-up event cannot leave a towel stuck to the hand
+PASS: A hand selects the dry towel surface without a ray: LeftHand
+PASS: Held trigger attaches the towel to LeftHand
+PASS: Pickup routes one vibration request to the owning controller: LeftHand
+PASS: A second hand cannot steal the same held towel
+PASS: A dry towel near the mouth does not stop smoke damage
+PASS: Water-off basin contact cannot wet a towel
+PASS: Only the faucet switch is selected at direct contact
+PASS: Free hand toggles the faucet on while the other hand holds the towel
+PASS: Holding the faucet trigger does not repeatedly toggle water
+PASS: The towel needs sustained contact rather than instantly becoming wet
+PASS: Moving away from the water interrupts wetting
+PASS: A short watering interval still leaves the towel dry
+PASS: Sustained running water changes the cloth to its wet material/state
+PASS: Wetting never releases or consumes the held towel
+PASS: A wet towel grants no permanent or timed health multiplier
+PASS: Only the faucet switch is selected at direct contact
+PASS: A second press turns water and its wetting volume off
+PASS: Turning the tap off does not instantly dry a wet towel
+PASS: A wet towel held away from the face does not stop smoke damage
+PASS: A towel behind the head is not treated as mouth/nose coverage
+PASS: Sustained wet cloth coverage reduces but never eliminates smoke damage for LeftHand
+PASS: Protection does not reset the ongoing smoke exposure clock
+PASS: Moving the wet towel away restores damage without a fresh grace exploit
+PASS: Bringing the still-held wet towel back slows damage again
+PASS: Trigger release drops a real, reusable towel rather than hiding it
+PASS: Release routes one vibration request to the same controller: LeftHand
+PASS: Dropped wet cloth immediately loses smoke protection, even beside the face
+PASS: Released wet towel falls under gravity and keeps its wet state
+PASS: The other hand can re-grab a dropped wet towel
+PASS: A missing trigger-up event cannot leave a towel stuck to the hand
+PASS: Pause freezes wetting and ignores faucet switch input
+PASS: Pause safely releases held cloth without leaving a persistent shield
+PASS: No dropped towel anywhere in the scene grants passive protection
+PASS: Pause blocks walking
+PASS: Pause blocks damage and smoke progression
+PASS: Outdoor assembly completion remains integrated
+PASS: Health depletion preserves the failure outcome
+PASS: Arrival cannot overwrite failure
+Quest input / haptics / comfort / GPU performance: not hardware tested.

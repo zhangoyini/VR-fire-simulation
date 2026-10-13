@@ -10,7 +10,7 @@ using UnityEngine.UI;
 [InitializeOnLoad]
 public static class SystemUIOutcomeEditor
 {
-    private const string ScenePath = "Assets/Scenes/SystemUI/SystemUITest.unity";
+    private const string ScenePath = "Assets/Scenes/Tests/SystemUITest.unity";
     private static SystemUIView previewView;
 
     static SystemUIOutcomeEditor()
@@ -70,7 +70,7 @@ public static class SystemUIOutcomeEditor
                 throw new System.InvalidOperationException("Expected existing UI roots and one navigation component.");
             SystemUINavigation navigation = root.GetComponent<SystemUINavigation>();
             var settings = new SerializedObject(navigation);
-            if (settings.FindProperty("gameplayEntrySceneName").stringValue != "whole_floor" ||
+            if (settings.FindProperty("gameplayEntrySceneName").stringValue != "CampusTraining" ||
                 settings.FindProperty("mainMenuSceneName").stringValue != "MainMenu")
                 throw new System.InvalidOperationException("Incorrect navigation scene configuration.");
 

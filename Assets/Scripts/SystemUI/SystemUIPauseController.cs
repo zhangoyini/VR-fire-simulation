@@ -20,6 +20,7 @@ public class SystemUIPauseController : MonoBehaviour
     private bool[] previousAdditionalTeleportStates;
     private bool[] previousMenuInteractionStates;
     private bool menuInteractionsBlocked;
+    private bool previousPauseInput,previousRightTrigger;
 
     private void Awake()
     {
@@ -111,15 +112,18 @@ public class SystemUIPauseController : MonoBehaviour
     {
         if (!paused && resolution != null && resolution.CurrentOutcome == ResolutionCoordinator.Outcome.None)
             RestoreMenuInteractions();
-        if (pauseAction != null && resolution != null
+        bool pauseInput=CampusControllerInput.Pause(), pauseDown=pauseInput && !previousPauseInput;
+        previousPauseInput=pauseInput;
+        bool rightTrigger=CampusControllerInput.Trigger(SteamVR_Input_Sources.RightHand), rightDown=rightTrigger && !previousRightTrigger;
+        previousRightTrigger=rightTrigger;
+        if (resolution != null
             && resolution.CurrentOutcome == ResolutionCoordinator.Outcome.None
-            && pauseAction.GetStateDown(SteamVR_Input_Sources.LeftHand))
+            && pauseDown)
         {
             TogglePause();
             return;
         }
-        if (!paused || contactVolume == null || grab == null
-            || !grab.GetStateDown(SteamVR_Input_Sources.RightHand)) return;
+        if (!paused || contactVolume == null || !rightDown) return;
         // FixedUpdate/trigger callbacks stop at timeScale=0. Recheck only our pause
         // buttons against Henry's existing contact box, using the same input/action.
         Transform hand = contactVolume.transform;

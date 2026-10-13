@@ -7,7 +7,7 @@ using UnityEngine;
 [InitializeOnLoad]
 public sealed class FireWindowMeshCache : IPreprocessBuildWithReport
 {
-    private const string PrefabPath = "Assets/Stair Prefab/Interiors_A/prefabs/wall/Wall_3m_Window_H.prefab";
+    private const string PrefabPath = "Assets/ThirdParty/Art/Interiors/Interiors_A/prefabs/wall/Wall_3m_Window_H.prefab";
     private const string CachePath = "Assets/Scripts/Interaction/Resources/FireWindowMesh.asset";
     public int callbackOrder => 0;
 

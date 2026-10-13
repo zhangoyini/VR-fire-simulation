@@ -1,5 +1,8 @@
 {
   "actions": [
+    { "name": "/actions/default/in/Walk", "type": "vector2" },
+    { "name": "/actions/default/in/Turn", "type": "vector2" },
+    { "name": "/actions/default/in/LessonConfirm", "type": "boolean" },
     {
       "name": "/actions/default/in/Pause",
       "type": "boolean",

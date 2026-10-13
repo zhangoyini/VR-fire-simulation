@@ -20,6 +20,23 @@ public sealed class FireSafetyPrefabSupport : MonoBehaviour
     {
         // Wait until scene Awake calls have completed before discovering the rig.
         yield return null;
+        if (FindObjectOfType<CampusHandInteractor>() != null) yield break;
+        var window = GetComponent<RuntimeFireWindow>();
+        if ((window != null && window.UsesPhysicalHands) || GetComponentInChildren<CampusElevatorButton>() != null)
+        {
+            foreach (SteamVR_Behaviour_Pose pose in FindObjectsOfType<SteamVR_Behaviour_Pose>())
+            {
+                if (pose.inputSource != SteamVR_Input_Sources.LeftHand && pose.inputSource != SteamVR_Input_Sources.RightHand) continue;
+                var hand = pose.GetComponent<CampusHandInteractor>() ?? pose.gameObject.AddComponent<CampusHandInteractor>();
+                hand.ConfigureSource(pose.inputSource);
+            }
+            if (CampusMessagePresenter.Instance == null)
+            {
+                var host = new GameObject("Contact safety messages");
+                var presenter = host.AddComponent<CampusMessagePresenter>(); presenter.ConfigureFont(warningFont);
+            }
+            yield break;
+        }
         bool warned = false;
         while (isActiveAndEnabled)
         {

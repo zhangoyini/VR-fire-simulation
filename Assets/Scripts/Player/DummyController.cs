@@ -5,12 +5,14 @@ public class DummyController : MonoBehaviour
 {
     [SerializeField] private GameObject controller;
     [SerializeField] private SteamVR_Input_Sources inputSource = SteamVR_Input_Sources.Any;
+    [SerializeField] private bool contactInteractionOnly;
 
     private GameObject holdingHand;
     private GameObject pushingHand;
     private GameObject buttonPressHand;
 
     private SteamVR_Action_Boolean grabAction;
+    private ResolutionCoordinator resolution;
     private IInteractable currentInteractable;
     private IInteractable heldInteractable;
     private bool pushingDoor;
@@ -22,6 +24,7 @@ public class DummyController : MonoBehaviour
     private void Awake()
     {
         grabAction = SteamVR_Input.GetBooleanAction("GrabPinch");
+        resolution = FindObjectOfType<ResolutionCoordinator>();
 
         if (controller != null)
         {
@@ -43,8 +46,18 @@ public class DummyController : MonoBehaviour
             transform.rotation = controller.transform.rotation;
         }
 
-        if (grabAction == null)
+        if (contactInteractionOnly || grabAction == null || !SteamVR.active)
             return;
+
+        bool worldBlocked = Time.timeScale == 0f ||
+            (resolution != null && resolution.CurrentOutcome != ResolutionCoordinator.Outcome.None);
+        if (worldBlocked && !(currentInteractable is VRMenuButton))
+        {
+            if (heldInteractable != null) EndHeldInteraction();
+            heldInteractable = null;
+            pushingDoor = false;
+            return;
+        }
 
         bool gripping = grabAction.GetState(inputSource);
         // Determine the safety gesture from this hand's own pose. The interaction
@@ -119,6 +132,9 @@ public class DummyController : MonoBehaviour
 
     private void BuildHandVisual()
     {
+        // The campus scene supplies a textured, articulated 3D hand. Archived scenes
+        // without this component retain their original presentation.
+        if (GetComponent<CampusHandVisual>() != null) return;
         Shader iconShader = Shader.Find("Universal Render Pipeline/Unlit");
         if (iconShader == null)
             iconShader = Shader.Find("Unlit/Color");
@@ -358,6 +374,8 @@ public class DummyController : MonoBehaviour
 
     private void UpdateHandGesture(bool gripping, bool doorPush, bool buttonPress)
     {
+        var realisticHand = GetComponent<CampusHandVisual>();
+        if (realisticHand != null) { realisticHand.SetGesture(gripping, doorPush, buttonPress); return; }
         if (holdingHand == null || pushingHand == null || buttonPressHand == null)
             return;
         bool showButtonPress = buttonPress && gripping;
@@ -367,8 +385,12 @@ public class DummyController : MonoBehaviour
         buttonPressHand.SetActive(showButtonPress);
     }
 
+    public void SetContactGesture(bool gripping, bool pushing, bool button)
+    { UpdateHandGesture(gripping, pushing, button); }
+
     private void OnTriggerEnter(Collider other)
     {
+        if (contactInteractionOnly) return;
         IInteractable interactable = FindInteractable(other);
 
         if (interactable != null)
@@ -387,6 +409,7 @@ public class DummyController : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        if (contactInteractionOnly) return;
         IInteractable interactable = FindInteractable(other);
 
         if (interactable == null)

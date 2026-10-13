@@ -22,6 +22,7 @@ public class ResolutionCoordinator : MonoBehaviour
 
     public bool TryShowVictory()
     {
+        if(CampusLessonDirector.Instance!=null && !CampusLessonDirector.Instance.ExerciseStarted) return false;
         if (!TryClaim(Outcome.Victory))
             return false;
         if (view != null)

@@ -16,7 +16,8 @@ public class VRFireSafetyInteraction : MonoBehaviour
     {
         None,
         ElevatorButton,
-        Window
+        Window,
+        Object
     }
 
     [Header("Right controller input")]
@@ -48,6 +49,7 @@ public class VRFireSafetyInteraction : MonoBehaviour
     private Transform activeTarget;
     private SafetyTargetType activeTargetType;
     private RuntimeFireWindow activeWindow;
+    private IInteractable activeObject;
     private bool triggerWasHeld;
     private GameObject messageRoot;
     private TMP_Text messageText;
@@ -98,6 +100,8 @@ public class VRFireSafetyInteraction : MonoBehaviour
     private void LateUpdate()
     {
         UpdateMessageTimer();
+
+        if (Time.timeScale == 0f) return;
 
         if (triggerAction == null)
         {
@@ -190,6 +194,11 @@ public class VRFireSafetyInteraction : MonoBehaviour
                 else activeWindow.Open(ViewerPosition);
             }
         }
+        else if (activeTargetType == SafetyTargetType.Object && activeObject != null)
+        {
+            activeObject.OnInteractStart(RayTransform);
+            activeObject.OnInteractEnd(RayTransform);
+        }
 
         HideTargetOutline();
 
@@ -227,7 +236,10 @@ public class VRFireSafetyInteraction : MonoBehaviour
                 continue;
 
             // Ignore unrelated trigger volumes; only the open-window target participates.
-            if (candidate.collider.isTrigger && !RuntimeFireWindow.TryFind(candidate.collider, out _))
+            if (candidate.collider.isTrigger && !RuntimeFireWindow.TryFind(candidate.collider, out _) &&
+                candidate.collider.GetComponentInParent<DoorInteraction>() == null &&
+                candidate.collider.GetComponentInParent<Jiao.HealthTime.TowelPickup>() == null &&
+                candidate.collider.GetComponentInParent<CampusRefugeCall>() == null)
                 continue;
 
             Transform hitTransform = candidate.collider.transform;
@@ -250,6 +262,7 @@ public class VRFireSafetyInteraction : MonoBehaviour
         out SafetyTargetType targetType)
     {
         activeWindow = null;
+        activeObject = null;
         if (RuntimeFireWindow.TryFind(hit.collider, out RuntimeFireWindow window) &&
             window.CanInteract(ViewerPosition))
         {
@@ -263,6 +276,21 @@ public class VRFireSafetyInteraction : MonoBehaviour
         {
             targetType = SafetyTargetType.ElevatorButton;
             return true;
+        }
+        if (Vector3.Distance(ViewerPosition, hit.point) <= 1.8f)
+        {
+            foreach (MonoBehaviour behaviour in hit.collider.GetComponentsInParent<MonoBehaviour>())
+            {
+                if (!behaviour.isActiveAndEnabled) continue;
+                if ((behaviour is DoorInteraction || behaviour is Jiao.HealthTime.TowelPickup ||
+                    behaviour is CampusRefugeCall) && behaviour is IInteractable interactable)
+                {
+                    activeObject = interactable;
+                    target = behaviour.transform;
+                    targetType = SafetyTargetType.Object;
+                    return true;
+                }
+            }
         }
 
         target = null;
@@ -287,10 +315,13 @@ public class VRFireSafetyInteraction : MonoBehaviour
         activeTarget = null;
         activeTargetType = SafetyTargetType.None;
         activeWindow = null;
+        activeObject = null;
 
         if (targetOutline != null)
             targetOutline.Hide();
     }
+
+    public void ShowContextMessage(string text) => ShowMessage(text);
 
     private void ShowMessage(string text)
     {

@@ -1,0 +1,33 @@
+PASS: One active health system initialises correctly
+PASS: Gameplay HUD displays the initial fourth floor within view
+PASS: Pause freezes simulation
+PASS: Resume restores simulation
+PASS: All 60 treads of continuous stair B have standing clearance
+PASS: Window wall and glass split successfully at runtime
+PASS: Window proximity gate accepts near / rejects far
+PASS: Closed pane maps to its prefab interaction
+PASS: First action opens right-hand hinge by 90 degrees
+PASS: Open window still targets original model opening
+PASS: Second trigger release produces bilingual window warning
+PASS: Warning remains world-space at 1 metre
+PASS: Glass stays open during 2-second warning interval
+PASS: Glass automatically closes after warning interval and animation
+PASS: Both elevator buttons enforce 1.5m proximity
+PASS: Protective towel applies timed health-drain reduction
+PASS: Consumed towel cannot stack its effect again
+PASS: Smoke applies three-times drain
+PASS: Leaving smoke clears multiplier
+PASS: Single classroom door opens
+PASS: Classroom door closes
+PASS: Both leaves of the ground exit open
+PASS: Tracked body enters outdoor endpoint through actual physics trigger
+PASS: Outdoor assembly completes in the same scene
+PASS: Complete victory panel is actually visible
+PASS: Learning review is populated
+PASS: No stair or endpoint scene transition
+PASS: 2F refuge intercom confirms safe endpoint
+PASS: Health depletion preserves failure outcome
+PASS: Failure panel is actually visible
+PASS: Arrival cannot overwrite an existing failure
+PASS: Unified experience and session logging remain active
+VR hardware input / Quest GPU timing: not tested.

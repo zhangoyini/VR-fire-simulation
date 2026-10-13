@@ -12,8 +12,6 @@ public sealed class VRControlTutorial : MonoBehaviour
     private CanvasGroup canvasGroup;
     private RectTransform panel;
     private RectTransform joystickKnob;
-    private RectTransform gripRing;
-    private Image gripGlow;
     private Image joystickGlow;
     private RectTransform joystickRing;
     private Sprite circleSprite;
@@ -61,7 +59,7 @@ public sealed class VRControlTutorial : MonoBehaviour
             new Vector2(460f, 50f), 27f, Color.white, FontStyles.Normal);
         MakeText(canvasObject.transform, "INTERACT", new Vector2(130f, 115f),
             new Vector2(215f, 48f), 30f, new Color(0.06f, 0.08f, 0.1f), FontStyles.Bold);
-        MakeText(canvasObject.transform, "Squeeze Grip Button\nto interact", new Vector2(130f, -139f),
+        MakeText(canvasObject.transform, "Right trigger:\naim, then release", new Vector2(130f, -139f),
             new Vector2(215f, 72f), 22f, new Color(0.06f, 0.08f, 0.1f), FontStyles.Normal);
 
         BuildJoystick(canvasObject.transform);
@@ -97,18 +95,7 @@ public sealed class VRControlTutorial : MonoBehaviour
         MakeImage(parent, "Quest 3 Controller Reference Image", new Vector2(330f, -10f),
             new Vector2(135f, 168f), Color.white, sprite);
 
-        // Match the raised grip area on the upper-left side shown in the user's marked reference.
-        Vector2 gripPosition = new Vector2(298f, 24f);
-        gripGlow = MakeImage(parent, "Grip Button Glow", gripPosition,
-            new Vector2(25f, 25f), new Color(1f, 0.22f, 0f, 0.24f), GetCircleSprite())
-            .GetComponent<Image>();
-        gripRing = MakeImage(parent, "Grip Button Highlight Ring", gripPosition,
-            new Vector2(22f, 22f), new Color(1f, 0.12f, 0f, 1f), GetRingSprite())
-            .GetComponent<RectTransform>();
-        gripGlow.rectTransform.localEulerAngles = new Vector3(0f, 0f, -18f);
-        gripRing.localEulerAngles = new Vector3(0f, 0f, -18f);
-        MakeArrow(parent, "Interact Grip Button Arrow", new Vector2(220f, 65f),
-            gripPosition, new Color(1f, 0.12f, 0f, 1f));
+        // This grip-marked reference is kept as a controller illustration, not a trigger locator.
     }
 
     private GameObject MakeImage(Transform parent, string objectName, Vector2 position,
@@ -305,18 +292,6 @@ public sealed class VRControlTutorial : MonoBehaviour
         if (joystickRing != null)
             joystickRing.localScale = Vector3.one * Mathf.Lerp(0.94f, 1.12f, press);
 
-        if (gripGlow != null)
-        {
-            Color color = gripGlow.color;
-            color.a = Mathf.Lerp(0.18f, 0.65f, press);
-            gripGlow.color = color;
-            gripGlow.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.9f, 1.16f, press);
-        }
-
-        if (gripRing != null)
-        {
-            gripRing.localScale = Vector3.one * Mathf.Lerp(0.94f, 1.12f, press);
-        }
     }
 
     private void OnDestroy()

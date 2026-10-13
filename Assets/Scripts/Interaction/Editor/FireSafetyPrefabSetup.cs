@@ -5,8 +5,8 @@ using UnityEngine;
 
 public static class FireSafetyPrefabSetup
 {
-    public const string ElevatorPath = "Assets/prefab/elevator(button))+wu.prefab";
-    public const string WindowPath = "Assets/Stair Prefab/Interiors_A/prefabs/wall/Wall_3m_Window_H.prefab";
+    public const string ElevatorPath = "Assets/Prefabs/Environment/elevator(button))+wu.prefab";
+    public const string WindowPath = "Assets/ThirdParty/Art/Interiors/Interiors_A/prefabs/wall/Wall_3m_Window_H.prefab";
     private const string ResourcesPath = "Assets/Scripts/Interaction/Resources/";
 
     [MenuItem("Tools/Fire Safety/Configure and validate interaction prefabs")]
