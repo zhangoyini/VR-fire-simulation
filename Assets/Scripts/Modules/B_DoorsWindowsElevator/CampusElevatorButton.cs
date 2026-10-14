@@ -6,10 +6,7 @@ public sealed class CampusElevatorButton : MonoBehaviour, IInteractable
     public void OnInteractStart(Transform hand) { if (owner == null) owner = hand; }
     public void OnInteract(Transform hand) { }
     public void OnInteractEnd(Transform hand)
-    {
-        if (owner == hand) owner = null;
-        // MODEL API PLACEHOLDER: decorative elevator buttons; module 03 restores bilingual safety warning.
-    }
+    { if (owner != hand) return; owner = null; CampusMessagePresenter.Instance?.Show(CampusMessagePresenter.ElevatorWarning); }
     public void OnHoverEnter() { }
     public void OnHoverExit() { }
     private void OnDisable() { owner = null; }
