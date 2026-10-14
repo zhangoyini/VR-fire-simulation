@@ -62,30 +62,15 @@ public sealed class CampusLessonDirector : MonoBehaviour
         (IsPractice || CurrentPhase==Phase.Rise || CurrentPhase==Phase.SmokeLesson);
     private void Awake()
     {
-        // MODEL API PLACEHOLDER: free exploration, no cinematic, task sequence or lesson lock.
-        Instance = this;
-        resolution = FindObjectOfType<ResolutionCoordinator>();
-        layout = GetComponent<CampusLessonLayout>();
-        bypassed = true;
-        CurrentPhase = Phase.Complete;
-        if (fireOrigin != null) fireOrigin.SetActive(false);
-        if (doorwayPlume != null) doorwayPlume.SetActive(false);
-        if (doorwayExposure != null) doorwayExposure.enabled = false;
-        alarm?.Stop();
-        SetStoryHands(false);
-        if (storyBook != null) storyBook.gameObject.SetActive(false);
-        SetHandsVisible(true);
-        SetFade(0);
-        if (lessonPanel != null) lessonPanel.SetActive(false);
-        if (gameplayHUD != null) gameplayHUD.SetActive(true);
-        if (minimap != null) minimap.SetActive(true);
-        route?.Hide();
-        destination?.SetHighlighted(false);
+        Instance=this; resolution=FindObjectOfType<ResolutionCoordinator>(); layout=GetComponent<CampusLessonLayout>();
+        if(fireOrigin!=null) fireOrigin.SetActive(false);
+        if(doorwayPlume!=null) doorwayPlume.SetActive(false);
+        alarm?.Stop(); ChangePhase(Phase.Controls);
     }
     private void Start()
     {
-        // MODEL API PLACEHOLDER: no lesson logging before the teaching module is integrated.
-        loggingReady = false;
+        // Do not lazy-create SessionLogger before the team's health host has Awoken.
+        loggingReady=true; SessionLogger.Write("LESSON_CONTROLS");
     }
     private void Update()
     {
