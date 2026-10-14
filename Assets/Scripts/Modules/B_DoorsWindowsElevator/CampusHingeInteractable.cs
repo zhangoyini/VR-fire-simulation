@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-// A hand owns the hinge until release. Angle follows its radial displacement, not an animation.
+
 public sealed class CampusHingeInteractable : MonoBehaviour, IInteractable
 {
     [SerializeField] private Transform pivot;
@@ -24,16 +24,36 @@ public sealed class CampusHingeInteractable : MonoBehaviour, IInteractable
     private Vector3 HandPosition(Transform hand) => handSpace != null ? handSpace.InverseTransformPoint(hand.position) : hand.position;
     public void OnInteractStart(Transform hand)
     {
-        // MODEL ONLY: no door/window action until independent module B is integrated.
+        if (owner != null || hand == null) return;
+        if (closeRoutine != null) { StopCoroutine(closeRoutine); closeRoutine = null; }
+        owner = hand; grabAngle = angle;
+        var locomotion = hand.GetComponentInParent<CampusLocomotion>() ?? FindObjectOfType<CampusLocomotion>();
+        handSpace = locomotion != null ? locomotion.transform : null;
+        grabHandPosition = HandPosition(hand);
+
+        var leaf = pivot.GetComponentInChildren<BoxCollider>();
+        Vector3 radial = Vector3.ProjectOnPlane((leaf != null ? leaf.transform.TransformPoint(leaf.center) : hand.position) - pivot.position, Vector3.up);
+        if (radial.sqrMagnitude < .001f) radial = pivot.right;
+        Vector3 direction = Vector3.Cross(Vector3.up, radial.normalized) * openSign;
+        grabPushDirection = handSpace != null ? handSpace.InverseTransformDirection(direction) : direction;
     }
     public void OnInteract(Transform hand)
     {
-        // MODEL API PLACEHOLDER: no continuous push-distance calculation.
+        if (owner != hand) return;
+        float travel = Vector3.Dot(HandPosition(hand) - grabHandPosition, grabPushDirection);
+        if (Mathf.Abs(travel) < .003f) travel = 0; 
+        SetAngle(grabAngle + travel / Mathf.Max(.08f, travelForFullOpening) * maximumAngle);
     }
     public void OnInteractEnd(Transform hand)
     {
-        if (owner == hand) owner = null;
-        // MODEL API PLACEHOLDER: warning and delayed window closure are restored by module 03.
+        if (owner != hand) return;
+        owner = null;
+
+        if (windowWarning && grabAngle > 35f && angle > 35f && (CampusLessonDirector.Instance==null || !CampusLessonDirector.Instance.IsPractice))
+        {
+            CampusMessagePresenter.Instance?.Show(CampusMessagePresenter.WindowWarning);
+            closeRoutine = StartCoroutine(CloseAfterWarning());
+        }
     }
     public void SetAngle(float value)
     { angle = Mathf.Clamp(value, windowWarning ? 0 : -maximumAngle, maximumAngle); pivot.localRotation = closedRotation * Quaternion.Euler(0, angle * openSign, 0); }
