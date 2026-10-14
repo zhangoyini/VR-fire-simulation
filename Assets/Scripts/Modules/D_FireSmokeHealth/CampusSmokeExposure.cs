@@ -25,8 +25,14 @@ public sealed class CampusSmokeExposure : MonoBehaviour
     }
     public void Tick(bool inside, float seconds)
     {
-        // MODEL API PLACEHOLDER: smoke does not remove health until module 05 is integrated.
-        exposure = 0;
-        IsProtected = false;
+        var health = HealthTimeController.Instance; if (Time.timeScale == 0 || health == null || health.IsPaused || health.IsDepleted) return;
+        if(CampusLessonDirector.Instance!=null && CampusLessonDirector.Instance.DamageSuppressed) return;
+        IsProtected=CampusTowelInteractable.HasProtection(trackedHead);
+        if (!inside) { exposure = 0; return; }
+        float previous = exposure; exposure += Mathf.Max(0,seconds);
+        // Keep the smoke clock while protected: repeatedly moving the towel away must
+        // not grant a fresh grace period in the same smoke cloud.
+        float damagingTime = Mathf.Max(0, exposure - graceSeconds) - Mathf.Max(0, previous - graceSeconds);
+        if (damagingTime > 0) health.TakeDamage(damagingTime * damagePerSecond * (IsProtected?coveredDamageMultiplier:1) * health.DrainMultiplier);
     }
 }
