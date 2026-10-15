@@ -1,0 +1,9 @@
+Saved scene: Assets/Scenes/Campus/CampusTraining.unity
+Floors: 4 (3.8m/storey)
+Windows: 78
+Elevators: 4
+Teaching/service rooms: 32
+Stair towers: 2; 120 actual steps
+Refuge intercom: 1; outdoor assembly endpoint: 1
+Missing scripts: 0
+Objects: 4853

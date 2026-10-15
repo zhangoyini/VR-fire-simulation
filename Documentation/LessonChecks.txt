@@ -1,0 +1,109 @@
+PASS: Entry begins with the scene-local controls demonstration
+PASS: Practice has no fire, alarm or advancing smoke
+PASS: Initial teaching allows free movement and world interaction without damage
+PASS: Safe endpoints cannot finish the game during free practice
+PASS: Head, controller poses and visible interaction proxies use one calibrated origin
+PASS: A has its own generated SteamVR action, distinct from grabbing
+PASS: All personal HUD/menu anchors are horizontally centred and follow the eyes
+PASS: The map moves from the extreme lower-left into the forward comfort cone
+PASS: Invalid tracking cannot calibrate using an editor placeholder
+PASS: A low/device-origin pose is raised to a 1.70 metre viewpoint
+PASS: Both hands receive the same height offset as the head
+PASS: After calibration, natural crouching and head rotation remain unchanged
+PASS: A floor-relative 1.70 metre pose does not get a duplicate standing-height offset
+PASS: Crouching in floor-relative tracking never raises the real floor or controller reach
+PASS: A shorter player's real standing height is preserved instead of lifting both hands
+PASS: Controller travel maps one-to-one for RightHand
+PASS: Floor reach remains 14 cm above the actual virtual floor for RightHand
+PASS: Controller travel maps one-to-one for LeftHand
+PASS: Floor reach remains 14 cm above the actual virtual floor for LeftHand
+PASS: The player can walk during entry; right stick still does not turn the view
+PASS: Practice reading and exploration cannot cause smoke damage
+PASS: A fresh page cannot be skipped before its reading gate
+PASS: The UI unfolds and fades in rather than instantly appearing
+PASS: Headset demonstration allows thirty seconds with a deliberate reading gate
+PASS: Headset is not automatically replaced after the old twelve-second interval
+PASS: Initial classroom has two grabbable books and rear opening windows
+PASS: Either hand can directly pick up a practice book
+PASS: A second hand cannot steal an already held book
+PASS: A world trigger action practises grabbing without advancing the lesson
+PASS: Practice book release drops it and requests matching grab/drop vibrations
+PASS: Rear windows open during practice without a premature fire warning
+PASS: Pause freezes teaching, confirmations and health
+PASS: A key advances to left-stick teaching without a contact button
+PASS: Controller teaching includes two animated detailed 3D hands for forty seconds
+PASS: The actual left-stick click pause control is demonstrated
+PASS: A key advances to push/grab teaching without trigger confirmation
+PASS: The right A key is animated independently of the grabbing triggers
+PASS: Controls end in an unlocked practice/ready phase
+PASS: An idle ready page shrinks but never starts the game automatically
+PASS: Explicit A hold starts the locked first-person cinematic
+PASS: Cinematic disables the actual movement controller, including all stick directions
+PASS: Exclusive system pose rejects an external body movement writer during the movie
+PASS: Real controller hands are hidden while prescribed animation hands own the story
+PASS: World manipulation is blocked during system cinematics
+PASS: Cinematic visibly identifies system-controlled reading
+PASS: Reading includes a separate animated page-turn beat
+PASS: Placing the book is a distinct normal-speed motion after reading
+PASS: Baked story glove preserves the actual anatomical handedness: RightHand
+PASS: Baked story glove preserves the actual anatomical handedness: LeftHand
+PASS: Virtual seating moves the rig under a fade, never the tracked head pose
+PASS: The book rests on the actual desk
+PASS: Additional settling/rest beats keep the cinematic longer than the old six-second opening
+PASS: Alarm follows the 22-second normal-life sequence
+PASS: The alarm starts with visible corridor smoke already prepared
+PASS: Burning smell follows a distinct alarm-observation beat
+PASS: The odor cue does not disappear after only a few seconds
+PASS: Standing waits indefinitely for deliberate player confirmation
+PASS: Standing includes bracing and a fade rather than an immediate unlock
+PASS: Finishing the cinematic immediately restores free movement, without waiting for a task confirmation
+PASS: Both detailed tracked hands are restored after the movie
+PASS: The cinematic restores standing height and retains natural HMD pose
+PASS: Doorway guidance automatically folds while movement remains unlocked
+PASS: A cracked classroom door cannot start the smoke lesson
+PASS: A partly opened door still waits for the full opening
+PASS: Opening the door and actually entering smoke starts the health lesson
+PASS: The health lesson has real visible smoke rather than an invisible trigger only
+PASS: Saved smoke parameters match the six-second grace and modestly faster 2 HP/s
+PASS: Initial smoke contact leaves six full seconds to react
+PASS: Health demonstration then removes 4 HP across two seconds
+PASS: After the HP demo, waiting to read cannot kill the player
+PASS: Health teaching enforces a twenty-second minimum reading period
+PASS: The next knowledge page gets its own fresh reading timer
+PASS: Immersive fire teaching explains limited cloth protection and CO without a confusing drill disclaimer
+PASS: Task 1 first expands as an animated reading card
+PASS: Task 1 lights up only the 411 restroom door sign
+PASS: Task card remains expanded beyond the former twelve-second interval
+PASS: Task announcement protects the player's reading time
+PASS: Unfinished task 1 stays directly ahead, rather than in an uncomfortable corner
+PASS: Task automatically shows floor chevrons without confirmation or cancelled rays
+PASS: An unfinished task stays pinned rather than timing out
+PASS: Closing the door removes its local visible exposure plume
+PASS: Remote towel pickup outside the restroom does not issue task 2
+PASS: Task 1 completion expands task 2 without forcing the held towel to drop
+PASS: Task 2 announcement does not interrupt held-towel or faucet operations
+PASS: Task 2 does not overlap the old towel pickup message
+PASS: Task 2 uses the existing actual running-water wetting interaction
+PASS: By restroom departure, 4F-to-3F stairs and the 3F corridor contain actual advancing smoke
+PASS: Face coverage updates the same compact task 2 to staircase guidance
+PASS: Dropping the towel cannot complete the descent
+PASS: Only arriving on 3F with the held wet towel at the face completes the chapter
+PASS: Chapter completion cannot bypass whole-building evacuation
+PASS: Completed tasks remove their card and route
+PASS: Restroom highlighting clears after the towel task
+PASS: Natural release inherits sampled linear and angular hand motion
+PASS: Thrown book actually travels under Unity physics, not only a stored velocity
+PASS: Fast towel throw is bounded and retains its wet state
+PASS: System/pause release drops safely without throwing
+PASS: Stale or lost tracking cannot launch an object
+PASS: A tracking recenter discontinuity is rejected rather than converted to a throw
+PASS: Artificial body walking/rotation never contributes to throwing speed
+PASS: Crouching and reaching 10 cm above the dropped towel really picks it up: RightHand
+PASS: Picking up from the floor needs neither extra arm extension nor an artificial floor offset
+PASS: Crouching and reaching 10 cm above the dropped towel really picks it up: LeftHand
+PASS: Picking up from the floor needs neither extra arm extension nor an artificial floor offset
+PASS: Forward-facing pause buttons remain within direct controller reach
+PASS: An actual hand-contact trigger resumes the scaled, centred pause menu
+PASS: All story and practice meshes retain saved geometry
+PASS: Repeated scene application leaves one lesson, one fade and no blue confirmation object
+Quest tracking, vibration and comfort still need hardware testing.

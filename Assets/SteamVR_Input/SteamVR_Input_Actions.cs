@@ -17,6 +17,14 @@ namespace Valve.VR
     public partial class SteamVR_Actions
     {
         
+        private static SteamVR_Action_Vector2 p_default_Walk;
+        
+        private static SteamVR_Action_Vector2 p_default_Turn;
+        
+        private static SteamVR_Action_Boolean p_default_LessonConfirm;
+        
+        private static SteamVR_Action_Boolean p_default_Pause;
+        
         private static SteamVR_Action_Boolean p_default_InteractUI;
         
         private static SteamVR_Action_Boolean p_default_Teleport;
@@ -54,6 +62,38 @@ namespace Valve.VR
         private static SteamVR_Action_Boolean p_buggy_Reset;
         
         private static SteamVR_Action_Pose p_mixedreality_ExternalCamera;
+        
+        public static SteamVR_Action_Vector2 default_Walk
+        {
+            get
+            {
+                return SteamVR_Actions.p_default_Walk.GetCopy<SteamVR_Action_Vector2>();
+            }
+        }
+        
+        public static SteamVR_Action_Vector2 default_Turn
+        {
+            get
+            {
+                return SteamVR_Actions.p_default_Turn.GetCopy<SteamVR_Action_Vector2>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean default_LessonConfirm
+        {
+            get
+            {
+                return SteamVR_Actions.p_default_LessonConfirm.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean default_Pause
+        {
+            get
+            {
+                return SteamVR_Actions.p_default_Pause.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
         
         public static SteamVR_Action_Boolean default_InteractUI
         {
@@ -210,6 +250,10 @@ namespace Valve.VR
         private static void InitializeActionArrays()
         {
             Valve.VR.SteamVR_Input.actions = new Valve.VR.SteamVR_Action[] {
+                    SteamVR_Actions.default_Walk,
+                    SteamVR_Actions.default_Turn,
+                    SteamVR_Actions.default_LessonConfirm,
+                    SteamVR_Actions.default_Pause,
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
                     SteamVR_Actions.default_GrabPinch,
@@ -230,6 +274,10 @@ namespace Valve.VR
                     SteamVR_Actions.buggy_Reset,
                     SteamVR_Actions.mixedreality_ExternalCamera};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
+                    SteamVR_Actions.default_Walk,
+                    SteamVR_Actions.default_Turn,
+                    SteamVR_Actions.default_LessonConfirm,
+                    SteamVR_Actions.default_Pause,
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
                     SteamVR_Actions.default_GrabPinch,
@@ -256,6 +304,8 @@ namespace Valve.VR
                     SteamVR_Actions.default_Pose,
                     SteamVR_Actions.mixedreality_ExternalCamera};
             Valve.VR.SteamVR_Input.actionsBoolean = new Valve.VR.SteamVR_Action_Boolean[] {
+                    SteamVR_Actions.default_LessonConfirm,
+                    SteamVR_Actions.default_Pause,
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
                     SteamVR_Actions.default_GrabPinch,
@@ -270,6 +320,8 @@ namespace Valve.VR
                     SteamVR_Actions.default_Squeeze,
                     SteamVR_Actions.buggy_Throttle};
             Valve.VR.SteamVR_Input.actionsVector2 = new Valve.VR.SteamVR_Action_Vector2[] {
+                    SteamVR_Actions.default_Walk,
+                    SteamVR_Actions.default_Turn,
                     SteamVR_Actions.platformer_Move,
                     SteamVR_Actions.buggy_Steering};
             Valve.VR.SteamVR_Input.actionsVector3 = new Valve.VR.SteamVR_Action_Vector3[0];
@@ -277,6 +329,10 @@ namespace Valve.VR
                     SteamVR_Actions.default_SkeletonLeftHand,
                     SteamVR_Actions.default_SkeletonRightHand};
             Valve.VR.SteamVR_Input.actionsNonPoseNonSkeletonIn = new Valve.VR.ISteamVR_Action_In[] {
+                    SteamVR_Actions.default_Walk,
+                    SteamVR_Actions.default_Turn,
+                    SteamVR_Actions.default_LessonConfirm,
+                    SteamVR_Actions.default_Pause,
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
                     SteamVR_Actions.default_GrabPinch,
@@ -295,6 +351,10 @@ namespace Valve.VR
         
         private static void PreInitActions()
         {
+            SteamVR_Actions.p_default_Walk = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/default/in/Walk")));
+            SteamVR_Actions.p_default_Turn = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/default/in/Turn")));
+            SteamVR_Actions.p_default_LessonConfirm = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/LessonConfirm")));
+            SteamVR_Actions.p_default_Pause = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/Pause")));
             SteamVR_Actions.p_default_InteractUI = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/InteractUI")));
             SteamVR_Actions.p_default_Teleport = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/Teleport")));
             SteamVR_Actions.p_default_GrabPinch = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/GrabPinch")));

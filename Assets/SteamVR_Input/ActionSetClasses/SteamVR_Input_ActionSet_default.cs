@@ -17,6 +17,38 @@ namespace Valve.VR
     public class SteamVR_Input_ActionSet_default : Valve.VR.SteamVR_ActionSet
     {
         
+        public virtual SteamVR_Action_Vector2 Walk
+        {
+            get
+            {
+                return SteamVR_Actions.default_Walk;
+            }
+        }
+        
+        public virtual SteamVR_Action_Vector2 Turn
+        {
+            get
+            {
+                return SteamVR_Actions.default_Turn;
+            }
+        }
+        
+        public virtual SteamVR_Action_Boolean LessonConfirm
+        {
+            get
+            {
+                return SteamVR_Actions.default_LessonConfirm;
+            }
+        }
+        
+        public virtual SteamVR_Action_Boolean Pause
+        {
+            get
+            {
+                return SteamVR_Actions.default_Pause;
+            }
+        }
+        
         public virtual SteamVR_Action_Boolean InteractUI
         {
             get

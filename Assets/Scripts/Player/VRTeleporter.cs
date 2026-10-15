@@ -18,6 +18,8 @@ public class VRTeleporter : MonoBehaviour
     [SerializeField, Min(1)] private int resolution = 40;
     [SerializeField] private float initialVelocity = 8f; 
     [SerializeField] private LayerMask teleportLayer;    
+    [Tooltip("0 preserves legacy unrestricted height. Campus stairs use 2.2 m to prevent skipping floors/window drops.")]
+    [SerializeField, Min(0)] private float maxHeightChange;
 
     private LineRenderer lineRenderer;
     private Vector3 teleportTarget;
@@ -32,6 +34,9 @@ public class VRTeleporter : MonoBehaviour
 
         if (teleportAction == null)
             teleportAction = SteamVR_Input.GetBooleanAction("Teleport");
+
+        if (vrCamera != null && vrCamera.GetComponent<VRControlTutorial>() == null)
+            vrCamera.gameObject.AddComponent<VRControlTutorial>();
     }
 
     private void LateUpdate()
@@ -84,7 +89,9 @@ public class VRTeleporter : MonoBehaviour
                 arcPoints.Add(hit.point);
 
                 bool isTeleportLayer = (teleportLayer.value & (1 << hit.collider.gameObject.layer)) != 0;
-                if (isTeleportLayer && hit.collider.GetComponent<TeleportArea>() != null)
+                if (isTeleportLayer && hit.normal.y >= 0.65f && hit.collider.GetComponent<TeleportArea>() != null &&
+                    (maxHeightChange == 0f || Mathf.Abs(hit.point.y - playerRoot.position.y) <= maxHeightChange) &&
+                    HasStandingClearance(hit.point))
                 {
                     teleportTarget = hit.point;
                     isValidLocationFound = true;
@@ -158,5 +165,21 @@ public class VRTeleporter : MonoBehaviour
         cameraOffset.y = 0; // Keep the player safely locked to floor level height
 
         playerRoot.position = teleportTarget - cameraOffset;
+    }
+
+    private bool HasStandingClearance(Vector3 point)
+    {
+        float height = vrCamera != null ? Mathf.Clamp(vrCamera.position.y - playerRoot.position.y, 1.2f, 2.1f) : 1.7f;
+        // Leave foot-level clearance for a 0.19m stair riser; still reject walls/low ceilings.
+        Collider[] overlaps = Physics.OverlapCapsule(point + Vector3.up * .42f,
+            point + Vector3.up * (height - .2f), .2f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        foreach (Collider c in overlaps)
+        {
+            if (c.transform == transform || c.transform.IsChildOf(transform)) continue;
+            if (playerRoot != null && (c.transform == playerRoot || c.transform.IsChildOf(playerRoot))) continue;
+            if (c.GetComponentInParent<DummyController>() != null) continue;
+            return false;
+        }
+        return true;
     }
 }
