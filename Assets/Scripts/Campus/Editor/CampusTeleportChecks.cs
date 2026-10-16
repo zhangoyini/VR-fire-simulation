@@ -48,6 +48,7 @@ public static class CampusTeleportChecks
             var pause=new SerializedObject(UnityEngine.Object.FindObjectOfType<SystemUIPauseController>(true));
             Check(pause.FindProperty("teleport").objectReferenceValue!=null && pause.FindProperty("additionalTeleports").arraySize==1,"Pause controls both teleporters");
             CheckStairRoute(configured[0]);
+            CheckStairAim(configured[0]);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
             RunIsolated();
             File.WriteAllLines("Documentation/TeleportChecks.txt",results.Concat(new[]{"Headset input, visual comfort and audio: require hardware verification."}));
@@ -101,6 +102,31 @@ public static class CampusTeleportChecks
         Set(teleport,"teleportLayer",(LayerMask)~0); Call(teleport,"Awake"); return teleport;
     }
 
+    private static void CheckStairAim(VRTeleporter teleport)
+    {
+        var settings=new SerializedObject(teleport);
+        var rig=(Transform)settings.FindProperty("playerRoot").objectReferenceValue;
+        var head=(Transform)settings.FindProperty("vrCamera").objectReferenceValue;
+        Vector3 headOffset=head.position-rig.position; headOffset.y=0;
+        Call(teleport,"Awake");
+        foreach(bool ascending in new[]{true,false})
+        {
+            Vector3 feet=ascending?new Vector3(21.55f,0,.7f):new Vector3(24.45f,3.8f,.7f);
+            rig.position=feet-headOffset;
+            teleport.transform.position=feet+new Vector3(0,1.2f,.3f);
+            bool reachable=false;
+            for(int pitch=-40;pitch<=70;pitch+=2)
+            {
+                teleport.transform.rotation=Quaternion.Euler(pitch,0,0);
+                Physics.SyncTransforms(); Call(teleport,"RenderTeleportArc");
+                var arc=teleport.GetComponent<LineRenderer>(); Vector3 end=arc.GetPosition(arc.positionCount-1);
+                if(teleport.HasValidTarget && (ascending?end.y>feet.y+.18f:end.y<feet.y-.18f)) { reachable=true; break; }
+            }
+            Check(reachable,"Controller-directed arc can aim at actual Stair B treads: "+(ascending?"up":"down"));
+        }
+        Call(teleport,"OnDisable");
+    }
+
     private static void RunIsolated()
     {
         Time.timeScale=1; ResetOwner(); CampusSmokeVolume.Active.Clear();
@@ -127,17 +153,26 @@ public static class CampusTeleportChecks
         Check(left.IsWithinRange(Vector3.forward*3) && !left.IsWithinRange(Vector3.forward*3.001f),"Campus 3m boundary is enforced");
         Check(!left.IsWithinRange(new Vector3(0,2.01f,1)) && left.IsWithinRange(new Vector3(0,1.9f,2f)),"3m range retains the 2m height cap and permits shorter stair hops");
         foreach(float height in new[]{.9f,1.2f,1.5f})
-            foreach(float pitch in new[]{0f,15f,30f,60f})
         {
+          float previousDistance=float.PositiveInfinity;
+          foreach(float pitch in new[]{0f,15f,30f,60f})
+          {
             left.transform.position=new Vector3(.22f,height,.4f);
             left.transform.rotation=Quaternion.Euler(pitch,0,0);
             ResetOwner(); left.ProcessInput(true);
             var arc=left.GetComponent<LineRenderer>();
             float landingDistance=Vector3.Distance(rig.transform.position,arc.GetPosition(arc.positionCount-1));
-            Check(left.HasValidTarget && (pitch<=30?landingDistance>=2.2f && landingDistance<3:landingDistance>.9f && landingDistance<1.5f),
+            Check(left.HasValidTarget && landingDistance<previousDistance &&
+                (pitch==0?landingDistance>=2.7f && landingDistance<=3:landingDistance>.5f && landingDistance<3),
                 "Aim reaches useful forward/near floor range at hand height "+height+" / downward pitch "+pitch);
+            previousDistance=landingDistance;
+            float highest=Enumerable.Range(0,arc.positionCount).Max(i=>arc.GetPosition(i).y);
+            Check(highest<=height+.001f,"Level/downward controller aim never arches above the hand");
+            Vector3 launch=(Vector3)typeof(VRTeleporter).GetMethod("GetLaunchVelocity",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(left,null);
+            Check(Vector3.Dot(launch.normalized,left.transform.forward)>.9999f,"Launch velocity follows the controller direction");
             // Cancel without moving so all height/angle combinations share the same floor origin.
             Call(left,"OnDisable"); left.ProcessInput(false);
+          }
         }
         Set(left,"maxTeleportDistance",2f);
         left.transform.position=new Vector3(1.5f,1,0); left.transform.rotation=Quaternion.Euler(90,0,0);
@@ -196,6 +231,41 @@ public static class CampusTeleportChecks
         Check(!messages.IsVisible && health.HealthPercent==hp,"Paused smoke processing causes no warning or damage"); Time.timeScale=1;
         results.Add("PASS: smoke warning uses existing five-second safety-message presentation");
         CheckMenuRays();
+        CheckLandingTolerance();
+    }
+
+    private static void CheckLandingTolerance()
+    {
+        Vector3 origin=Vector3.right*1000;
+        var rig=new GameObject("QA landing rig"); rig.transform.position=origin;
+        var body=rig.AddComponent<CharacterController>(); body.stepOffset=.24f; body.enabled=false;
+        var head=new GameObject("QA landing head").transform; head.SetParent(rig.transform,false); head.localPosition=Vector3.up*1.65f;
+        var teleport=MakeTeleporter(rig.transform,head,SteamVR_Input_Sources.LeftHand); Set(teleport,"maxTeleportDistance",3f);
+        var floor=GameObject.CreatePrimitive(PrimitiveType.Cube);
+        floor.transform.position=origin+Vector3.down*.05f; floor.transform.localScale=new Vector3(20,.1f,20);
+        var floorParent=new GameObject("QA marked floor parent"); floor.transform.SetParent(floorParent.transform,true); floorParent.AddComponent<TeleportArea>();
+        teleport.transform.position=origin+new Vector3(1.5f,1,0); teleport.transform.rotation=Quaternion.Euler(90,0,0);
+        Physics.SyncTransforms(); Call(teleport,"RenderTeleportArc");
+        Check(teleport.HasValidTarget,"A marked floor parent authorizes its child collider");
+        var edge=GameObject.CreatePrimitive(PrimitiveType.Cube); edge.transform.position=origin+new Vector3(1.5f,.85f,.35f);
+        edge.transform.localScale=new Vector3(1,1.7f,.4f);
+        Physics.SyncTransforms(); Call(teleport,"RenderTeleportArc");
+        var arc=teleport.GetComponent<LineRenderer>();
+        Vector3 corrected=arc.GetPosition(arc.positionCount-1);
+        Check(teleport.HasValidTarget && Vector3.Distance(corrected,origin+Vector3.right*1.5f)<=.301f && corrected.z<-.01f,
+            "A slightly obstructed floor edge snaps to a visible, clear landing within 30cm");
+        edge.transform.position=origin+new Vector3(1.5f,.4f,.5f); edge.transform.localScale=new Vector3(1,.8f,1);
+        teleport.transform.position=origin+new Vector3(1.5f,1,.01f);
+        Physics.SyncTransforms(); Call(teleport,"RenderTeleportArc");
+        corrected=arc.GetPosition(arc.positionCount-1);
+        Check(teleport.HasValidTarget && Mathf.Abs(corrected.y)<.01f && corrected.z<-.2f,
+            "A ray grazing a desk edge resolves to clear adjacent floor instead of the desktop");
+        teleport.transform.position=origin+new Vector3(1.5f,1,0);
+        edge.transform.position=origin+new Vector3(.75f,.85f,0); edge.transform.localScale=new Vector3(.1f,1.7f,2);
+        Physics.SyncTransforms(); Call(teleport,"RenderTeleportArc");
+        Check(!teleport.HasValidTarget,"Landing tolerance and stair retry cannot bypass a wall");
+        UnityEngine.Object.DestroyImmediate(edge);
+        UnityEngine.Object.DestroyImmediate(teleport.gameObject); UnityEngine.Object.DestroyImmediate(rig); UnityEngine.Object.DestroyImmediate(floorParent);
     }
 
     private static void CheckMenuRays()

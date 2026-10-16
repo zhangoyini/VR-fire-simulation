@@ -133,12 +133,10 @@ public class VRTeleporter : MonoBehaviour
             {
                 arcPoints.Add(hit.point);
 
-                bool isTeleportLayer = (teleportLayer.value & (1 << hit.collider.gameObject.layer)) != 0;
-                var area=hit.collider.GetComponent<TeleportArea>();
-                if (isTeleportLayer && hit.normal.y >= 0.65f && area!=null && area.isActiveAndEnabled &&
-                    IsWithinRange(hit.point) && HasStandingClearance(hit.point) && HasClearTravelPath(hit.point))
+                if (TryResolveLanding(hit,out Vector3 landing))
                 {
-                    teleportTarget = hit.point;
+                    teleportTarget = landing;
+                    arcPoints[arcPoints.Count-1]=landing;
                     isValidLocationFound = true;
                 }
 
@@ -167,31 +165,14 @@ public class VRTeleporter : MonoBehaviour
 
     private Vector3 GetLaunchVelocity()
     {
-        if(useCampusInput && maxTeleportDistance>0 && playerRoot!=null)
-        {
-            Vector3 feet=vrCamera!=null?vrCamera.position:playerRoot.position;
-            feet.y=playerRoot.position.y;
-            Vector3 horizontal=Vector3.ProjectOnPlane(transform.forward,Vector3.up);
-            float handOffset=Vector3.ProjectOnPlane(transform.position-feet,Vector3.up).magnitude;
-            float availableRange=Mathf.Max(0,maxTeleportDistance-handOffset-.15f);
-            // Select distance with hand pitch, instead of firing downward from the grip:
-            // level/30-degree aim reaches about 2.8/2.2m at the campus 3m setting.
-            // Steeper downward aim smoothly approaches the floor directly below the hand.
-            float distance=availableRange*horizontal.sqrMagnitude;
-            Vector3 displacement=horizontal.sqrMagnitude>.000001f?horizontal.normalized*distance:Vector3.zero;
-            displacement.y=feet.y-transform.position.y;
-            // Raising the hand's aim raises the arc for stairs; downward aim stays low.
-            float flightTime=.7f+Mathf.Max(0,transform.forward.y)*1.1f;
-            return displacement/flightTime-.5f*Physics.gravity*flightTime;
-        }
         float speed=initialVelocity;
         if(maxTeleportDistance>0 && playerRoot!=null)
         {
             Vector3 feet=vrCamera!=null?vrCamera.position:playerRoot.position;
             feet.y=playerRoot.position.y;
             float handOffset=Vector3.ProjectOnPlane(transform.position-feet,Vector3.up).magnitude;
-            // A normal forward aim must land inside the allowed radius. The legacy 8 m/s
-            // arc lands several metres away, making almost every natural pose red at 2m.
+            // Keep a level aim inside the range at the current hand height.
+            // Speed is capped; the launch direction always follows the controller.
             float availableRange=Mathf.Max(.05f,maxTeleportDistance-handOffset-.1f);
             float drop=Mathf.Max(.1f,transform.position.y-feet.y);
             float fallTime=Mathf.Sqrt(2*drop/Mathf.Max(.01f,-Physics.gravity.y));
@@ -282,6 +263,35 @@ public class VRTeleporter : MonoBehaviour
             delta/distance,distance,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore))
             if(!IsPlayerCollider(hit.collider)) return false;
         return true;
+    }
+
+    private bool IsWalkableHit(RaycastHit hit)
+    {
+        var area=hit.collider.GetComponentInParent<TeleportArea>();
+        return (teleportLayer.value & (1<<hit.collider.gameObject.layer))!=0 && hit.normal.y>=.65f &&
+            area!=null && area.isActiveAndEnabled;
+    }
+
+    private bool TryResolveLanding(RaycastHit originalHit,out Vector3 landing)
+    {
+        Vector3 requested=originalHit.point;
+        landing=requested;
+        bool floor=IsWalkableHit(originalHit);
+        if(floor && IsWithinRange(requested) && HasStandingClearance(requested) && HasClearTravelPath(requested)) return true;
+        if(!useCampusInput || originalHit.normal.y<.65f) return false;
+        // Small edge tolerance: show the corrected endpoint, and validate every
+        // candidate against the same floor, body, distance and wall rules.
+        for(int ring=1;ring<=2;ring++) for(int i=0;i<8;i++)
+        {
+            float angle=i*Mathf.PI*.25f;
+            Vector3 offset=new Vector3(Mathf.Cos(angle),0,Mathf.Sin(angle))*(ring*.15f);
+            // A ray grazing a desk's top edge may still have clear floor beside it.
+            if(!TryGetFirstBlockingHit(requested+offset+Vector3.up*.08f,Vector3.down,floor?.16f:1.1f,out var hit) ||
+                !IsWalkableHit(hit) || !IsWithinRange(hit.point) || !HasStandingClearance(hit.point) ||
+                !HasClearTravelPath(hit.point)) continue;
+            landing=hit.point; return true;
+        }
+        return false;
     }
 
     private bool HasStandingClearance(Vector3 point)
