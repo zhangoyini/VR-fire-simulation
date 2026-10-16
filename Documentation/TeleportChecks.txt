@@ -1,0 +1,161 @@
+PASS: Saved scene has two 3m teleporters
+PASS: Left/right hands have distinct input sources
+PASS: Both hands have dedicated rays for all seven pause/outcome buttons
+PASS: Saved Player and shared systems are enabled for direct testing
+PASS: Saved scene uses teleport with no footsteps
+PASS: Floors, stairs and outdoor evacuation paths are marked
+PASS: Pause controls both teleporters
+PASS: Stair B teleport route (24.45, 11.40, 0.70) -> (24.45, 11.40, 1.24)
+PASS: Stair B teleport route (24.45, 11.40, 1.24) -> (24.45, 11.21, 1.52)
+PASS: Stair B teleport route (24.45, 11.21, 1.52) -> (24.45, 11.02, 1.80)
+PASS: Stair B teleport route (24.45, 11.02, 1.80) -> (24.45, 10.83, 2.08)
+PASS: Stair B teleport route (24.45, 10.83, 2.08) -> (24.45, 10.64, 2.36)
+PASS: Stair B teleport route (24.45, 10.64, 2.36) -> (24.45, 10.45, 2.64)
+PASS: Stair B teleport route (24.45, 10.45, 2.64) -> (24.45, 10.26, 2.92)
+PASS: Stair B teleport route (24.45, 10.26, 2.92) -> (24.45, 10.07, 3.20)
+PASS: Stair B teleport route (24.45, 10.07, 3.20) -> (24.45, 9.88, 3.48)
+PASS: Stair B teleport route (24.45, 9.88, 3.48) -> (24.45, 9.69, 3.76)
+PASS: Stair B teleport route (24.45, 9.69, 3.76) -> (24.45, 9.50, 4.65)
+PASS: Stair B teleport route (24.45, 9.50, 4.65) -> (23.00, 9.50, 4.65)
+PASS: Stair B teleport route (23.00, 9.50, 4.65) -> (21.55, 9.50, 4.65)
+PASS: Stair B teleport route (21.55, 9.50, 4.65) -> (21.55, 9.50, 3.76)
+PASS: Stair B teleport route (21.55, 9.50, 3.76) -> (21.55, 9.31, 3.48)
+PASS: Stair B teleport route (21.55, 9.31, 3.48) -> (21.55, 9.12, 3.20)
+PASS: Stair B teleport route (21.55, 9.12, 3.20) -> (21.55, 8.93, 2.92)
+PASS: Stair B teleport route (21.55, 8.93, 2.92) -> (21.55, 8.74, 2.64)
+PASS: Stair B teleport route (21.55, 8.74, 2.64) -> (21.55, 8.55, 2.36)
+PASS: Stair B teleport route (21.55, 8.55, 2.36) -> (21.55, 8.36, 2.08)
+PASS: Stair B teleport route (21.55, 8.36, 2.08) -> (21.55, 8.17, 1.80)
+PASS: Stair B teleport route (21.55, 8.17, 1.80) -> (21.55, 7.98, 1.52)
+PASS: Stair B teleport route (21.55, 7.98, 1.52) -> (21.55, 7.79, 1.24)
+PASS: Stair B teleport route (21.55, 7.79, 1.24) -> (21.55, 7.60, 0.70)
+PASS: Stair B teleport route (21.55, 7.60, 0.70) -> (23.00, 7.60, 0.70)
+PASS: Stair B teleport route (23.00, 7.60, 0.70) -> (24.45, 7.60, 0.70)
+PASS: Stair B teleport route (24.45, 7.60, 0.70) -> (24.45, 7.60, 1.24)
+PASS: Stair B teleport route (24.45, 7.60, 1.24) -> (24.45, 7.41, 1.52)
+PASS: Stair B teleport route (24.45, 7.41, 1.52) -> (24.45, 7.22, 1.80)
+PASS: Stair B teleport route (24.45, 7.22, 1.80) -> (24.45, 7.03, 2.08)
+PASS: Stair B teleport route (24.45, 7.03, 2.08) -> (24.45, 6.84, 2.36)
+PASS: Stair B teleport route (24.45, 6.84, 2.36) -> (24.45, 6.65, 2.64)
+PASS: Stair B teleport route (24.45, 6.65, 2.64) -> (24.45, 6.46, 2.92)
+PASS: Stair B teleport route (24.45, 6.46, 2.92) -> (24.45, 6.27, 3.20)
+PASS: Stair B teleport route (24.45, 6.27, 3.20) -> (24.45, 6.08, 3.48)
+PASS: Stair B teleport route (24.45, 6.08, 3.48) -> (24.45, 5.89, 3.76)
+PASS: Stair B teleport route (24.45, 5.89, 3.76) -> (24.45, 5.70, 4.65)
+PASS: Stair B teleport route (24.45, 5.70, 4.65) -> (23.00, 5.70, 4.65)
+PASS: Stair B teleport route (23.00, 5.70, 4.65) -> (21.55, 5.70, 4.65)
+PASS: Stair B teleport route (21.55, 5.70, 4.65) -> (21.55, 5.70, 3.76)
+PASS: Stair B teleport route (21.55, 5.70, 3.76) -> (21.55, 5.51, 3.48)
+PASS: Stair B teleport route (21.55, 5.51, 3.48) -> (21.55, 5.32, 3.20)
+PASS: Stair B teleport route (21.55, 5.32, 3.20) -> (21.55, 5.13, 2.92)
+PASS: Stair B teleport route (21.55, 5.13, 2.92) -> (21.55, 4.94, 2.64)
+PASS: Stair B teleport route (21.55, 4.94, 2.64) -> (21.55, 4.75, 2.36)
+PASS: Stair B teleport route (21.55, 4.75, 2.36) -> (21.55, 4.56, 2.08)
+PASS: Stair B teleport route (21.55, 4.56, 2.08) -> (21.55, 4.37, 1.80)
+PASS: Stair B teleport route (21.55, 4.37, 1.80) -> (21.55, 4.18, 1.52)
+PASS: Stair B teleport route (21.55, 4.18, 1.52) -> (21.55, 3.99, 1.24)
+PASS: Stair B teleport route (21.55, 3.99, 1.24) -> (21.55, 3.80, 0.70)
+PASS: Stair B teleport route (21.55, 3.80, 0.70) -> (23.00, 3.80, 0.70)
+PASS: Stair B teleport route (23.00, 3.80, 0.70) -> (24.45, 3.80, 0.70)
+PASS: Stair B teleport route (24.45, 3.80, 0.70) -> (24.45, 3.80, 1.24)
+PASS: Stair B teleport route (24.45, 3.80, 1.24) -> (24.45, 3.61, 1.52)
+PASS: Stair B teleport route (24.45, 3.61, 1.52) -> (24.45, 3.42, 1.80)
+PASS: Stair B teleport route (24.45, 3.42, 1.80) -> (24.45, 3.23, 2.08)
+PASS: Stair B teleport route (24.45, 3.23, 2.08) -> (24.45, 3.04, 2.36)
+PASS: Stair B teleport route (24.45, 3.04, 2.36) -> (24.45, 2.85, 2.64)
+PASS: Stair B teleport route (24.45, 2.85, 2.64) -> (24.45, 2.66, 2.92)
+PASS: Stair B teleport route (24.45, 2.66, 2.92) -> (24.45, 2.47, 3.20)
+PASS: Stair B teleport route (24.45, 2.47, 3.20) -> (24.45, 2.28, 3.48)
+PASS: Stair B teleport route (24.45, 2.28, 3.48) -> (24.45, 2.09, 3.76)
+PASS: Stair B teleport route (24.45, 2.09, 3.76) -> (24.45, 1.90, 4.65)
+PASS: Stair B teleport route (24.45, 1.90, 4.65) -> (23.00, 1.90, 4.65)
+PASS: Stair B teleport route (23.00, 1.90, 4.65) -> (21.55, 1.90, 4.65)
+PASS: Stair B teleport route (21.55, 1.90, 4.65) -> (21.55, 1.90, 3.76)
+PASS: Stair B teleport route (21.55, 1.90, 3.76) -> (21.55, 1.71, 3.48)
+PASS: Stair B teleport route (21.55, 1.71, 3.48) -> (21.55, 1.52, 3.20)
+PASS: Stair B teleport route (21.55, 1.52, 3.20) -> (21.55, 1.33, 2.92)
+PASS: Stair B teleport route (21.55, 1.33, 2.92) -> (21.55, 1.14, 2.64)
+PASS: Stair B teleport route (21.55, 1.14, 2.64) -> (21.55, 0.95, 2.36)
+PASS: Stair B teleport route (21.55, 0.95, 2.36) -> (21.55, 0.76, 2.08)
+PASS: Stair B teleport route (21.55, 0.76, 2.08) -> (21.55, 0.57, 1.80)
+PASS: Stair B teleport route (21.55, 0.57, 1.80) -> (21.55, 0.38, 1.52)
+PASS: Stair B teleport route (21.55, 0.38, 1.52) -> (21.55, 0.19, 1.24)
+PASS: Stair B teleport route (21.55, 0.19, 1.24) -> (21.55, 0.00, 0.70)
+PASS: 2m accepted; 2.001m rejected
+PASS: Range includes vertical displacement on stairs
+PASS: Distance is measured below the tracked head, including room-scale offset
+PASS: Campus 3m boundary is enforced
+PASS: 3m range retains the 2m height cap and permits shorter stair hops
+PASS: Aim reaches useful forward/near floor range at hand height 0.9 / downward pitch 0
+PASS: Aim reaches useful forward/near floor range at hand height 0.9 / downward pitch 15
+PASS: Aim reaches useful forward/near floor range at hand height 0.9 / downward pitch 30
+PASS: Aim reaches useful forward/near floor range at hand height 0.9 / downward pitch 60
+PASS: Aim reaches useful forward/near floor range at hand height 1.2 / downward pitch 0
+PASS: Aim reaches useful forward/near floor range at hand height 1.2 / downward pitch 15
+PASS: Aim reaches useful forward/near floor range at hand height 1.2 / downward pitch 30
+PASS: Aim reaches useful forward/near floor range at hand height 1.2 / downward pitch 60
+PASS: Aim reaches useful forward/near floor range at hand height 1.5 / downward pitch 0
+PASS: Aim reaches useful forward/near floor range at hand height 1.5 / downward pitch 15
+PASS: Aim reaches useful forward/near floor range at hand height 1.5 / downward pitch 30
+PASS: Aim reaches useful forward/near floor range at hand height 1.5 / downward pitch 60
+PASS: Joystick input cannot slide or turn the rig
+PASS: Forward input acquires a valid marked floor
+PASS: Second hand cannot take over an active aim
+PASS: Release teleports and restores the CharacterController
+PASS: Second-hand release cannot cause another teleport
+PASS: Right hand can independently aim
+PASS: Disabling a teleporter cancels its arc
+PASS: Re-enabling while the stick is held requires release before another aim
+PASS: Pause cancels an aim without teleporting
+PASS: Scripted lesson lock blocks teleport
+PASS: Outcome blocks teleport
+PASS: A wall between the player and destination blocks teleport even when the arc starts beyond it
+PASS: Disabled teleport areas reject landing
+PASS: Smoke entry warns immediately before the grace period expires
+PASS: Remaining in smoke does not repeat the warning
+PASS: Leaving and re-entering smoke warns again
+PASS: Five 2m teleports count 5.56s of smoke without premature damage
+PASS: Sixth teleport crosses the 6s threshold and applies proportional damage
+PASS: A wet towel covering the face still reduces equivalent teleport damage
+PASS: Overlapping smoke volumes count once
+PASS: Crossing a thin cloud warns and clean-air exit resets exposure
+PASS: Thin smoke intersections are calculated exactly
+PASS: Paused smoke processing causes no warning or damage
+PASS: smoke warning uses existing five-second safety-message presentation
+PASS: Menu ray hidden during gameplay: LeftHand
+PASS: Menu opens without clicking an already held trigger: QA Pause / LeftHand
+PASS: Fresh trigger clicks foreground menu beyond a wall while retaining rig-child buttons: QA Pause / LeftHand
+PASS: Held trigger cannot repeat menu activation
+PASS: Re-enabled menu ray requires release before clicking
+PASS: Closing the menu hides its ray
+PASS: Menu ray hidden during gameplay: LeftHand
+PASS: Menu opens without clicking an already held trigger: QA Failure / LeftHand
+PASS: Fresh trigger clicks foreground menu beyond a wall while retaining rig-child buttons: QA Failure / LeftHand
+PASS: Held trigger cannot repeat menu activation
+PASS: Re-enabled menu ray requires release before clicking
+PASS: Closing the menu hides its ray
+PASS: Menu ray hidden during gameplay: LeftHand
+PASS: Menu opens without clicking an already held trigger: QA Victory / LeftHand
+PASS: Fresh trigger clicks foreground menu beyond a wall while retaining rig-child buttons: QA Victory / LeftHand
+PASS: Held trigger cannot repeat menu activation
+PASS: Re-enabled menu ray requires release before clicking
+PASS: Closing the menu hides its ray
+PASS: Menu ray hidden during gameplay: RightHand
+PASS: Menu opens without clicking an already held trigger: QA Pause / RightHand
+PASS: Fresh trigger clicks foreground menu beyond a wall while retaining rig-child buttons: QA Pause / RightHand
+PASS: Held trigger cannot repeat menu activation
+PASS: Re-enabled menu ray requires release before clicking
+PASS: Closing the menu hides its ray
+PASS: Menu ray hidden during gameplay: RightHand
+PASS: Menu opens without clicking an already held trigger: QA Failure / RightHand
+PASS: Fresh trigger clicks foreground menu beyond a wall while retaining rig-child buttons: QA Failure / RightHand
+PASS: Held trigger cannot repeat menu activation
+PASS: Re-enabled menu ray requires release before clicking
+PASS: Closing the menu hides its ray
+PASS: Menu ray hidden during gameplay: RightHand
+PASS: Menu opens without clicking an already held trigger: QA Victory / RightHand
+PASS: Fresh trigger clicks foreground menu beyond a wall while retaining rig-child buttons: QA Victory / RightHand
+PASS: Held trigger cannot repeat menu activation
+PASS: Re-enabled menu ray requires release before clicking
+PASS: Closing the menu hides its ray
+Headset input, visual comfort and audio: require hardware verification.

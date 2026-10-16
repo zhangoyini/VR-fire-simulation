@@ -3,6 +3,7 @@ using UnityEngine;
 
 public sealed class CampusMessagePresenter : MonoBehaviour
 {
+    public const string SmokeWarning = "警告：请离开烟雾区\nWarning: Please leave the smoke area.";
     public const string ElevatorWarning = "发生火灾时，请勿使用电梯！\nDo not use the elevator in case of fire!";
     public const string WindowWarning = "发生火灾时，请勿试图跳窗逃生！\nDo not attempt to jump out of a window to escape during a fire";
     public static CampusMessagePresenter Instance { get; private set; }

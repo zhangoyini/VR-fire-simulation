@@ -301,8 +301,8 @@ public sealed class CampusLessonDirector : MonoBehaviour
         UpdatePresentationVisibility(); demonstration?.Show(CurrentPhase,page); route.Hide();
         if(CurrentPhase==Phase.Controls)
         {
-            string[] h={"头显与安全 / Headset & safety","左手移动 / Left-stick movement","双手交互 / Two-hand interaction"};
-            string[] t={"自然转头观察；检查佩戴和活动空间。当前可自由走动，无火灾。\nLook around naturally. Check your fit and clear space. You may explore safely now.","左摇杆向四周移动，松开即停。右摇杆无操作。试着走到教室后窗。\nLeft stick moves; release stops. Click it to pause. Right stick is unused. Try walking.","佩戴腕带、握稳手柄。扳机握持、推动；挥手松扳机投掷物体。右 A 确认，左摇杆按下暂停。\nKeep wrist straps on. Triggers grab/push; swing and release the trigger to throw the object. A confirms; left-stick click pauses."};
+            string[] h={"头显与安全 / Headset & safety","双手传送 / Either-hand teleport","双手交互 / Two-hand interaction"};
+            string[] t={"自然转头观察；检查佩戴和活动空间。当前可自由探索，无火灾。\nLook around naturally. Check your fit and clear space. You may explore safely now.","任一摇杆向前推并保持，用对应手柄瞄准绿色落点；摇杆回中后传送，单次最多 3 米。左摇杆按下暂停。暂停或结束菜单出现后，任一手柄射线瞄准按钮变绿，按对应扳机点击。\nHold either stick forward to aim at green ground. Re-centre to teleport up to 3 m. Click the left stick to pause. In pause/results menus, aim either ray until green and press that trigger.","佩戴腕带、握稳手柄。扳机握持、推动；挥手松扳机投掷物体。教学用右 A 确认，左摇杆按下暂停。\nKeep wrist straps on. Triggers grab/push; swing and release the trigger to throw the object. A confirms teaching; left-stick click pauses."};
             SetText(h[page],t[page],"自由练习中，教学会自动换页。 "+(page+1)+" / 3\nExplore freely. Pages advance automatically; A skips after reading.");
         }
         else if(CurrentPhase==Phase.Ready) SetText("自由练习 / Free practice","可继续移动、拿书和推窗。开始后观看系统动画，移动与物体操作暂时锁定。无需实际坐下。\nKeep practising. The opening locks locomotion and object input. Do not physically sit.","按住右手柄 A 键 0.75 秒开始；不使用扳机。\nHold right A for 0.75 s to begin. Triggers only interact.");
@@ -313,7 +313,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         else if(CurrentPhase==Phase.OpenDoor) SetText("观察门外 / Observe the doorway","走近教室门，按住扳机向前推。请先观察门外情况。\nApproach the classroom door. Hold a trigger and push, then observe conditions outside.","已恢复自由操作。提示会自动收起，无需确认。\nControls unlocked. Guidance folds automatically; no confirmation.");
         else if(CurrentPhase==Phase.SmokeLesson)
         {
-            if(page==0) SetText("烟雾与血量 / Smoke & health","门外已有烟雾。观察上方血条：先有 6 秒反应时间，随后缓慢扣血。\nWatch the health bar: smoke gives 6 seconds to react, then health decreases slowly.","9 秒后暂停伤害；教学自动继续，A 可跳过。\nDamage freezes after 9 s. Teaching continues automatically; A skips.");
+            if(page==0) SetText("烟雾与血量 / Smoke & health","进入烟区会立即警告。累计暴露超过 3 秒后扣血；传送经过烟雾也按步行时间计入。\nSmoke entry shows a warning. Health falls after 3 s of exposure; teleport paths also count as walking time.","9 秒后暂停伤害；教学自动继续，A 可跳过。\nDamage freezes after 9 s. Teaching continues automatically; A skips.");
             else SetText("消防知识 / Fire-safety knowledge","烟雾会引起咳嗽、窒息和中毒。下一步：到卫生间打湿毛巾，持续握持并遮住口鼻，再沿楼梯撤离。\nSmoke can cause coughing, suffocation and poisoning. Next: wet a towel, hold it at your face and evacuate by stairs.","遮住口鼻会减缓扣血，但湿毛巾不能过滤一氧化碳，仍需尽快离开烟雾。\nCoverage slows health loss, not CO poisoning. Leave smoke promptly.");
         }
         else if(CurrentPhase==Phase.FindTowel) SetText("任务 1：寻找毛巾 / Task 1: Find towel","前往对面的 411 卫生间，按住左手或右手扳机拿起台上的干毛巾。\nGo to restroom 411 opposite the classroom. Hold either trigger to pick up a dry towel.","跟随青蓝色高亮箭头与发光门牌。22 秒后提示自动收起。\nFollow cyan arrows and the lit door sign. This card folds after 22 s.");

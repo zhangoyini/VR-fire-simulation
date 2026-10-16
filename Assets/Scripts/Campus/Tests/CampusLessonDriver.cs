@@ -88,7 +88,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
         }
         Vector3 rigPosition=movement.transform.position;
         for(int i=0;i<6;i++) movement.Step(Vector2.right,1,.05f);
-        Check(Vector3.ProjectOnPlane(movement.transform.position-rigPosition,Vector3.up).magnitude>.15f && head.localRotation==headRotation,"The player can walk during entry; right stick still does not turn the view");
+        Check(Vector3.ProjectOnPlane(movement.transform.position-rigPosition,Vector3.up).magnitude<.001f && head.localRotation==headRotation && FindObjectsOfType<VRTeleporter>().Length==2,"Entry uses either-hand teleport; joystick input does not slide or turn the view");
         MoveRig(movement,rigPosition);
         exposure.Tick(true,20); Check(health.HealthPercent==1,"Practice reading and exploration cannot cause smoke damage");
         lesson.Confirm(); Check(lesson.Page==0,"A fresh page cannot be skipped before its reading gate");
@@ -122,6 +122,9 @@ public sealed class CampusLessonDriver : MonoBehaviour
         var demo=Field<CampusLessonAnimation>(lesson,"demonstration");
         demo.Tick(15); Capture("Lesson_18_PauseKeyDemo",head);
         Check(Field<TMPro.TMP_Text>(demo,"actionLabel").text.Contains("暂停"),"The actual left-stick click pause control is demonstrated");
+        demo.Tick(5);
+        Check(Field<TMPro.TMP_Text>(demo,"actionLabel").text.Contains("射线") && Field<GameObject>(demo,"menuDemo").activeInHierarchy,
+            "Teaching demonstrates the green menu ray and matching trigger after pause");
         yield return Advance(lesson); Check(lesson.Page==2,"A key advances to push/grab teaching without trigger confirmation");
         lesson.Tick(1); Capture("Lesson_03_Interaction",head);
         demo.Tick(15); Capture("Lesson_19_AKeyDemo",head);
@@ -185,13 +188,13 @@ public sealed class CampusLessonDriver : MonoBehaviour
         lesson.ClassroomDoor.SetAngle(90); lesson.Tick(.1f);
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.SmokeLesson && lesson.DoorwayExposure.Contains(head.position),"Opening the door and actually entering smoke starts the health lesson");
         Check(Field<GameObject>(lesson,"doorwayPlume").GetComponentInChildren<ParticleSystem>().particleCount>0,"The health lesson has real visible smoke rather than an invisible trigger only");
-        Check(exposure.GraceSeconds==6 && exposure.DamagePerSecond==2f,"Saved smoke parameters match the six-second grace and modestly faster 2 HP/s");
-        exposure.Tick(false,0); exposure.Tick(true,6); lesson.Tick(6);
-        Check(health.HealthPercent==1,"Initial smoke contact leaves six full seconds to react");
+        Check(exposure.GraceSeconds==3 && exposure.DamagePerSecond==2f,"Saved smoke parameters match the three-second grace and 2 HP/s");
+        exposure.Tick(false,0); exposure.Tick(true,3); lesson.Tick(3);
+        Check(health.HealthPercent==1,"Initial smoke contact leaves three full seconds to react");
         exposure.Tick(true,2); lesson.Tick(2);
         Check(Mathf.Abs(health.HealthPercent-.96f)<.001f,"Health demonstration then removes 4 HP across two seconds");
         Capture("Lesson_06_SmokeHealth",head);
-        lesson.Tick(1.1f); float hp=health.HealthPercent; exposure.Tick(true,50);
+        lesson.Tick(4.1f); float hp=health.HealthPercent; exposure.Tick(true,50);
         Check(lesson.DamageSuppressed && health.HealthPercent==hp,"After the HP demo, waiting to read cannot kill the player");
         lesson.Confirm(); Check(lesson.Page==0,"Health teaching enforces a twenty-second minimum reading period");
         yield return Advance(lesson);
@@ -210,7 +213,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
         var panel=Field<GameObject>(lesson,"lessonPanel").transform; Vector3 compact=head.InverseTransformPoint(panel.position);
         Check(!lesson.MovementLocked && !layout.IsFull && Mathf.Abs(compact.x)<.01f && Mathf.Abs(compact.y)<.1f,"Unfinished task 1 stays directly ahead, rather than in an uncomfortable corner");
         Capture("Lesson_12_TaskHUD",head);
-        Check(Field<CampusLessonRoute>(lesson,"route").Visible && FindObjectsOfType<LineRenderer>(true).Length==0,"Task automatically shows floor chevrons without confirmation or cancelled rays");
+        Check(Field<CampusLessonRoute>(lesson,"route").Visible && FindObjectsOfType<LineRenderer>(true).All(l=>!l.enabled),"Task automatically shows floor chevrons with idle teleport arcs hidden");
         lesson.Tick(30); Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel && panel.gameObject.activeSelf,"An unfinished task stays pinned rather than timing out");
         lesson.ClassroomDoor.SetAngle(0); lesson.Tick(.1f); Check(!lesson.DoorwayExposure.isActiveAndEnabled,"Closing the door removes its local visible exposure plume");
         lesson.ClassroomDoor.SetAngle(30);
@@ -276,10 +279,15 @@ public sealed class CampusLessonDriver : MonoBehaviour
         });
         Physics.SyncTransforms();
         Vector3 buttonCenter=resume.GetComponent<Collider>().bounds.center;
-        Check(Vector3.Distance(head.position,buttonCenter)<.9f,"Forward-facing pause buttons remain within direct controller reach");
-        owner.transform.position+=buttonCenter-owner.ContactPoint; Physics.SyncTransforms();
-        owner.RefreshContact(true); owner.ProcessGrip(true,true,false); owner.ProcessGrip(false,false,true);
-        Check(Time.timeScale==1,"An actual hand-contact trigger resumes the scaled, centred pause menu");
+        owner.transform.position=head.position+head.rotation*new Vector3(.22f,-.2f,.05f);
+        owner.transform.rotation=Quaternion.LookRotation(buttonCenter-owner.transform.position);
+        var menuRay=owner.GetComponent<VRMenuRayPointer>();
+        menuRay.ProcessInput(false);
+        Check(menuRay.IsVisible && menuRay.CurrentTarget==resume && Vector3.Distance(owner.ContactPoint,buttonCenter)>.12f,
+            "A paused hand can aim at Resume beyond contact range");
+        menuRay.ProcessInput(true);
+        Check(Time.timeScale==1,"The menu ray trigger resumes the paused simulation");
+        menuRay.ProcessInput(false); Check(!menuRay.IsVisible,"Returning to gameplay hides the dedicated menu ray");
         var view=FindObjectOfType<SystemUIView>(true);
         view.ShowGameOver(); foreach(var anchor in anchors) anchor.SendMessage("Place"); Capture("Lesson_16_FailureFront",head);
         view.ShowVictory(); foreach(var anchor in anchors) anchor.SendMessage("Place"); Capture("Lesson_17_VictoryFront",head);
