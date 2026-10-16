@@ -12,7 +12,7 @@
 
 - AI对玩家移动做了什么：1. It change from teleport to Continuous stick movement 2. add scripts on controller left/right and left/right controller dummy to reads the right controller’s tracked position and rotation, animates the glove’s fingers, enhance interaction, and positions the hand from controller tracking and hides it when tracking is lost
 - 与原来功能有什么不同：same as above
-- 我认为需要保留或修改的内容：Determine if the group would like to have teleport movement or Continuous stick movement
+- 我认为需要保留或修改的内容：Determine if the group would like to have teleport movement or Continuous stick movement. If teleport option is selected, we should change the scripts back to the scripts VRteleporter, add layer "Floor" and scripts Teleport Area to all the floor player can teleport. For the teleport distance, you can adjust it by adjusting resolution variable under VRteleporter. For shorter distance, set the number lower.
 - 判断原因：Consider if motion sickness is properly addressed
 
 ## 测试记录
@@ -32,7 +32,7 @@
 
 ## 问题与复测
 
-- 发现的问题：it could raised issue when you combine teleport system with some current features
+- 发现的问题：it could raised issue when you combine teleport system with some current features. It could feel weird to have audio under teleport mode
 - 复现步骤：待填写
 - 截图或视频：待填写
 - 修复提交：待填写
