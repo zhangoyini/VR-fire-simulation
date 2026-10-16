@@ -19,6 +19,7 @@ public sealed class CampusLocomotion : MonoBehaviour
     private ResolutionCoordinator resolution;
     private bool scriptedLock,bodyWasEnabled;
     public CharacterController Body => body;
+    public Transform TrackedHead => trackedHead;
     public bool ScriptedLocked => scriptedLock;
     public void SetScriptedLock(bool value)
     {

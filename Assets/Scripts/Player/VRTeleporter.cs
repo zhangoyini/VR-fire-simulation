@@ -26,6 +26,7 @@ public class VRTeleporter : MonoBehaviour
 
     private LineRenderer lineRenderer;
     private Vector3 teleportTarget;
+    private CampusRescueStudent rescueStudent;
     private bool isValidLocationFound;
     private bool isAimingTeleport;
     private readonly RaycastHit[] raycastHits = new RaycastHit[32];
@@ -55,6 +56,7 @@ public class VRTeleporter : MonoBehaviour
         locomotion=playerRoot!=null?playerRoot.GetComponent<CampusLocomotion>():null;
         resolutionCoordinator=FindObjectOfType<ResolutionCoordinator>();
         smokeExposure=FindObjectOfType<CampusSmokeExposure>();
+        rescueStudent=FindObjectOfType<CampusRescueStudent>();
         trackedHands=FindObjectsOfType<CampusTrackedHandPose>();
 
         if (!useCampusInput && vrCamera != null && vrCamera.GetComponent<VRControlTutorial>() == null)
@@ -219,6 +221,13 @@ public class VRTeleporter : MonoBehaviour
         cameraOffset.y = 0; // Keep the player safely locked to floor level height
         Vector3 destination=teleportTarget-cameraOffset;
         Vector3 delta=destination-playerRoot.position;
+        Vector3 previousFeet=vrCamera!=null?vrCamera.position:playerRoot.position;
+        previousFeet.y=playerRoot.position.y;
+        Vector3 chairPosition=Vector3.zero;
+        Quaternion chairRotation=Quaternion.identity;
+        bool moveChair=rescueStudent!=null && rescueStudent.IsFollowing &&
+            rescueStudent.TryGetFollowPosition(previousFeet,teleportTarget,out chairPosition,out chairRotation);
+        if(rescueStudent!=null && rescueStudent.IsFollowing && !moveChair) return;
         // Evaluate protection before translating the head and the held cloth together.
         if(useCampusInput && smokeExposure!=null && vrCamera!=null)
             smokeExposure.RecordTeleport(vrCamera.position,vrCamera.position+delta);
@@ -228,6 +237,7 @@ public class VRTeleporter : MonoBehaviour
         playerRoot.position=destination;
         if(trackedHands!=null) foreach(var hand in trackedHands)
             if(hand!=null && hand.TrackingSpace==playerRoot) hand.FollowRigTranslation(delta);
+        if(moveChair) rescueStudent.FollowTeleport(chairPosition,chairRotation);
         if(restoreBody) body.enabled=true;
         Physics.SyncTransforms();
     }
@@ -249,7 +259,9 @@ public class VRTeleporter : MonoBehaviour
         var towel=candidate.GetComponentInParent<CampusTowelInteractable>();
         if(towel!=null && towel.IsHeld) return true;
         var book=candidate.GetComponentInParent<CampusPracticeBook>();
-        return book!=null && book.IsHeld;
+        if(book!=null && book.IsHeld) return true;
+        return rescueStudent!=null && rescueStudent.IsFollowing &&
+            (candidate.transform==rescueStudent.transform || candidate.transform.IsChildOf(rescueStudent.transform));
     }
 
     private bool HasClearTravelPath(Vector3 point)
@@ -277,7 +289,8 @@ public class VRTeleporter : MonoBehaviour
         Vector3 requested=originalHit.point;
         landing=requested;
         bool floor=IsWalkableHit(originalHit);
-        if(floor && IsWithinRange(requested) && HasStandingClearance(requested) && HasClearTravelPath(requested)) return true;
+        if(floor && IsWithinRange(requested) && HasStandingClearance(requested) && HasClearTravelPath(requested) &&
+            CanPlaceFollowingChair(requested)) return true;
         if(!useCampusInput || originalHit.normal.y<.65f) return false;
         // Small edge tolerance: show the corrected endpoint, and validate every
         // candidate against the same floor, body, distance and wall rules.
@@ -288,10 +301,18 @@ public class VRTeleporter : MonoBehaviour
             // A ray grazing a desk's top edge may still have clear floor beside it.
             if(!TryGetFirstBlockingHit(requested+offset+Vector3.up*.08f,Vector3.down,floor?.16f:1.1f,out var hit) ||
                 !IsWalkableHit(hit) || !IsWithinRange(hit.point) || !HasStandingClearance(hit.point) ||
-                !HasClearTravelPath(hit.point)) continue;
+                !HasClearTravelPath(hit.point) || !CanPlaceFollowingChair(hit.point)) continue;
             landing=hit.point; return true;
         }
         return false;
+    }
+
+    private bool CanPlaceFollowingChair(Vector3 playerFeet)
+    {
+        Vector3 currentFeet=vrCamera!=null?vrCamera.position:playerRoot.position;
+        currentFeet.y=playerRoot.position.y;
+        return rescueStudent==null || !rescueStudent.IsFollowing ||
+            rescueStudent.TryGetFollowPosition(currentFeet,playerFeet,out _,out _);
     }
 
     private bool HasStandingClearance(Vector3 point)
