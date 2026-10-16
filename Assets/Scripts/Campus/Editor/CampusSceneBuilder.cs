@@ -63,6 +63,7 @@ public static partial class CampusSceneBuilder
         WireExperience();
         UpgradePlayerControls();
         ConfigureComfortAndSmoke();
+        CampusTeleportSetup.ConfigureScene();
         RecordGeneratedPrefabOverrides();
         EditorSceneManager.SaveScene(SceneManager.GetActiveScene(), ScenePath);
         ConfigureMainMenu();
@@ -702,7 +703,7 @@ public static partial class CampusSceneBuilder
         if(all.Any(t=>PrefabUtility.GetPrefabAssetType(t.gameObject)==PrefabAssetType.MissingAsset)) throw new InvalidOperationException("Missing prefab source.");
         foreach(var support in UnityEngine.Object.FindObjectsOfType<FireSafetyPrefabSupport>(true))
             if(support.WarningFont==null || support.RayMaterial==null) throw new InvalidOperationException("Prefab resources missing.");
-        if(Camera.main==null || UnityEngine.Object.FindObjectsOfType<CampusLocomotion>(true).Length!=1 || UnityEngine.Object.FindObjectsOfType<CampusHandInteractor>(true).Length!=2 || UnityEngine.Object.FindObjectsOfType<VRTeleporter>(true).Length!=0 || UnityEngine.Object.FindObjectsOfType<VRFireSafetyInteraction>(true).Length!=0) throw new InvalidOperationException("Contact/continuous locomotion integration incomplete.");
+        if(Camera.main==null || UnityEngine.Object.FindObjectsOfType<CampusLocomotion>(true).Length!=1 || UnityEngine.Object.FindObjectsOfType<CampusHandInteractor>(true).Length!=2 || UnityEngine.Object.FindObjectsOfType<VRTeleporter>(true).Length!=2 || UnityEngine.Object.FindObjectsOfType<VRFireSafetyInteraction>(true).Length!=0) throw new InvalidOperationException("Contact/teleport locomotion integration incomplete.");
         foreach(var text in UnityEngine.Object.FindObjectsOfType<TMP_Text>(true))
             if(text.font==null) throw new InvalidOperationException("Missing sign font.");
         var ui=new SerializedObject(UnityEngine.Object.FindObjectOfType<SystemUIView>());

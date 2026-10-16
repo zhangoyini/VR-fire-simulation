@@ -2,6 +2,7 @@ using UnityEngine;
 using Valve.VR;
 
 // Additional menu input only; tracking, contact input and teleport remain unchanged.
+[DefaultExecutionOrder(100)]
 public class VRMenuRayPointer : MonoBehaviour
 {
     [SerializeField] private Transform trackedController;
@@ -10,6 +11,8 @@ public class VRMenuRayPointer : MonoBehaviour
     [SerializeField, Range(0.1f, 10f)] private float maxDistance = 4f;
     [SerializeField, Range(-45f, 45f)] private float downwardPitchDegrees = 18f;
     [SerializeField] private Shader laserShader;
+    [SerializeField] private bool useCampusInput;
+    [SerializeField] private SteamVR_Input_Sources inputSource = SteamVR_Input_Sources.RightHand;
 
     private SteamVR_Action_Boolean grabAction;
     private SteamVR_Action_Boolean teleportAction;
@@ -17,6 +20,9 @@ public class VRMenuRayPointer : MonoBehaviour
     private Material laserMaterial;
     private LineRenderer reticle;
     private Material reticleMaterial;
+    private bool previousTrigger, wasMenuVisible;
+    public VRMenuButton CurrentTarget { get; private set; }
+    public bool IsVisible => laser != null && laser.enabled;
 
     private void Awake()
     {
@@ -34,7 +40,7 @@ public class VRMenuRayPointer : MonoBehaviour
         laser = visual.AddComponent<LineRenderer>();
         laserMaterial = new Material(shader);
         laserMaterial.renderQueue = 5000;
-        laserMaterial.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+        laserMaterial.SetInt("_ZTest", (int)(useCampusInput ? UnityEngine.Rendering.CompareFunction.Always : UnityEngine.Rendering.CompareFunction.LessEqual));
         laser.sharedMaterial = laserMaterial;
         laser.useWorldSpace = true;
         laser.positionCount = 2;
@@ -64,13 +70,26 @@ public class VRMenuRayPointer : MonoBehaviour
 
     private void LateUpdate()
     {
+        ProcessInput(useCampusInput ? CampusControllerInput.Trigger(inputSource)
+            : grabAction != null && grabAction.GetState(inputSource));
+    }
+
+    // Uses unscaled frame input, including when the simulation is paused.
+    public void ProcessInput(bool triggerHeld)
+    {
         bool menuVisible = false;
         if (menuButtons != null)
             foreach (VRMenuButton button in menuButtons)
                 if (button != null && button.isActiveAndEnabled) menuVisible = true;
 
         bool show = trackedController != null && menuVisible
-            && (teleportAction == null || !teleportAction.GetState(SteamVR_Input_Sources.RightHand));
+            && (useCampusInput || teleportAction == null || !teleportAction.GetState(inputSource));
+        var pose=trackedController!=null?trackedController.GetComponent<CampusTrackedHandPose>():null;
+        if(useCampusInput && CampusControllerInput.HardwarePresent && pose!=null && !pose.PhysicalTrackingValid) show=false;
+        bool triggerDown=show && wasMenuVisible && triggerHeld && !previousTrigger;
+        previousTrigger=triggerHeld;
+        wasMenuVisible=show;
+        CurrentTarget=null;
         if (laser != null) laser.enabled = show;
         if (reticle != null) reticle.enabled = false;
         if (!show) return;
@@ -82,17 +101,20 @@ public class VRMenuRayPointer : MonoBehaviour
         Vector3 end = origin + direction * maxDistance;
         VRMenuButton target = null;
         float closest = maxDistance;
-        if (Time.timeScale == 0f) Physics.SyncTransforms();
+        Physics.SyncTransforms();
 
-        // Ignore the player's own colliders and unrelated trigger volumes. Solid
-        // geometry occludes the beam; only explicitly registered menu buttons act.
+        // Only explicitly registered menu buttons act. Legacy scenes retain solid
+        // occlusion; campus foreground menus remain reachable beside world walls.
         foreach (RaycastHit hit in Physics.RaycastAll(origin, direction, maxDistance,
             Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
         {
-            if (playerRoot != null && hit.transform.IsChildOf(playerRoot)) continue;
             VRMenuButton candidate = hit.collider.GetComponentInParent<VRMenuButton>();
             bool valid = candidate != null && candidate.isActiveAndEnabled
                 && System.Array.IndexOf(menuButtons, candidate) >= 0;
+            // Campus menus render in the foreground, including beside walls. Their
+            // dedicated ray hits only registered menu buttons, never world objects.
+            if(useCampusInput && !valid) continue;
+            if (!valid && playerRoot != null && hit.transform.IsChildOf(playerRoot)) continue;
             if (hit.collider.isTrigger && !valid) continue;
             if (hit.distance > closest) continue;
             closest = hit.distance;
@@ -116,22 +138,31 @@ public class VRMenuRayPointer : MonoBehaviour
                 reticle.SetPosition(i, end + rayRotation * offset);
             }
         }
-        if (target != null && grabAction != null
-            && grabAction.GetStateDown(SteamVR_Input_Sources.RightHand))
+        CurrentTarget=target;
+        if (target != null && triggerDown)
             target.OnInteractStart(trackedController);
     }
 
     private void OnDisable()
     {
+        previousTrigger=true;
+        wasMenuVisible=false;
+        CurrentTarget=null;
         if (laser != null) laser.enabled = false;
         if (reticle != null) reticle.enabled = false;
     }
 
     private void OnDestroy()
     {
-        if (laser != null) Destroy(laser.gameObject);
-        if (laserMaterial != null) Destroy(laserMaterial);
-        if (reticle != null) Destroy(reticle.gameObject);
-        if (reticleMaterial != null) Destroy(reticleMaterial);
+        if (laser != null) ReleaseVisual(laser.gameObject);
+        ReleaseVisual(laserMaterial);
+        if (reticle != null) ReleaseVisual(reticle.gameObject);
+        ReleaseVisual(reticleMaterial);
+    }
+
+    private static void ReleaseVisual(Object value)
+    {
+        if(value==null) return;
+        if(Application.isPlaying) Destroy(value); else DestroyImmediate(value);
     }
 }

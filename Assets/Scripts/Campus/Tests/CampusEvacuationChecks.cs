@@ -15,7 +15,7 @@ public sealed partial class CampusRevisionDriver
         {
             var renderer = model.GetComponentInChildren<SkinnedMeshRenderer>(true);
             Check(renderer != null && renderer.sharedMesh != null && model.Bones.Length == 31 && renderer.sharedMaterial.shader.name == "Universal Render Pipeline/Lit", "Textured 31-bone glove replaces the flat hand: "+model.name);
-            Check(model.GetComponentsInChildren<LineRenderer>(true).Length == 0, "3D glove has no legacy icon outlines");
+            Check(model.GetComponentsInChildren<LineRenderer>(true).All(l=>l.GetComponent<VRTeleporter>()!=null || l.GetComponentInParent<VRMenuRayPointer>()!=null), "3D glove retains teleport and menu rays");
             model.SetGesture(false,false,false); model.Tick(1); Quaternion rest = model.Bones[8].localRotation;
             var restMesh=new Mesh(); renderer.BakeMesh(restMesh);
             Vector3 proxy = model.transform.position;

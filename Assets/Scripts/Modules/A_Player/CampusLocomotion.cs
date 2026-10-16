@@ -6,17 +6,16 @@ using Valve.VR;
 public sealed class CampusLocomotion : MonoBehaviour
 {
     [SerializeField] private Transform trackedHead;
+    [SerializeField] private bool teleportOnly = true;
     [SerializeField, Min(.1f)] private float walkingSpeed = 1.8f;
     [SerializeField, Min(.1f)] private float acceleration = 6f;
     [SerializeField] private CampusComfortVignette comfortVignette;
     [SerializeField] private AudioSource footsteps;
     [SerializeField] private AudioClip[] footstepClips;
     private CharacterController body;
-    private SteamVR_Action_Vector2 move;
-    private float verticalSpeed, stepDistance, currentSpeed;
+    private float verticalSpeed, currentSpeed;
     private Vector3 walkingForward;
     private bool headingLatched;
-    private int nextClip;
     private ResolutionCoordinator resolution;
     private bool scriptedLock,bodyWasEnabled;
     public CharacterController Body => body;
@@ -32,13 +31,12 @@ public sealed class CampusLocomotion : MonoBehaviour
     private void Awake()
     {
         body = GetComponent<CharacterController>(); resolution = FindObjectOfType<ResolutionCoordinator>();
-        move = SteamVR_Input.GetVector2Action("Walk");
     }
     private void Update()
     {
-        Vector2 walking = CampusControllerInput.Walk();
+        Vector2 walking = teleportOnly ? Vector2.zero : CampusControllerInput.Walk();
 #if UNITY_EDITOR
-        if(!CampusControllerInput.HardwarePresent)
+        if(!teleportOnly && !CampusControllerInput.HardwarePresent)
         {
             // Hardware-free layout preview only; hand interaction still requires controllers.
             walking = new Vector2((Input.GetKey(KeyCode.D)?1:0)-(Input.GetKey(KeyCode.A)?1:0),(Input.GetKey(KeyCode.W)?1:0)-(Input.GetKey(KeyCode.S)?1:0));
@@ -49,6 +47,7 @@ public sealed class CampusLocomotion : MonoBehaviour
     public void Step(Vector2 input, float turnInput, float dt)
     {
         // Keep the test/legacy signature; right-stick input is deliberately ignored.
+        if (teleportOnly) input = Vector2.zero;
         if (scriptedLock || trackedHead == null || body == null || !body.enabled) return;
         if (Time.timeScale == 0 || (CampusLessonDirector.Instance!=null && CampusLessonDirector.Instance.MovementLocked) || (resolution != null && resolution.CurrentOutcome != ResolutionCoordinator.Outcome.None))
         { currentSpeed = 0; headingLatched = false; comfortVignette?.ResetMotion(); return; }
@@ -76,10 +75,6 @@ public sealed class CampusLocomotion : MonoBehaviour
         body.Move((horizontal + Vector3.up * verticalSpeed) * dt);
         float travelled = Vector3.ProjectOnPlane(transform.position - before, Vector3.up).magnitude;
         comfortVignette?.ReportMotion(Mathf.Clamp01(travelled / dt / walkingSpeed), false);
-        if (input.sqrMagnitude > 0 && body.isGrounded) stepDistance += travelled;
-        if (stepDistance > .65f && footsteps != null && footstepClips != null && footstepClips.Length > 0)
-        { stepDistance = 0; footsteps.pitch = Random.Range(.94f, 1.06f); footsteps.PlayOneShot(footstepClips[nextClip++ % footstepClips.Length], .7f); }
-        if (input == Vector2.zero) stepDistance = 0;
     }
     private void OnDisable() { currentSpeed = 0; headingLatched = false; comfortVignette?.ResetMotion(); }
 }

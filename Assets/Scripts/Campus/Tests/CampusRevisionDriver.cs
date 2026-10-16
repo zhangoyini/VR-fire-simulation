@@ -46,10 +46,12 @@ public sealed partial class CampusRevisionDriver : MonoBehaviour
         var movement=FindObjectOfType<CampusLocomotion>(true); var rig=movement.transform; var body=movement.Body;
         var spread=FindObjectOfType<CampusSmokeSpread>(); spread.enabled=false; spread.ResetSpread();
         var hands=FindObjectsOfType<CampusHandInteractor>(true);
-        Check(FindObjectsOfType<VRTeleporter>(true).Length==0 && FindObjectsOfType<VRFireSafetyInteraction>(true).Length==0 && FindObjectsOfType<VRMenuRayPointer>(true).Length==0,"No teleport or interaction/menu ray adapters remain in the new scene");
+        Check(FindObjectsOfType<VRTeleporter>(true).Length==2 && FindObjectsOfType<VRTeleporter>(true).All(t=>t.MaxTeleportDistance==3) && FindObjectsOfType<VRFireSafetyInteraction>(true).Length==0 && FindObjectsOfType<VRMenuRayPointer>(true).Length==2,"Two 3m teleporters and two dedicated menu rays coexist with contact world interactions");
         Check(hands.Length==2 && hands.Select(h=>Field<SteamVR_Input_Sources>(h,"inputSource")).Distinct().Count()==2,"Left and right contact inputs are separately bound");
         Check(SteamVR_Input.GetVector2Action("Walk")!=null,"Left-stick Walk action exists");
-        Check(Field<AudioClip[]>(movement,"footstepClips").Length==3 && Field<AudioSource>(movement,"footsteps")!=null,"Walking retains three varied footstep clips");
+        Check(Field<bool>(movement,"teleportOnly") && Field<AudioClip[]>(movement,"footstepClips").Length==0 && Field<AudioSource>(movement,"footsteps")==null,"Teleport is configured without footsteps");
+        // The old continuous sweeps below remain collision/geometry probes, not player input.
+        typeof(CampusLocomotion).GetField("teleportOnly",BindingFlags.NonPublic|BindingFlags.Instance).SetValue(movement,false);
         Check(FindObjectsOfType<CampusTowelInteractable>().Count(t=>!t.IsWet)==4 && FindObjectsOfType<CampusFaucet>().Length==8,"Every floor starts with one dry held towel and two switchable faucets");
         Check(FindObjectsOfType<Transform>().Count(t=>t.name=="Corridor elevator bank")==4,"Four elevator banks remain accessible from the corridor");
         Check(FindObjectsOfType<Transform>().Count(t=>t.name=="Bookcase back" && t.position.y>11)>=10,"4F reading room retains ten bookcases");

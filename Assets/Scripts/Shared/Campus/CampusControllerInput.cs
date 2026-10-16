@@ -38,6 +38,14 @@ public static class CampusControllerInput
         if(device.isValid && device.TryGetFeatureValue(CommonUsages.primary2DAxisClick,out bool pressed)) return pressed;
         return SteamVR.active && SteamVR_Input.GetBooleanAction("Pause").GetState(SteamVR_Input_Sources.LeftHand);
     }
+    public static bool Teleport(SteamVR_Input_Sources source)
+    {
+        var device=InputDevices.GetDeviceAtXRNode(Node(source));
+        // Forward deflection, not a stick click: left-stick click remains pause.
+        if(device.isValid && device.TryGetFeatureValue(CommonUsages.primary2DAxis,out Vector2 axis))
+            return axis.y>=.65f && Mathf.Abs(axis.x)<axis.y;
+        return SteamVR.active && SteamVR_Input.GetBooleanAction("Teleport").GetState(source);
+    }
     public static bool HardwarePresent => TryPose(XRNode.Head,out _,out _) || SteamVR.active;
     public static void Haptic(SteamVR_Input_Sources source,float amplitude)
     {

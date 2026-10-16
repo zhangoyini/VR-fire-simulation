@@ -9,7 +9,7 @@ public sealed class CampusThrowMotion : MonoBehaviour
     private int count;
     private Transform space;
     public bool ReleaseAllowed { get; set; }
-    private void Awake() { space=GetComponentInParent<CampusLocomotion>()?.transform; }
+    private void Awake() { space=GetComponentInParent<CampusLocomotion>()?.transform ?? GetComponent<CampusTrackedHandPose>()?.TrackingSpace; }
     private void Update()
     {
         var pose=GetComponent<CampusTrackedHandPose>();

@@ -9,6 +9,11 @@ public sealed class CampusTrackedHandPose : MonoBehaviour
     [SerializeField] private SteamVR_Input_Sources inputSource;
     private CampusHandVisual visual;
     public bool PhysicalTrackingValid { get; private set; }
+    public Transform TrackingSpace => trackingSpace;
+    public void FollowRigTranslation(Vector3 delta)
+    {
+        if(trackingSpace!=null && !transform.IsChildOf(trackingSpace)) transform.position+=delta;
+    }
     private void Awake() { visual=GetComponent<CampusHandVisual>(); }
     private void Update()
     {
