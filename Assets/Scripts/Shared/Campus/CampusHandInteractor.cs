@@ -72,6 +72,7 @@ public sealed class CampusHandInteractor : MonoBehaviour
                 if (component is CampusHingeInteractable hinge && hinge.IsHeld && !hinge.IsHeldBy(transform)) continue;
                 if (component is CampusTowelInteractable towel && !towel.CanGrab(transform)) continue;
                 if (component is CampusPracticeBook book && !book.CanGrab(transform)) continue;
+                if (component is CampusRescueStudent student && !student.CanPush(transform)) continue;
                 float d = Vector3.Distance(point, hits[i].ClosestPoint(point));
                 if(d>(component is CampusTowelInteractable || component is CampusPracticeBook?pickupDistance:contactDistance)) continue;
                 // Prevent proximity volumes selecting doors before the hand reaches the actual leaf.
@@ -97,6 +98,14 @@ public sealed class CampusHandInteractor : MonoBehaviour
         if (target is CampusHingeInteractable hinge && hinge.IsHeld && !hinge.IsHeldBy(transform)) return false;
         if (target is CampusTowelInteractable towel && !towel.CanGrab(transform)) return false;
         if (target is CampusPracticeBook book && !book.CanGrab(transform)) return false;
+        if (target is CampusRescueStudent student && !student.CanPush(transform)) return false;
+        // Wheelchair handles are click switches; release must not stop following.
+        if (target is CampusRescueStudent)
+        {
+            ((IInteractable)target).OnInteractStart(transform);
+            Pulse(.3f);
+            return true;
+        }
         throwMotion?.ResetHistory(); held = target; ((IInteractable)held).OnInteractStart(transform);
         if((target is CampusTowelInteractable || target is CampusPracticeBook) && highlight!=null) highlight.SetHover(this,false);
         lastAngle = target is CampusHingeInteractable h ? h.Angle : 0; Pulse(.3f); return true;
