@@ -114,8 +114,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         }
         else if(CurrentPhase==Phase.OpenDoor)
         {
-            Vector3 p=classroomDoor.transform.parent.position; Vector3 delta=trackedHead.position-p; delta.y=0;
-            if(!announcement && Mathf.Abs(classroomDoor.Angle)>=85 && delta.magnitude<1.8f && doorwayExposure.Contains(trackedHead.position)) { page=0; ChangePhase(Phase.SmokeLesson); }
+            if(Mathf.Abs(classroomDoor.Angle)>=15) { page=1; ChangePhase(Phase.SmokeLesson); }
         }
         else if(CurrentPhase==Phase.FindTowel && !announcement)
         {
@@ -276,7 +275,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         foreach(var window in practiceWindows) opened|=window!=null && window.IsOpen;
         title.text="自由练习 / Free practice";
         explanation.text=(picked?"✓":"○")+" 拿书 / Book   "+(opened?"✓":"○")+" 推窗 / Window";
-        if(CurrentPhase==Phase.Ready) explanation.text="按住右手柄 A 键开始\nHold right A to begin";
+        if(CurrentPhase==Phase.Ready) explanation.text="长按A键开始\nPress and hold A to start";
     }
     private void SetCompactTask()
     {
@@ -302,8 +301,8 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if(CurrentPhase==Phase.Controls)
         {
             string[] h={"头显与安全 / Headset & safety","双手传送 / Either-hand teleport","双手交互 / Two-hand interaction"};
-            string[] t={"自然转头观察；检查佩戴和活动空间。当前可自由探索，无火灾。\nLook around naturally. Check your fit and clear space. You may explore safely now.","任一摇杆向前推并保持，用对应手柄瞄准绿色落点；摇杆回中后传送，单次最多 3 米。左摇杆按下暂停。暂停或结束菜单出现后，任一手柄射线瞄准按钮变绿，按对应扳机点击。\nHold either stick forward to aim at green ground. Re-centre to teleport up to 3 m. Click the left stick to pause. In pause/results menus, aim either ray until green and press that trigger.","扳机握持、推动，松开可投掷。轮椅要双手靠近后方左右推把，各按一次扳机开始或停止跟随；不用一直按住。右 A 确认教学。\nTriggers grab and push; release to throw. At the wheelchair's rear handles, press both triggers once to start or stop following. No need to hold them. A confirms teaching."};
-            SetText(h[page],t[page],"自由练习中，教学会自动换页。 "+(page+1)+" / 3\nExplore freely. Pages advance automatically; A skips after reading.");
+            string[] t={"自然转头观察；检查佩戴和活动空间。当前可自由探索，无火灾。\nLook around naturally. Check your fit and clear space. You may explore safely now.","任一摇杆向前推并保持，用对应手柄瞄准绿色落点；摇杆回中后传送，单次最多 3 米。左摇杆按下暂停。暂停或结束菜单出现后，任一手柄射线瞄准按钮变绿，按对应扳机点击。\nHold either stick forward to aim at green ground. Re-centre to teleport up to 3 m. Click the left stick to pause. In pause/results menus, aim either ray until green and press that trigger.","扳机握持、推动，松开可投掷。\nHold the trigger to grab and push; release to throw."};
+            SetText(h[page],t[page],"教学页播完按A键进入下一页。\nPress A to advance to the next page after the teaching page.");
         }
         else if(CurrentPhase==Phase.Ready) SetText("自由练习 / Free practice","可继续移动、拿书和推窗。开始后观看系统动画，移动与物体操作暂时锁定。无需实际坐下。\nKeep practising. The opening locks locomotion and object input. Do not physically sit.","按住右手柄 A 键 0.75 秒开始；不使用扳机。\nHold right A for 0.75 s to begin. Triggers only interact.");
         else if(CurrentPhase==Phase.Classroom) SetText("系统动画中 / Opening cinematic","就位、翻书、放书、虚拟坐下\nSettle in, read, put book down, sit virtually","");
