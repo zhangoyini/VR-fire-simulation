@@ -408692,7 +408692,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  baseDrainPerSecond: 0
+  baseDrainPerSecond: 0.208333
   lowHealthThreshold: 0.25
   logEvents: 1
 --- !u!1 &1167086997
