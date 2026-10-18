@@ -6,6 +6,7 @@ public sealed class CampusHandInteractor : MonoBehaviour
 {
     [SerializeField] private SteamVR_Input_Sources inputSource;
     [SerializeField] private float contactDistance = .12f;
+    [SerializeField] private float doorContactDistance = .50f;
     [SerializeField] private float pickupDistance=.20f;
     private SteamVR_Action_Boolean trigger;
     private SteamVR_Action_Vibration vibration;
@@ -61,8 +62,11 @@ public sealed class CampusHandInteractor : MonoBehaviour
         // Paused physics has no FixedUpdate; synchronise moving head-following menu colliders.
         if(menuOnly || Time.timeScale==0) Physics.SyncTransforms();
         Vector3 point=ContactPoint;
-        int count = Physics.OverlapSphereNonAlloc(point, Mathf.Max(contactDistance,pickupDistance), hits, ~0, QueryTriggerInteraction.Collide);
+
+        float searchRadius =Mathf.Max(contactDistance, pickupDistance, doorContactDistance);
+        int count = Physics.OverlapSphereNonAlloc(point, searchRadius, hits, ~0, QueryTriggerInteraction.Collide);
         MonoBehaviour best = null; float distance = float.MaxValue;
+
         for (int i = 0; i < count; i++)
         {
             if (hits[i] == null || hits[i].transform.IsChildOf(transform)) continue;
@@ -74,7 +78,27 @@ public sealed class CampusHandInteractor : MonoBehaviour
                 if (component is CampusPracticeBook book && !book.CanGrab(transform)) continue;
                 if (component is CampusRescueStudent student && !student.CanPush(transform)) continue;
                 float d = Vector3.Distance(point, hits[i].ClosestPoint(point));
-                if(d>(component is CampusTowelInteractable || component is CampusPracticeBook?pickupDistance:contactDistance)) continue;
+
+                //if(d>(component is CampusTowelInteractable || component is CampusPracticeBook?pickupDistance:contactDistance)) continue;
+                float allowedDistance;
+
+                if (component is CampusHingeInteractable)
+                {
+                    allowedDistance = doorContactDistance;
+                }
+                else if (component is CampusTowelInteractable ||
+                         component is CampusPracticeBook)
+                {
+                    allowedDistance = pickupDistance;
+                }
+                else
+                {
+                    allowedDistance = contactDistance;
+                }
+
+                if (d > allowedDistance)
+                    continue;
+
                 // Prevent proximity volumes selecting doors before the hand reaches the actual leaf.
                 if (hits[i].isTrigger && !(component is VRMenuButton)) continue;
                 if (d < distance) { distance = d; best = component; } break;

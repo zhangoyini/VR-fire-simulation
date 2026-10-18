@@ -8,11 +8,20 @@ public sealed class CampusHandVisual : MonoBehaviour
     [SerializeField] private Transform[] bones;
     [SerializeField] private SteamVR_Input_Sources inputSource;
     [SerializeField] private SteamVR_Skeleton_Pose relaxed, fist, point;
+    [SerializeField] private Transform interactionPoint;
+
     private bool gripping, pushing, pointing;
     private bool presentationVisible=true,trackingVisible=true;
     private SkinnedMeshRenderer[] meshes;
     public Transform[] Bones => bones;
-    public Vector3 ContactPoint => bones!=null && bones.Length>1 && bones[1]!=null?bones[1].position:transform.position;
+    //public Vector3 ContactPoint => bones!=null && bones.Length>1 && bones[1]!=null?bones[1].position:transform.position;
+    public Vector3 ContactPoint =>
+    interactionPoint != null
+        ? interactionPoint.position
+        : bones != null && bones.Length > 1 && bones[1] != null
+            ? bones[1].position
+            : transform.position;
+
     public void SetPresentationVisible(bool visible) { presentationVisible=visible; RefreshVisibility(); }
     public void SetTrackingVisible(bool visible) { trackingVisible=visible; RefreshVisibility(); }
     private void RefreshVisibility()
