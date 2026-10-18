@@ -55,7 +55,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
     public bool GuidedTowelTask => !bypassed && CurrentPhase>=Phase.FindTowel && CurrentPhase<=Phase.Descend;
     public bool MovementLocked => !bypassed && (CurrentPhase>=Phase.Classroom && CurrentPhase<=Phase.Rising || CurrentPhase==Phase.SmokeLesson);
     public bool WorldInteractionLocked => MovementLocked;
-    public bool DamageSuppressed => !bypassed && (CurrentPhase<=Phase.Rising || announcement || CurrentPhase==Phase.SmokeLesson && (page>0 || age>=9));
+    public bool DamageSuppressed => !bypassed && (CurrentPhase<=Phase.Rising || CurrentPhase==Phase.SmokeLesson || announcement);
     public bool SmokeFrozen => !bypassed && (!fireStarted || CurrentPhase==Phase.SmokeLesson || announcement);
     public float MinimumReadingSeconds => CurrentPhase==Phase.SmokeLesson?20:CurrentPhase==Phase.Controls?12:CurrentPhase==Phase.Rise?12:announcement?AnnouncementSeconds:8;
     public bool CanConfirm => !bypassed && !finishing && Time.timeScale>0 && age>=MinimumReadingSeconds &&
@@ -312,7 +312,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         else if(CurrentPhase==Phase.OpenDoor) SetText("观察门外 / Observe the doorway","走近教室门，按住扳机向前推。请先观察门外情况。\nApproach the classroom door. Hold a trigger and push, then observe conditions outside.","已恢复自由操作。提示会自动收起，无需确认。\nControls unlocked. Guidance folds automatically; no confirmation.");
         else if(CurrentPhase==Phase.SmokeLesson)
         {
-            if(page==0) SetText("烟雾与血量 / Smoke & health","进入烟区会立即警告。累计暴露超过 3 秒后扣血；传送经过烟雾也按步行时间计入。\nSmoke entry shows a warning. Health falls after 3 s of exposure; teleport paths also count as walking time.","9 秒后暂停伤害；教学自动继续，A 可跳过。\nDamage freezes after 9 s. Teaching continues automatically; A skips.");
+            if(page==0) SetText("烟雾与血量 / Smoke & health","实际疏散时进入烟区会立即警告。累计暴露超过 3 秒后扣血；传送经过烟雾也按步行时间计入。\nDuring evacuation, smoke entry shows a warning. Health falls after 3 s of exposure; teleport paths also count as walking time.","教学期间不扣血；教学自动继续，A 可跳过。\nHealth does not drain during teaching. Teaching continues automatically; A skips.");
             else SetText("消防知识 / Fire-safety knowledge","烟雾会引起咳嗽、窒息和中毒。下一步：到卫生间打湿毛巾，持续握持并遮住口鼻，再沿楼梯撤离。\nSmoke can cause coughing, suffocation and poisoning. Next: wet a towel, hold it at your face and evacuate by stairs.","遮住口鼻会减缓扣血，但湿毛巾不能过滤一氧化碳，仍需尽快离开烟雾。\nCoverage slows health loss, not CO poisoning. Leave smoke promptly.");
         }
         else if(CurrentPhase==Phase.FindTowel) SetText("任务 1：寻找毛巾 / Task 1: Find towel","前往对面的 411 卫生间，按住左手或右手扳机拿起台上的干毛巾。\nGo to restroom 411 opposite the classroom. Hold either trigger to pick up a dry towel.","跟随青蓝色高亮箭头与发光门牌。22 秒后提示自动收起。\nFollow cyan arrows and the lit door sign. This card folds after 22 s.");
