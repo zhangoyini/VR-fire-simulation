@@ -12,7 +12,7 @@ Windows PC.
 | Name | Student ID | GitHub account |
 | --- | --- | --- |
 | Zhao Yining | 26040695 | zhangoyini |
-| CHEUNG Kwan Kit (Henry) | [student ID] | cheungkk704 |
+| CHEUNG Kwan Kit (Henry) | 26007063G | cheungkk704 |
 | Wu Zhengyang | [student ID] | wuxiaoyang |
 | ZHU Zijie | [student ID] | zJaey-00 |
 | JIAO Ruikang | [student ID] | RJ |
