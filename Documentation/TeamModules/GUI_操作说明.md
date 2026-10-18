@@ -6,14 +6,14 @@
 
 ## 六包分别是什么
 
-| 包 | 内容 | 负责目录 | 个人分支 |
-| --- | --- | --- | --- |
-| 01_EmptyModel.zip | 只有四层建筑、家具、场地、碰撞和模型查看相机；不运行交互/火灾/任务 | 场景、公共基础与资产，成员 1 维护 | codex/campus-model |
-| 02_Model_A_Player.zip | 同一个模型 + A：舒适行走、脚步声、练习书抓取、物体投掷 | Assets/Scripts/Modules/A_Player | codex/module-a-player |
-| 03_Model_B_DoorsWindowsElevator.zip | 同一个模型 + B：双手推门窗、电梯/跳窗警告、窗户自动关闭 | Assets/Scripts/Modules/B_DoorsWindowsElevator | codex/module-b-doors-windows |
-| 04_Model_C_TowelWater.zip | 同一个模型 + C：水龙头开关、流水、干湿毛巾、持有/掉落/口鼻覆盖 | Assets/Scripts/Modules/C_TowelWater | codex/module-c-towel-water |
-| 05_Model_D_FireSmokeHealth.zip | 同一个模型 + D：火焰、自然逐层烟雾、烟雾伤害与湿毛巾减伤 | Assets/Scripts/Modules/D_FireSmokeHealth | codex/module-d-fire-smoke |
-| 06_Model_E_LessonTasksUI.zip | 同一个模型 + E：3D 操作教学、开场动画、任务/路线/目的地高亮、UI与实时地图 | Assets/Scripts/Modules/E_LessonTasksUI | codex/module-e-lesson-ui |
+| 包                                   | 内容                                         | 负责目录                                          | 个人分支                         |
+| ----------------------------------- | ------------------------------------------ | --------------------------------------------- | ---------------------------- |
+| 01_EmptyModel.zip                   | 只有四层建筑、家具、场地、碰撞和模型查看相机；不运行交互/火灾/任务         | 场景、公共基础与资产，成员 1 维护                            | codex/campus-model           |
+| 02_Model_A_Player.zip               | 同一个模型 + A：舒适行走、脚步声、练习书抓取、物体投掷              | Assets/Scripts/Modules/A_Player               | codex/module-a-player        |
+| 03_Model_B_DoorsWindowsElevator.zip | 同一个模型 + B：双手推门窗、电梯/跳窗警告、窗户自动关闭             | Assets/Scripts/Modules/B_DoorsWindowsElevator | codex/module-b-doors-windows |
+| 04_Model_C_TowelWater.zip           | 同一个模型 + C：水龙头开关、流水、干湿毛巾、持有/掉落/口鼻覆盖         | Assets/Scripts/Modules/C_TowelWater           | codex/module-c-towel-water   |
+| 05_Model_D_FireSmokeHealth.zip      | 同一个模型 + D：火焰、自然逐层烟雾、烟雾伤害与湿毛巾减伤             | Assets/Scripts/Modules/D_FireSmokeHealth      | codex/module-d-fire-smoke    |
+| 06_Model_E_LessonTasksUI.zip        | 同一个模型 + E：3D 操作教学、开场动画、任务/路线/目的地高亮、UI与实时地图 | Assets/Scripts/Modules/E_LessonTasksUI        | codex/module-e-lesson-ui     |
 
 **六个包都是完整 Unity 源工程，不是上一次的零散 Payload 包。** 每个包里面都有一个 `VR-fire-simulation` 文件夹，直接包含 Assets、Packages、ProjectSettings、Documentation 和三个根配置文件。
 

@@ -1,6 +1,6 @@
 # UI 防遮挡、自然烟雾与环境细节
 
-项目：`F:\unityproject\VR-fire-simulation-my`；主场景：`Assets/Scenes/Campus/CampusTraining.unity`。
+项目：`F:\unityproject\VR-fire-simulation-my`；主场景：`Assets/Scenes/Campus/CampusTraining.unity`。  
 本说明优先于旧版关于实验室侧加速烟雾、杂物移至侧边，以及提示没有防遮挡的描述。后续卫生间的干毛巾、流水浸湿与持续遮住口鼻免扣血机制见 [RestroomInteractions.md](RestroomInteractions.md)，取代主场景原一次性毛巾增益。
 
 ## 本次更新
