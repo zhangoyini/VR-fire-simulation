@@ -6,11 +6,11 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Campus/CampusTraining.unity
-    guid: a6d17db6ed5cfe2469229d7548078357
-  - enabled: 1
     path: Assets/Scenes/MainMenu/MainMenu.unity
     guid: 2fc445dea6e94fc49c7bf01a296572e0
+  - enabled: 1
+    path: Assets/Scenes/Campus/CampusTraining.unity
+    guid: a6d17db6ed5cfe2469229d7548078357
   m_configObjects:
     Unity.XR.OpenVR.Settings: {fileID: 11400000, guid: 4e02b0dc8a15b614ebcac1db14e89eb6, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 753eee4c19416ed4885d9df9d439b6b4, type: 2}

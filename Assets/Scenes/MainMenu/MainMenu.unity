@@ -1395,6 +1395,7 @@ GameObject:
   - component: {fileID: 297745383}
   - component: {fileID: 297745385}
   - component: {fileID: 297745386}
+  - component: {fileID: 297745387}
   m_Layer: 0
   m_Name: RightControllerDummy
   m_TagString: Untagged
@@ -1417,6 +1418,22 @@ MonoBehaviour:
   controller: {fileID: 1348731026}
   inputSource: 2
   contactInteractionOnly: 0
+--- !u!114 &297745387
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 297745382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70aac4a3b80fb5a4f954d5b88c2cf0e9, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  trackingSpace: {fileID: 1348469274}
+  trackedController: {fileID: 1348487732}
+  trackedHead: {fileID: 4000013077900800}
+  inputSource: 2
 --- !u!4 &297745384
 Transform:
   m_ObjectHideFlags: 0
@@ -2022,7 +2039,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8b91c46ea824dbd8b2f627bfe0d9a44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  trackedController: {fileID: 1348487732}
+  trackedController: {fileID: 297745384}
   playerRoot: {fileID: 1348469274}
   menuButtons:
   - {fileID: 9002}
@@ -2030,6 +2047,7 @@ MonoBehaviour:
   maxDistance: 4
   downwardPitchDegrees: 18
   laserShader: {fileID: 4800000, guid: 60c19fdab948471785ca59a0fcfc0bd4, type: 3}
+  useCampusInput: 1
 --- !u!114 &9700000000
 MonoBehaviour:
   m_ObjectHideFlags: 0
