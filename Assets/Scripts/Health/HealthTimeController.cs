@@ -40,10 +40,12 @@ namespace Jiao.HealthTime
         public bool IsDepleted => currentHealth <= 0f;
         public bool IsPaused => isPaused;
         public float DrainMultiplier => GetTotalMultiplier();
+        private bool LessonDamageSuppressed => CampusLessonDirector.Instance != null &&
+                                               CampusLessonDirector.Instance.DamageSuppressed;
 
         public void TakeDamage(float amount)
         {
-            if (isPaused || IsDepleted || amount <= 0f) return;
+            if (isPaused || LessonDamageSuppressed || IsDepleted || amount <= 0f) return;
             currentHealth = Mathf.Max(0, currentHealth - amount);
             HealthChanged?.Invoke(HealthPercent);
             if (!hasTriggeredLowHealth && HealthPercent <= lowHealthThreshold)
@@ -75,7 +77,7 @@ namespace Jiao.HealthTime
 
         private void Update()
         {
-            if (isPaused || IsDepleted)
+            if (isPaused || LessonDamageSuppressed || IsDepleted)
                 return;
 
             RemoveExpiredMultipliers();

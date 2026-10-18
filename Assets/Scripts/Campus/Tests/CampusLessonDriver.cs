@@ -48,6 +48,9 @@ public sealed class CampusLessonDriver : MonoBehaviour
         var layout=lesson.GetComponent<CampusLessonLayout>(); var health=HealthTimeController.Instance;
         var exposure=FindObjectOfType<CampusSmokeExposure>(); exposure.enabled=false;
         var spread=FindObjectOfType<CampusSmokeSpread>(); var hands=FindObjectsOfType<CampusHandInteractor>(true);
+        yield return new WaitForSeconds(.25f);
+        health.TakeDamage(10);
+        Check(health.HealthPercent==1,"Teaching protects health from passive drain and direct damage");
         Check(lesson==CampusLessonDirector.Instance && lesson.CurrentPhase==CampusLessonDirector.Phase.Controls,"Entry begins with the scene-local controls demonstration");
         Check(!Field<GameObject>(lesson,"fireOrigin").activeSelf && !Field<AudioSource>(lesson,"alarm").isPlaying && spread.RoomAge==0,"Practice has no fire, alarm or advancing smoke");
         Check(lesson.IsPractice && !lesson.MovementLocked && !lesson.WorldInteractionLocked && lesson.DamageSuppressed,"Initial teaching allows free movement and world interaction without damage");
@@ -186,6 +189,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Check(Field<GameObject>(lesson,"doorwayPlume").GetComponentInChildren<ParticleSystem>().particleCount>0,"Opening the door also shows visible smoke");
         Check(exposure.GraceSeconds==3 && exposure.DamagePerSecond==2f,"Saved smoke parameters match the three-second grace and 2 HP/s");
         float hp=health.HealthPercent; exposure.Tick(true,50);
+        health.TakeDamage(10); yield return new WaitForSeconds(.25f);
         Check(lesson.DamageSuppressed && health.HealthPercent==hp,"Reading fire knowledge cannot cause smoke damage");
         lesson.Confirm(); Check(lesson.Page==1,"Fire knowledge enforces a twenty-second minimum reading period");
         lesson.Tick(1); Capture("Lesson_07_FireKnowledge",head);
@@ -199,6 +203,9 @@ public sealed class CampusLessonDriver : MonoBehaviour
         lesson.Tick(15); Check(lesson.TaskAnnouncement && layout.IsFull,"Task card remains expanded beyond the former twelve-second interval");
         exposure.Tick(true,20); Check(health.HealthPercent==hp,"Task announcement protects the player's reading time");
         yield return Advance(lesson); lesson.Tick(1);
+        float activeHealth=health.HealthPercent;
+        yield return new WaitForSeconds(.25f);
+        Check(health.HealthPercent<activeHealth,"Passive eight-minute health drain resumes after the task card folds");
         var panel=Field<GameObject>(lesson,"lessonPanel").transform; Vector3 compact=head.InverseTransformPoint(panel.position);
         Check(!lesson.MovementLocked && !layout.IsFull && Mathf.Abs(compact.x)<.01f && Mathf.Abs(compact.y)<.1f,"Unfinished task 1 stays directly ahead, rather than in an uncomfortable corner");
         Capture("Lesson_12_TaskHUD",head);
