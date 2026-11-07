@@ -104,6 +104,15 @@ public sealed class CampusHandInteractor : MonoBehaviour
                 if (d < distance) { distance = d; best = component; } break;
             }
         }
+        // Assistance is a toggle, so the chair can be stopped without reaching
+        // across the viewing gap or dropping the towel held in the other hand.
+        if (best == null && !menuOnly && Physics.Raycast(point, transform.forward,
+                out var chairHit, 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+        {
+            var student = chairHit.collider.GetComponentInParent<CampusRescueStudent>();
+            if (student != null && student.isActiveAndEnabled && student.CanPush(transform))
+                best = student;
+        }
         if (best == candidate) return;
         if (candidate != null) ((IInteractable)candidate).OnHoverExit();
         if (highlight != null) highlight.SetHover(this, false);

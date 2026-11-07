@@ -110,6 +110,7 @@ public class VRTeleporter : MonoBehaviour
     {
         if(lineRenderer!=null) lineRenderer.enabled=false;
         destinationMarker?.HideAim();
+        rescueStudent?.HideTeleportPreview();
         isValidLocationFound=isAimingTeleport=false;
         if(aimingHand==this) aimingHand=null;
     }
@@ -199,6 +200,13 @@ public class VRTeleporter : MonoBehaviour
                 isValidLocationFound, stairTread);
         }
         else destinationMarker?.Hide();
+        if (hasSurfaceHit && rescueStudent != null && rescueStudent.IsFollowing)
+        {
+            Vector3 feet = vrCamera != null ? vrCamera.position : playerRoot.position;
+            feet.y = playerRoot.position.y;
+            rescueStudent.ShowTeleportPreview(feet, arcPoints[arcPoints.Count - 1], isValidLocationFound);
+        }
+        else rescueStudent?.HideTeleportPreview();
     }
 
     private Vector3 GetLaunchVelocity()
@@ -308,7 +316,8 @@ public class VRTeleporter : MonoBehaviour
         Vector3 delta=point-feet; float distance=delta.magnitude;
         if(distance<.001f) return true;
         float height=vrCamera!=null?Mathf.Clamp(vrCamera.position.y-playerRoot.position.y,1.2f,2.1f):1.7f;
-        foreach(var hit in Physics.CapsuleCastAll(feet+Vector3.up*.42f,feet+Vector3.up*(height-.2f),.2f,
+        float radius = rescueStudent != null && rescueStudent.IsFollowing ? rescueStudent.PlayerClearanceRadius : .2f;
+        foreach(var hit in Physics.CapsuleCastAll(feet+Vector3.up*.42f,feet+Vector3.up*(height-.2f),radius,
             delta/distance,distance,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore))
             if(!IsPlayerCollider(hit.collider)) return false;
         return true;
@@ -429,8 +438,9 @@ public class VRTeleporter : MonoBehaviour
     {
         float height = vrCamera != null ? Mathf.Clamp(vrCamera.position.y - playerRoot.position.y, 1.2f, 2.1f) : 1.7f;
         // Leave foot-level clearance for a 0.19m stair riser; still reject walls/low ceilings.
+        float radius = rescueStudent != null && rescueStudent.IsFollowing ? rescueStudent.PlayerClearanceRadius : .2f;
         Collider[] overlaps = Physics.OverlapCapsule(point + Vector3.up * .42f,
-            point + Vector3.up * (height - .2f), .2f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            point + Vector3.up * (height - .2f), radius, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
         foreach (Collider c in overlaps)
         {
             if (IsPlayerCollider(c)) continue;

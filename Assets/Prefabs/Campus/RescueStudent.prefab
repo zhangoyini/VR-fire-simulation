@@ -2723,11 +2723,16 @@ MonoBehaviour:
   followTarget: {fileID: 0}
   refugeVolume: {fileID: 0}
   followSpeed: 2.2
-  followOffset: 1.05
+  followOffset: 0.5
+  sideOffset: 0.7
+  doorwayTolerance: 0.05
   dwellSeconds: 1
-  pushHint: "双手靠近轮椅后方左右推把，同时各按一次扳机开始推行\nPress both triggers once at the rear handles to start"
-  pushText: "轮椅正在前方跟随；再次双手点击推把可停止\nWheelchair follows ahead; press both handles again to stop"
-  stopText: "已停止推行；双手再点击推把可继续\nStopped; press both handles again to continue"
+  pushHint: "双手放在左右推把上，各按一次扳机开始协助\nPlace both hands on the handles and press each trigger once to help"
+  stopText: "已退出协助，双手回到推把各按一次扳机可继续\nAssistance stopped. Press both triggers once at the handles to resume."
+  assistanceRoute:
+  - {x: -2.2, y: 3.8, z: 0}
+  - {x: -2.2, y: 3.8, z: -3.4}
+  - {x: -5, y: 3.8, z: -6}
   doneText: "\u540C\u5B66\u5DF2\u5B89\u5168\u9001\u8FBE\u907F\u96BE\u533A\nStudent
     delivered to the 2F refuge"
 --- !u!1 &4466985219690117215

@@ -8,6 +8,7 @@ public sealed class CampusLessonRoute : MonoBehaviour
     private int index;
     public int WaypointIndex => index;
     public bool Visible => points!=null;
+    public void Configure(Transform[] routeArrows) { arrows=routeArrows; Hide(); }
     public string DirectionHint(Transform head)
     {
         if(points==null || head==null) return "";

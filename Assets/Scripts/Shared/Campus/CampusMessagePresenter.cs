@@ -15,6 +15,7 @@ public sealed class CampusMessagePresenter : MonoBehaviour
     private float hideAt;
     public string CurrentMessage => text != null ? text.text : "";
     public bool IsVisible => panel!=null && panel.gameObject.activeSelf;
+    public TMP_FontAsset DisplayFont => font != null ? font : TMP_Settings.defaultFontAsset;
     public void Hide() { if(panel!=null) panel.gameObject.SetActive(false); }
     private void Awake() { Instance = this; }
     public void ConfigureFont(Font source) { if (font == null && source != null) font = TMP_FontAsset.CreateFontAsset(source); }
