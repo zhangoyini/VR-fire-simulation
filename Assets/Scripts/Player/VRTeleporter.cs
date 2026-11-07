@@ -38,6 +38,7 @@ public class VRTeleporter : MonoBehaviour
     private CampusSmokeExposure smokeExposure;
     private CampusTrackedHandPose[] trackedHands;
     private MaterialPropertyBlock arcColour;
+    private TeleportDestinationMarker destinationMarker;
     public float MaxTeleportDistance => maxTeleportDistance;
     public SteamVR_Input_Sources InputSource => inputSource;
     public bool IsAiming => isAimingTeleport;
@@ -79,7 +80,7 @@ public class VRTeleporter : MonoBehaviour
             (CampusLessonDirector.Instance!=null && CampusLessonDirector.Instance.MovementLocked) ||
             (resolutionCoordinator!=null && resolutionCoordinator.CurrentOutcome!=ResolutionCoordinator.Outcome.None) ||
             (useCampusInput && pose!=null && CampusControllerInput.HardwarePresent && !pose.PhysicalTrackingValid);
-        if(blocked) { CancelAim(); previousHeld=teleportHeld; return; }
+        if(blocked) { CancelAim(); destinationMarker?.Hide(); previousHeld=teleportHeld; return; }
         if (teleportHeld && !previousHeld && aimingHand==null && lastTeleportFrame!=Time.frameCount)
         {
             aimingHand=this;
@@ -108,10 +109,18 @@ public class VRTeleporter : MonoBehaviour
     private void CancelAim()
     {
         if(lineRenderer!=null) lineRenderer.enabled=false;
+        destinationMarker?.HideAim();
         isValidLocationFound=isAimingTeleport=false;
         if(aimingHand==this) aimingHand=null;
     }
-    private void OnDisable() { CancelAim(); previousHeld=true; }
+    private void OnDisable() { CancelAim(); destinationMarker?.Hide(); previousHeld=true; }
+
+    private void OnDestroy()
+    {
+        if (destinationMarker == null) return;
+        if (Application.isPlaying) Destroy(destinationMarker.gameObject);
+        else DestroyImmediate(destinationMarker.gameObject);
+    }
 
     private void RenderTeleportArc()
     {
@@ -123,6 +132,9 @@ public class VRTeleporter : MonoBehaviour
 
         arcPoints.Add(currentPosition);
         isValidLocationFound = false;
+        bool hasSurfaceHit = false;
+        Vector3 markerNormal = Vector3.up;
+        bool stairTread = false;
 
         float timeStep = 0.05f;
         for (int i = 0; i < resolution; i++)
@@ -133,6 +145,11 @@ public class VRTeleporter : MonoBehaviour
             
             if (TryGetFirstBlockingHit(currentPosition, directVector.normalized, directVector.magnitude, out RaycastHit hit))
             {
+                hasSurfaceHit = true;
+                markerNormal = hit.normal;
+                var area = hit.collider.GetComponentInParent<TeleportArea>();
+                stairTread = area != null && (area.Stair == TeleportArea.StairPart.UpFlight ||
+                    area.Stair == TeleportArea.StairPart.ReturnFlight);
                 arcPoints.Add(hit.point);
 
                 if (TryResolveLanding(hit,out Vector3 landing))
@@ -140,6 +157,10 @@ public class VRTeleporter : MonoBehaviour
                     teleportTarget = landing;
                     arcPoints[arcPoints.Count-1]=landing;
                     isValidLocationFound = true;
+                    // A riser hit or furniture-edge snap can land on a different surface.
+                    markerNormal = Vector3.up;
+                    if (TryGetFirstBlockingHit(landing + Vector3.up * .05f, Vector3.down, .10f, out var ground))
+                        markerNormal = ground.normal;
                 }
 
                 // Any first solid hit stops the arc. Only marked floor hits are valid targets.
@@ -156,13 +177,28 @@ public class VRTeleporter : MonoBehaviour
         lineRenderer.positionCount = arcPoints.Count;
         lineRenderer.SetPositions(arcPoints.ToArray());
 
-        lineRenderer.startColor = isValidLocationFound ? Color.green : Color.red;
-        lineRenderer.endColor = isValidLocationFound ? Color.green : Color.red;
+        lineRenderer.startColor = TeleportDestinationMarker.TargetColor(isValidLocationFound);
+        lineRenderer.endColor = lineRenderer.startColor;
         // URP Unlit ignores vertex tint on some line materials; set per-renderer tint too.
         if(arcColour==null) arcColour=new MaterialPropertyBlock();
         arcColour.SetColor("_BaseColor",lineRenderer.startColor);
         arcColour.SetColor("_Color",lineRenderer.startColor);
         lineRenderer.SetPropertyBlock(arcColour);
+        if (hasSurfaceHit)
+        {
+            if (destinationMarker == null)
+            {
+                var marker = new GameObject("Teleport destination " + inputSource);
+                marker.hideFlags = HideFlags.DontSave;
+                destinationMarker = marker.AddComponent<TeleportDestinationMarker>();
+            }
+            Vector3 facing = vrCamera != null ? vrCamera.forward : playerRoot.forward;
+            facing = Vector3.ProjectOnPlane(facing, Vector3.up);
+            if (facing.sqrMagnitude < .001f) facing = playerRoot.forward;
+            destinationMarker.Show(arcPoints[arcPoints.Count - 1], markerNormal, facing,
+                isValidLocationFound, stairTread);
+        }
+        else destinationMarker?.Hide();
     }
 
     private Vector3 GetLaunchVelocity()
@@ -240,6 +276,7 @@ public class VRTeleporter : MonoBehaviour
         if(moveChair) rescueStudent.FollowTeleport(chairPosition,chairRotation);
         if(restoreBody) body.enabled=true;
         Physics.SyncTransforms();
+        destinationMarker?.FinishTeleport();
     }
 
     public bool IsWithinRange(Vector3 point)
@@ -288,9 +325,12 @@ public class VRTeleporter : MonoBehaviour
     {
         Vector3 requested=originalHit.point;
         landing=requested;
+        var area = originalHit.collider.GetComponentInParent<TeleportArea>();
+        if (useCampusInput && area != null && area.Stair != TeleportArea.StairPart.None)
+            return TryResolveStairHit(originalHit, area, out landing);
+
         bool floor=IsWalkableHit(originalHit);
-        if(floor && IsWithinRange(requested) && HasStandingClearance(requested) && HasClearTravelPath(requested) &&
-            CanPlaceFollowingChair(requested)) return true;
+        if(floor && CanLand(requested, area)) return true;
         if(!useCampusInput || originalHit.normal.y<.65f) return false;
         // Small edge tolerance: show the corrected endpoint, and validate every
         // candidate against the same floor, body, distance and wall rules.
@@ -300,11 +340,81 @@ public class VRTeleporter : MonoBehaviour
             Vector3 offset=new Vector3(Mathf.Cos(angle),0,Mathf.Sin(angle))*(ring*.15f);
             // A ray grazing a desk's top edge may still have clear floor beside it.
             if(!TryGetFirstBlockingHit(requested+offset+Vector3.up*.08f,Vector3.down,floor?.16f:1.1f,out var hit) ||
-                !IsWalkableHit(hit) || !IsWithinRange(hit.point) || !HasStandingClearance(hit.point) ||
-                !HasClearTravelPath(hit.point) || !CanPlaceFollowingChair(hit.point)) continue;
+                !IsWalkableHit(hit)) continue;
+            var nearbyArea = hit.collider.GetComponentInParent<TeleportArea>();
+            // A hit on furniture or a railing must never magnetize to stairs below it.
+            if (nearbyArea.Stair != TeleportArea.StairPart.None || !CanLand(hit.point, nearbyArea)) continue;
             landing=hit.point; return true;
         }
         return false;
+    }
+
+    private bool TryResolveStairHit(RaycastHit hit, TeleportArea area, out Vector3 landing)
+    {
+        landing = hit.point;
+        if (!area.isActiveAndEnabled || !(hit.collider is BoxCollider box) || hit.normal.y < -.01f)
+            return false;
+        if (area.Stair == TeleportArea.StairPart.Landing && !IsWalkableHit(hit))
+            return false;
+
+        // Project the lip or short riser onto this box's own top, slightly inside its edges.
+        Vector3 half = box.size * .5f;
+        Vector3 local = box.transform.InverseTransformPoint(hit.point) - box.center;
+        Vector3 scale = box.transform.lossyScale;
+        float limitX = Mathf.Max(0, half.x - .08f / Mathf.Abs(scale.x));
+        float limitZ = Mathf.Max(0, half.z - .08f / Mathf.Abs(scale.z));
+        local.x = Mathf.Clamp(local.x, -limitX, limitX);
+        local.z = Mathf.Clamp(local.z, -limitZ, limitZ);
+        local.y = half.y;
+        Vector3 candidate = box.transform.TransformPoint(box.center + local);
+        if (Vector3.Distance(candidate, hit.point) > .30f ||
+            !TryGetFirstBlockingHit(candidate + Vector3.up * .05f, Vector3.down, .10f, out var top) ||
+            top.collider != box || !IsWalkableHit(top) || !CanLand(top.point, area))
+            return false;
+        landing = top.point;
+        return true;
+    }
+
+    private bool CanLand(Vector3 point, TeleportArea area)
+    {
+        return IsWithinRange(point) && HasStandingClearance(point) && HasClearTravelPath(point) &&
+            CanPlaceFollowingChair(point) && (!useCampusInput || HasConnectedStairPath(point, area));
+    }
+
+    private bool HasConnectedStairPath(Vector3 point, TeleportArea destination)
+    {
+        // Follow the support under the feet. A clear arc through air can still cut across a stairwell.
+        Vector3 feet = vrCamera != null ? vrCamera.position : playerRoot.position;
+        feet.y = playerRoot.position.y;
+        const float stepTolerance = .24f; // Campus risers are 19 cm tall.
+        if (!TryGetFirstBlockingHit(feet + Vector3.up * stepTolerance, Vector3.down,
+                2 * stepTolerance, out var start))
+            return destination.Stair == TeleportArea.StairPart.None;
+        var origin = start.collider.GetComponentInParent<TeleportArea>();
+        if (destination.Stair == TeleportArea.StairPart.None &&
+            (origin == null || origin.Stair == TeleportArea.StairPart.None)) return true;
+        if (!IsWalkableHit(start)) return false;
+
+        Vector3 horizontal = Vector3.ProjectOnPlane(point - feet, Vector3.up);
+        int intervals = Mathf.Max(1, Mathf.CeilToInt(horizontal.magnitude / .12f));
+        float groundY = start.point.y;
+        var flight = TeleportArea.StairPart.None;
+        for (int i = 0; i <= intervals; i++)
+        {
+            Vector3 probe = feet + horizontal * ((float)i / intervals);
+            probe.y = groundY + stepTolerance;
+            if (!TryGetFirstBlockingHit(probe, Vector3.down, 2 * stepTolerance, out var ground) ||
+                !IsWalkableHit(ground)) return false;
+            var part = ground.collider.GetComponentInParent<TeleportArea>().Stair;
+            if (part == TeleportArea.StairPart.UpFlight || part == TeleportArea.StairPart.ReturnFlight)
+            {
+                // Changing flights takes a separate hop from the connecting landing.
+                if (flight != TeleportArea.StairPart.None && flight != part) return false;
+                flight = part;
+            }
+            groundY = ground.point.y;
+        }
+        return Mathf.Abs(groundY - point.y) < .05f;
     }
 
     private bool CanPlaceFollowingChair(Vector3 playerFeet)

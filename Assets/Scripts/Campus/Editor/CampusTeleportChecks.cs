@@ -28,6 +28,262 @@ public static class CampusTeleportChecks
     public static void Run()
     { RunChecks(false); }
 
+    public static void RunRestroomMarkerChecks()
+    {
+        results.Clear();
+        EditorSceneManager.OpenScene(CampusSceneBuilder.ScenePath);
+        var tiles = UnityEngine.Object.FindObjectsOfType<MeshRenderer>()
+            .Where(renderer => renderer.name == "Restroom tiled floor")
+            .OrderBy(renderer => renderer.bounds.center.y).ToArray();
+        Check(tiles.Length == 4, "Saved campus contains a tiled restroom on all four floors");
+        var rig = new GameObject("QA restroom player");
+        var head = new GameObject("QA restroom head").transform;
+        head.SetParent(rig.transform, false);
+        head.localPosition = Vector3.up * 1.65f;
+        head.localRotation = Quaternion.Euler(0, 180, 0);
+        var teleport = MakeTeleporter(rig.transform, head, SteamVR_Input_Sources.LeftHand);
+        Set(teleport, "maxTeleportDistance", 3f);
+        try
+        {
+            foreach (var tile in tiles)
+            {
+                var bounds = tile.bounds;
+                Vector3 feet = bounds.center;
+                feet.z += 2.8f;
+                Check(Physics.Raycast(feet + Vector3.up * .1f, Vector3.down, out var floor, .3f),
+                    "Restroom floor collider is present at " + tile.transform.parent.name);
+                feet.y = floor.point.y;
+                rig.transform.position = feet;
+                teleport.transform.position = feet + Vector3.up * 1.1f;
+                bool found = false;
+                var arc = teleport.GetComponent<LineRenderer>();
+                for (int pitch = 15; pitch <= 65; pitch += 5)
+                {
+                    teleport.transform.rotation = Quaternion.Euler(pitch, 180, 0);
+                    Physics.SyncTransforms();
+                    Call(teleport, "RenderTeleportArc");
+                    Vector3 end = arc.GetPosition(arc.positionCount - 1);
+                    if (teleport.HasValidTarget && end.z < feet.z - .4f && end.z > bounds.min.z &&
+                        end.x > bounds.min.x && end.x < bounds.max.x)
+                    { found = true; break; }
+                }
+                Check(found, "Teleport arc finds a valid destination inside " + tile.transform.parent.name);
+                var marker = (TeleportDestinationMarker)typeof(VRTeleporter)
+                    .GetField("destinationMarker", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(teleport);
+                Check(marker.transform.position.y > bounds.max.y + .005f,
+                    "Ring and facing arrow sit above the visible tiles in " + tile.transform.parent.name);
+                if (tile == tiles[tiles.Length - 1])
+                {
+                    arc.enabled = false;
+                    CaptureRestroomMarker(head, marker);
+                }
+            }
+            File.WriteAllLines("Logs/restroom-marker-checks.txt", results);
+            Debug.Log("RESTROOM_MARKER_CHECKS_PASS");
+        }
+        catch (Exception exception)
+        {
+            File.WriteAllLines("Logs/restroom-marker-checks.txt", results.Concat(new[] { "FAIL: " + exception }));
+            throw;
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(teleport.gameObject);
+            UnityEngine.Object.DestroyImmediate(rig);
+        }
+        RunDestinationMarkerChecks();
+    }
+
+    private static void CaptureRestroomMarker(Transform head, TeleportDestinationMarker marker)
+    {
+        var cameraObject = new GameObject("QA restroom camera");
+        var camera = cameraObject.AddComponent<Camera>();
+        cameraObject.transform.position = head.position;
+        cameraObject.transform.LookAt(marker.transform.position);
+        var target = new RenderTexture(1200, 800, 24) { antiAliasing = 4 };
+        var pixels = new Texture2D(1200, 800, TextureFormat.RGB24, false);
+        var previous = RenderTexture.active;
+        try
+        {
+            camera.targetTexture = target;
+            camera.Render();
+            RenderTexture.active = target;
+            pixels.ReadPixels(new Rect(0, 0, 1200, 800), 0, 0);
+            pixels.Apply();
+            File.WriteAllBytes("Logs/restroom-marker-preview.png", pixels.EncodeToPNG());
+        }
+        finally
+        {
+            RenderTexture.active = previous;
+            camera.targetTexture = null;
+            UnityEngine.Object.DestroyImmediate(target);
+            UnityEngine.Object.DestroyImmediate(pixels);
+            UnityEngine.Object.DestroyImmediate(cameraObject);
+        }
+    }
+
+    // Focused marker checks can run independently of the existing desk-edge regression.
+    public static void RunDestinationMarkerChecks()
+    {
+        results.Clear();
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        Time.timeScale = 1;
+        ResetOwner();
+        var rig = new GameObject("QA marker player");
+        var head = new GameObject("QA marker head").transform;
+        head.SetParent(rig.transform, false);
+        head.localPosition = Vector3.up * 1.65f;
+        head.localRotation = Quaternion.Euler(0, 65, 0);
+        var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        floor.transform.position = Vector3.down * .05f;
+        floor.transform.localScale = new Vector3(20, .1f, 20);
+        floor.AddComponent<TeleportArea>();
+        var teleport = MakeTeleporter(rig.transform, head, SteamVR_Input_Sources.LeftHand);
+        var arc = teleport.GetComponent<LineRenderer>();
+        Set(teleport, "maxTeleportDistance", 3f);
+        try
+        {
+            Physics.SyncTransforms();
+            teleport.ProcessInput(true);
+            var marker = (TeleportDestinationMarker)typeof(VRTeleporter)
+                .GetField("destinationMarker", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(teleport);
+            var ring = marker.transform.Find("Landing ring").GetComponent<LineRenderer>();
+            var arrow = marker.transform.Find("Facing arrow").GetComponent<LineRenderer>();
+            var cross = marker.transform.Find("Invalid cross A").GetComponent<LineRenderer>();
+            Check(teleport.HasValidTarget && ring.enabled && arrow.enabled && !cross.enabled,
+                "A valid aim shows the destination ring and facing arrow");
+            Check(ring.sharedMaterial != null && ring.sharedMaterial.shader.name == "SystemUI/VRMenuLaser" &&
+                ring.sharedMaterial.GetFloat("_ZTest") == 4 && ring.sharedMaterial.shader.isSupported,
+                "Marker uses a bundled transparent stereo shader with normal depth testing");
+            Check(marker.GetComponentsInChildren<Collider>().Length == 0,
+                "Destination feedback adds no colliders that could intercept the teleport arc");
+            Vector3 end = arc.GetPosition(arc.positionCount - 1);
+            Check(Vector3.Distance(marker.transform.position, end + Vector3.up * .025f) < .001f,
+                "Destination ring matches the validated arc endpoint");
+            Vector3 tip = arrow.transform.TransformPoint(arrow.GetPosition(1)) - marker.transform.position;
+            Check(Vector3.Dot(tip.normalized, Vector3.ProjectOnPlane(head.forward, Vector3.up).normalized) > .999f,
+                "Arrow geometry points in the actual arrival heading");
+            var tick = typeof(TeleportDestinationMarker).GetMethod("Tick", BindingFlags.Instance | BindingFlags.NonPublic);
+            tick.Invoke(marker, new object[] { 0f });
+            float dim = ring.startColor.a;
+            Vector3 centre = marker.transform.position;
+            tick.Invoke(marker, new object[] { .25f });
+            Check(ring.startColor.a > dim + .1f && marker.transform.position == centre,
+                "Ring pulses in brightness while its position stays fixed");
+            Quaternion heading = rig.transform.rotation;
+            teleport.ProcessInput(false);
+            Check(rig.transform.rotation == heading && ring.enabled && marker.transform.position == centre,
+                "Release teleports without rotating the player or moving the world-space arrival marker");
+            tick.Invoke(marker, new object[] { Time.unscaledTime + .3f });
+            Check(!ring.enabled && !arrow.enabled, "Arrival feedback fades out after a quarter second");
+
+            // Reproduce the existing successful floor-edge snap and inspect its visual endpoint.
+            rig.transform.position = Vector3.zero;
+            var obstacle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            obstacle.transform.position = new Vector3(1.5f, .85f, .35f);
+            obstacle.transform.localScale = new Vector3(1, 1.7f, .4f);
+            Physics.SyncTransforms();
+            ResetOwner();
+            teleport.ProcessInput(true);
+            end = arc.GetPosition(arc.positionCount - 1);
+            Check(teleport.HasValidTarget && end.z < -.01f &&
+                Vector3.Distance(marker.transform.position, end + Vector3.up * .025f) < .001f,
+                "An edge snap moves the marker to the corrected clear floor position");
+            Time.timeScale = 0;
+            teleport.ProcessInput(false);
+            Check(!ring.enabled && !arrow.enabled && !cross.enabled, "Pause clears all destination feedback");
+            Time.timeScale = 1;
+            UnityEngine.Object.DestroyImmediate(obstacle);
+
+            floor.GetComponent<TeleportArea>().enabled = false;
+            Physics.SyncTransforms();
+            ResetOwner();
+            teleport.ProcessInput(true);
+            Check(!teleport.HasValidTarget && ring.enabled && !arrow.enabled && cross.enabled &&
+                ring.startColor.r > ring.startColor.b && arc.startColor.r > arc.startColor.b,
+                "Blocked targets show a red crossed ring and a matching red arc");
+            teleport.ProcessInput(false);
+            Check(!ring.enabled && !cross.enabled, "Releasing an invalid aim clears its marker");
+            floor.GetComponent<TeleportArea>().enabled = true;
+            ResetOwner();
+            teleport.ProcessInput(true);
+            Call(teleport, "OnDisable");
+            Check(!ring.enabled && !arrow.enabled, "Disabling a teleporter clears its marker");
+
+            marker.Show(Vector3.zero, Vector3.up, Vector3.forward, true, true);
+            float extent = ring.GetPosition(0).magnitude + ring.startWidth * .5f;
+            Check(extent < .11f, "Compact stair ring fits inside a 28 cm tread");
+            marker.Show(Vector3.zero, Vector3.up, Vector3.forward, true, false);
+            Check(ring.GetPosition(0).magnitude > .2f, "Floor landings use the larger readable ring");
+            Set(teleport, "resolution", 1);
+            teleport.transform.rotation = Quaternion.Euler(-90, 0, 0);
+            Physics.SyncTransforms();
+            Call(teleport, "RenderTeleportArc");
+            Check(!ring.enabled, "Aiming into empty space hides the destination marker");
+            arc.enabled = false;
+            RenderDestinationMarkerPreview(marker, floor.GetComponent<Renderer>());
+            File.WriteAllLines("Logs/destination-marker-checks.txt", results);
+            Debug.Log("DESTINATION_MARKER_CHECKS_PASS");
+        }
+        catch (Exception exception)
+        {
+            File.WriteAllLines("Logs/destination-marker-checks.txt", results.Concat(new[] { "FAIL: " + exception }));
+            throw;
+        }
+        finally
+        {
+            Time.timeScale = 1;
+            UnityEngine.Object.DestroyImmediate(teleport.gameObject);
+            UnityEngine.Object.DestroyImmediate(rig);
+            UnityEngine.Object.DestroyImmediate(floor);
+        }
+    }
+
+    private static void RenderDestinationMarkerPreview(TeleportDestinationMarker marker, Renderer floor)
+    {
+        marker.Show(Vector3.zero, Vector3.up, Vector3.forward, true, false);
+        var invalid = new GameObject("QA invalid preview").AddComponent<TeleportDestinationMarker>();
+        invalid.Show(Vector3.right * .8f, Vector3.up, Vector3.forward, false, false);
+        var compact = new GameObject("QA stair preview").AddComponent<TeleportDestinationMarker>();
+        compact.Show(Vector3.left * .8f, Vector3.up, Vector3.forward, true, true);
+        var cameraObject = new GameObject("QA marker preview camera");
+        var camera = cameraObject.AddComponent<Camera>();
+        cameraObject.transform.position = new Vector3(.25f, 1.35f, -1.7f);
+        cameraObject.transform.LookAt(new Vector3(0, 0, .08f));
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(.025f, .035f, .055f);
+        camera.fieldOfView = 50;
+        var originalMaterial = floor.sharedMaterial;
+        var floorMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+        floorMaterial.SetColor("_BaseColor", new Color(.055f, .07f, .09f));
+        floor.sharedMaterial = floorMaterial;
+        var target = new RenderTexture(1200, 650, 24);
+        target.antiAliasing = 4;
+        var pixels = new Texture2D(1200, 650, TextureFormat.RGB24, false);
+        var previous = RenderTexture.active;
+        try
+        {
+            camera.targetTexture = target;
+            camera.Render();
+            RenderTexture.active = target;
+            pixels.ReadPixels(new Rect(0, 0, 1200, 650), 0, 0);
+            pixels.Apply();
+            File.WriteAllBytes("Logs/destination-marker-preview.png", pixels.EncodeToPNG());
+        }
+        finally
+        {
+            RenderTexture.active = previous;
+            camera.targetTexture = null;
+            floor.sharedMaterial = originalMaterial;
+            UnityEngine.Object.DestroyImmediate(floorMaterial);
+            UnityEngine.Object.DestroyImmediate(target);
+            UnityEngine.Object.DestroyImmediate(pixels);
+            UnityEngine.Object.DestroyImmediate(cameraObject);
+            UnityEngine.Object.DestroyImmediate(invalid.gameObject);
+            UnityEngine.Object.DestroyImmediate(compact.gameObject);
+        }
+    }
+
     private static void RunChecks(bool apply)
     {
         results.Clear();
@@ -69,8 +325,7 @@ public static class CampusTeleportChecks
         var rig=movement.transform; var body=movement.GetComponent<CharacterController>(); body.enabled=false;
         var head=(Transform)new SerializedObject(movement).FindProperty("trackedHead").objectReferenceValue;
         Vector3 offset=head.position-rig.position; offset.y=0;
-        var standing=typeof(VRTeleporter).GetMethod("HasStandingClearance",BindingFlags.Instance|BindingFlags.NonPublic);
-        var path=typeof(VRTeleporter).GetMethod("HasClearTravelPath",BindingFlags.Instance|BindingFlags.NonPublic);
+        var resolve = typeof(VRTeleporter).GetMethod("TryResolveLanding", BindingFlags.Instance | BindingFlags.NonPublic);
         Vector3 previous=new Vector3(24.45f,11.4f,.7f);
         var targets=new List<Vector3>();
         for(int floor=3;floor>=1;floor--)
@@ -87,9 +342,28 @@ public static class CampusTeleportChecks
         {
             rig.position=previous-offset; Physics.SyncTransforms();
             bool marked=Physics.Raycast(target+Vector3.up*.06f,Vector3.down,out var hit,.12f,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore) && hit.collider.GetComponent<TeleportArea>()!=null;
-            Check(marked && teleport.IsWithinRange(target) && (bool)standing.Invoke(teleport,new object[]{target}) && (bool)path.Invoke(teleport,new object[]{target}),"Stair B teleport route "+previous+" -> "+target);
+            Check(marked && (bool)resolve.Invoke(teleport, new object[] { hit, Vector3.zero }),"Stair B teleport route "+previous+" -> "+target);
             previous=target;
         }
+        rig.position = new Vector3(21.55f, 0, .7f) - offset;
+        Physics.SyncTransforms();
+        // Aim into the vertical face of the fourth tread from the floor landing.
+        var tread = Physics.Raycast(new Vector3(21.55f, .69f, 1.80f), Vector3.forward, out var riser, .3f);
+        object[] args = { riser, Vector3.zero };
+        Check(tread && (bool)resolve.Invoke(teleport, args) &&
+            Mathf.Abs(((Vector3)args[1]).y - .76f) < .01f && ((Vector3)args[1]).z > riser.point.z + .05f,
+            "A short multi-step hop snaps a riser hit inside the intended tread");
+
+        // Both points are at similar heights and within range, on opposite sides of the void.
+        rig.position = new Vector3(22.15f, 1.71f, 3.48f) - offset;
+        Physics.SyncTransforms();
+        var across = new Vector3(23.85f, 2.28f, 3.48f);
+        var acrossHit = Physics.Raycast(across + Vector3.up * .06f, Vector3.down, out var otherFlight, .12f);
+        var route = typeof(VRTeleporter).GetMethod("HasConnectedStairPath", BindingFlags.Instance | BindingFlags.NonPublic);
+        Check(acrossHit && teleport.IsWithinRange(across) &&
+            !(bool)route.Invoke(teleport, new object[] { across, otherFlight.collider.GetComponent<TeleportArea>() }) &&
+            !(bool)resolve.Invoke(teleport, new object[] { otherFlight, Vector3.zero }),
+            "A nearby tread across the stairwell cannot bypass the connecting landing");
     }
 
     private static VRTeleporter MakeTeleporter(Transform rig,Transform head,SteamVR_Input_Sources source)
