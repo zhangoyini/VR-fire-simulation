@@ -32,6 +32,18 @@ public static class CampusControllerInput
         if(device.isValid && device.TryGetFeatureValue(CommonUsages.primary2DAxis,out Vector2 axis)) return axis;
         return SteamVR.active?SteamVR_Input.GetVector2Action("Walk").GetAxis(SteamVR_Input_Sources.LeftHand):Vector2.zero;
     }
+    public static bool TutorialButton(bool secondary)
+    {
+        if(SteamVR.active)
+        {
+            var action=SteamVR_Input.GetBooleanAction(secondary?"TutorialTask":"TutorialMap");
+            if(action!=null && action.GetActive(SteamVR_Input_Sources.LeftHand))
+                return action.GetState(SteamVR_Input_Sources.LeftHand);
+        }
+        var device=InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        var usage=secondary?CommonUsages.secondaryButton:CommonUsages.primaryButton;
+        return device.isValid && device.TryGetFeatureValue(usage,out bool pressed) && pressed;
+    }
     public static bool Pause()
     {
         var device=InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);

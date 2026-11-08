@@ -24,19 +24,21 @@ public sealed class CampusLessonDirector : MonoBehaviour
     [SerializeField] private CampusLessonRoute route;
     [SerializeField] private CampusDestinationHighlight destination;
     public const float AnnouncementSeconds=22;
-    public float ControlsDisplaySeconds => page==0?30:40;
     [SerializeField] private Transform storyBook, storyLeftHand, storyRightHand, bookRest, storyPage, storyStandingPoint;
     [SerializeField] private Renderer[] trackedHandRenderers;
     [SerializeField] private UnityEngine.UI.Image fade;
     [SerializeField] private CampusPracticeBook[] practiceBooks;
     [SerializeField] private RuntimeFireWindow[] practiceWindows;
+    [SerializeField] private Transform classroomBoard;
+    [SerializeField] private GameObject classroomBoardSign;
     private ResolutionCoordinator resolution;
     private CampusLessonLayout layout;
+    private CampusClassroomTutorial tutorial;
     private float age, coverage, nextConfirm;
     private int page;
     private Vector3 standingRig, bookStart, bookEnd;
     private Quaternion bookRotation;
-    private bool seated, fireStarted, finishing, bypassed, loggingReady, announcement, storyPrepared, practiceCompact;
+    private bool seated, fireStarted, finishing, bypassed, loggingReady, announcement, storyPrepared;
     private Vector3 cinematicPosition;
     private Quaternion cinematicRotation;
     private float confirmHeld;
@@ -53,13 +55,34 @@ public sealed class CampusLessonDirector : MonoBehaviour
     public bool ExerciseStarted => bypassed || CurrentPhase>=Phase.OpenDoor;
     public bool TaskAnnouncement => announcement;
     public bool GuidedTowelTask => !bypassed && CurrentPhase>=Phase.FindTowel && CurrentPhase<=Phase.Descend;
-    public bool MovementLocked => !bypassed && (CurrentPhase>=Phase.Classroom && CurrentPhase<=Phase.Rising || CurrentPhase==Phase.SmokeLesson);
-    public bool WorldInteractionLocked => MovementLocked;
+    private bool CinematicLocked => CurrentPhase>=Phase.Classroom && CurrentPhase<=Phase.Rising || CurrentPhase==Phase.SmokeLesson;
+    public bool MovementLocked => !bypassed && (CinematicLocked || CurrentPhase==Phase.Controls && (tutorial==null || !tutorial.AllowsTeleport));
+    public bool WorldInteractionLocked => !bypassed && (CinematicLocked || IsPractice);
+    public bool AllowsHandTarget(MonoBehaviour target) =>
+        target is VRMenuButton || !WorldInteractionLocked || (CurrentPhase==Phase.Controls && tutorial!=null &&
+            (tutorial.AllowsTarget(target) || (tutorial.FreeClassroomPractice && IsClassroomPracticeTarget(target))));
+    private bool IsClassroomPracticeTarget(MonoBehaviour target)
+    {
+        // The doorway remains part of the exercise handoff, outside free classroom practice.
+        if(target==null || target==classroomDoor) return false;
+        if(classroomBoard!=null && target.transform.IsChildOf(classroomBoard.parent)) return true;
+        if(target is CampusPracticeBook book) return System.Array.IndexOf(practiceBooks,book)>=0;
+        if(!(target is CampusHingeInteractable)) return false;
+        // Runtime window hinges are scene-root objects, separate from the classroom hierarchy.
+        foreach(var window in practiceWindows)
+            if(window!=null && window.HighlightTarget!=null && window.HighlightTarget.IsChildOf(target.transform))
+                return true;
+        return false;
+    }
+    public bool ShowsTutorialContactMarker(MonoBehaviour target) => tutorial!=null && tutorial.ShowsContactMarker(target);
+    public bool AllowsTutorialContact(MonoBehaviour target,Vector3 handPoint) => tutorial==null || tutorial.CanStartContact(target,handPoint);
+    public bool AllowsTeleportLanding(Vector3 point) => !IsPractice || CampusClassroomTutorial.InRoom(point);
+    public void RecordTutorialTeleport(Vector3 point) { if(CurrentPhase==Phase.Controls) tutorial?.RecordTeleport(point); }
     public bool DamageSuppressed => !bypassed && (CurrentPhase<=Phase.Rising || CurrentPhase==Phase.SmokeLesson || announcement);
     public bool SmokeFrozen => !bypassed && (!fireStarted || CurrentPhase==Phase.SmokeLesson || announcement);
-    public float MinimumReadingSeconds => CurrentPhase==Phase.SmokeLesson?20:CurrentPhase==Phase.Controls?12:CurrentPhase==Phase.Rise?12:announcement?AnnouncementSeconds:8;
+    public float MinimumReadingSeconds => CurrentPhase==Phase.SmokeLesson?20:CurrentPhase==Phase.Rise?12:announcement?AnnouncementSeconds:8;
     public bool CanConfirm => !bypassed && !finishing && Time.timeScale>0 && age>=MinimumReadingSeconds &&
-        (IsPractice || CurrentPhase==Phase.Rise || CurrentPhase==Phase.SmokeLesson);
+        (CurrentPhase==Phase.Ready || CurrentPhase==Phase.Rise || CurrentPhase==Phase.SmokeLesson);
     private void Awake()
     {
         Instance=this; resolution=FindObjectOfType<ResolutionCoordinator>(); layout=GetComponent<CampusLessonLayout>();
@@ -71,34 +94,71 @@ public sealed class CampusLessonDirector : MonoBehaviour
     {
         // Do not lazy-create SessionLogger before the team's health host has Awoken.
         loggingReady=true; SessionLogger.Write("LESSON_CONTROLS");
+        if(CurrentPhase!=Phase.Controls) return;
+        RuntimeFireWindow practiceWindow=null;
+        float closest=float.PositiveInfinity;
+        foreach(var window in practiceWindows)
+        {
+            if(window==null || !window.UsesPhysicalHands || window.HighlightTarget==null) continue;
+            float distance=Mathf.Abs(window.HighlightTarget.position.x-CampusClassroomTutorial.FirstSpot.x);
+            if(distance>=closest) continue;
+            closest=distance; practiceWindow=window;
+        }
+        if(practiceWindow==null || practiceBooks.Length<2 || practiceBooks[1]==null || minimap==null)
+        {
+            Debug.LogError("Classroom 401 tutorial requires a physical window, the practice books and the live minimap.",this);
+            ChangePhase(Phase.Ready);
+            return;
+        }
+        classroomDoor.SetAngle(0);
+        Physics.SyncTransforms();
+        tutorial=new CampusClassroomTutorial(trackedHead,locomotion.transform,practiceWindow.HighlightTarget,practiceBooks[1],
+            new CampusTutorialView(transform,trackedHead,classroomBoard,classroomBoardSign,explanation.font,minimap));
     }
     private void Update()
     {
         if(bypassed || ManualTickForChecks) return;
         if(resolution!=null && resolution.CurrentOutcome!=ResolutionCoordinator.Outcome.None)
-        { if(!finishing) { finishing=true; locomotion.SetScriptedLock(false); SetHandsVisible(true); SetStoryHands(false); lessonPanel.SetActive(false); minimap.SetActive(false); route.Hide(); SetFade(0); } return; }
-        if(Time.timeScale==0) { lessonPanel.SetActive(false); minimap.SetActive(false); SetFade(0); if(alarm!=null && fireStarted) alarm.Pause(); return; }
+        { if(!finishing) { finishing=true; ClearTutorial(); locomotion.SetScriptedLock(false); SetHandsVisible(true); SetStoryHands(false); lessonPanel.SetActive(false); minimap.SetActive(false); route.Hide(); SetFade(0); } return; }
+        if(Time.timeScale==0) { tutorial?.Pause(CampusControllerInput.TutorialButton(false),CampusControllerInput.TutorialButton(true)); lessonPanel.SetActive(false); minimap.SetActive(false); SetFade(0); if(alarm!=null && fireStarted) alarm.Pause(); return; }
         if(alarm!=null && fireStarted && !alarm.isPlaying) alarm.UnPause();
         Tick(Time.deltaTime);
         SubmitConfirmInput(CampusControllerInput.Confirm(),Time.deltaTime);
         // No trigger or contact button can start/advance this chapter.
 #if UNITY_EDITOR
-        if(!Valve.VR.SteamVR.active && Input.GetKeyDown(KeyCode.Return)) Confirm();
-        if(!Valve.VR.SteamVR.active && Input.GetKeyDown(KeyCode.Backspace)) SkipControls();
+        if(!CampusControllerInput.HardwarePresent && Input.GetKeyDown(KeyCode.Return)) Confirm();
+        if(!CampusControllerInput.HardwarePresent && Input.GetKeyDown(KeyCode.Backspace)) SkipControls();
 #endif
     }
-    public void Tick(float dt)
+    public void Tick(float dt) => Tick(dt,
+        CurrentPhase==Phase.Controls && CampusControllerInput.TutorialButton(false),
+        CurrentPhase==Phase.Controls && CampusControllerInput.TutorialButton(true));
+    internal void Tick(float dt,bool x,bool y)
     {
         if(bypassed || Time.timeScale==0 || dt<=0 || finishing) return;
-        age+=dt; UpdatePresentationVisibility();
+        age+=dt;
+        if(CurrentPhase==Phase.Controls)
+        {
+            if(tutorial==null) return;
+            bool windowDemo=tutorial.ShowingWindowDemo;
+            if(tutorial.Tick(dt,x,y))
+            { BeginStory(); return; }
+            if(!windowDemo && tutorial.ShowingWindowDemo)
+            {
+                SetText("开窗演示","抓住窗扇远离转轴的一端，沿弧线向外推。","");
+                layout.Arrange(true);
+                demonstration.ShowWindowDemo();
+            }
+            UpdatePresentationVisibility();
+            if(tutorial.ShowingWindowDemo)
+            { layout.SetReadingProgress(0); demonstration.Tick(windowDemo?dt:0); layout.Tick(windowDemo?dt:0); }
+            return;
+        }
+        UpdatePresentationVisibility();
         if(announcement && age>=AnnouncementSeconds) FoldAnnouncement();
-        if(CurrentPhase==Phase.Controls && age>=ControlsDisplaySeconds)
-        { if(++page>=3) ChangePhase(Phase.Ready); else { age=0; practiceCompact=false; Present(); } }
         if(CurrentPhase==Phase.SmokeLesson && age>=(page==0?24:32))
         { if(++page>=2) ChangePhase(Phase.FindTowel); else { age=0; Present(); } }
         if(fireStarted && CurrentPhase>=Phase.OpenDoor && CurrentPhase<Phase.Complete) UpdateDoorwaySmoke();
-        if(CurrentPhase==Phase.Ready && age>=10 && !practiceCompact)
-        { practiceCompact=true; SetPracticeSummary(); layout.Arrange(false); }
         if(CurrentPhase==Phase.Classroom) TickStory();
         else if(CurrentPhase==Phase.Alarm)
         {
@@ -133,7 +193,6 @@ public sealed class CampusLessonDirector : MonoBehaviour
             explanation.text=covered?"沿楼梯下到三楼 / Stairs to 3F":"毛巾放回口鼻前 / Cover your face again";
             if(floor==3 && covered) { coverage+=dt; if(coverage>=1.5f) ChangePhase(Phase.Complete); } else coverage=0;
         }
-        if(IsPractice && practiceCompact) SetPracticeSummary();
         if(CurrentPhase==Phase.FindTowel && !announcement) explanation.text="前往 411 拿干毛巾\n411 · Pick up dry towel";
         layout?.SetReadingProgress(age/MinimumReadingSeconds);
         demonstration?.Tick(dt); route?.Tick(trackedHead); layout?.Tick(dt);
@@ -142,9 +201,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
     {
         if(!CanConfirm || Time.unscaledTime<nextConfirm) return;
         nextConfirm=Time.unscaledTime+.35f;
-        if(CurrentPhase==Phase.Controls)
-        { if(++page>=3) ChangePhase(Phase.Ready); else { age=0; practiceCompact=false; Present(); } }
-        else if(CurrentPhase==Phase.Ready) BeginStory();
+        if(CurrentPhase==Phase.Ready) BeginStory();
         else if(CurrentPhase==Phase.Rise) ChangePhase(Phase.Rising);
         else if(CurrentPhase==Phase.SmokeLesson)
         { if(++page>=2) ChangePhase(Phase.FindTowel); else { age=0; Present(); } }
@@ -161,9 +218,16 @@ public sealed class CampusLessonDirector : MonoBehaviour
     }
     private void FoldAnnouncement()
     { announcement=false; SetCompactTask(); layout.Arrange(false); ShowRoute(); UpdatePresentationVisibility(); }
-    public void SkipControls() { if(CurrentPhase==Phase.Controls) ChangePhase(Phase.Ready); }
+    public void SkipControls()
+    {
+        if(CurrentPhase!=Phase.Controls) return;
+        ClearTutorial();
+        ChangePhase(Phase.Ready);
+    }
+    private void ClearTutorial() { tutorial?.Dispose(); tutorial=null; }
     private void BeginStory()
     {
+        ClearTutorial();
         foreach(var hand in FindObjectsOfType<CampusHandInteractor>(true)) hand.Release();
         foreach(var book in practiceBooks) if(book!=null) book.ResetBook();
         standingRig=storyStandingPoint!=null?storyStandingPoint.position:locomotion.transform.position;
@@ -207,7 +271,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
     { bool enabled=locomotion.Body.enabled; locomotion.Body.enabled=false; locomotion.transform.position=p; cinematicPosition=p; locomotion.Body.enabled=enabled; Physics.SyncTransforms(); }
     private void LateUpdate()
     {
-        if(!MovementLocked || bypassed || finishing) return;
+        if(!CinematicLocked || bypassed || finishing) return;
         // Exclusive cinematic body pose prevents other movement writers and gravity drift.
         locomotion.transform.SetPositionAndRotation(cinematicPosition,cinematicRotation);
     }
@@ -252,15 +316,15 @@ public sealed class CampusLessonDirector : MonoBehaviour
     }
     private void ChangePhase(Phase phase)
     {
-        CurrentPhase=phase; age=coverage=0; practiceCompact=false;
+        CurrentPhase=phase; age=coverage=0;
         announcement=phase==Phase.OpenDoor || phase==Phase.FindTowel || phase==Phase.WetTowel;
         if(phase==Phase.Alarm) { page=0; StartFire(); }
         if(phase==Phase.OpenDoor)
             foreach(var endpoint in FindObjectsOfType<SafeZoneEndpoint>()) endpoint.ResetZone();
-        if(MovementLocked && phase!=Phase.Classroom)
+        if(CinematicLocked && phase!=Phase.Classroom)
         { cinematicPosition=locomotion.transform.position; cinematicRotation=locomotion.transform.rotation; }
-        locomotion.SetScriptedLock(MovementLocked);
-        if(WorldInteractionLocked && phase!=Phase.WetTowel)
+        locomotion.SetScriptedLock(CinematicLocked);
+        if(CinematicLocked)
             foreach(var hand in FindObjectsOfType<CampusHandInteractor>(true)) hand.Release();
         destination?.SetHighlighted(phase==Phase.FindTowel || phase==Phase.WetTowel);
         Present(); if(announcement) ShowRoute();
@@ -268,15 +332,6 @@ public sealed class CampusLessonDirector : MonoBehaviour
     }
     private void SetText(string heading,string text,string hint)
     { title.text=heading; explanation.text=text; footer.text=hint; }
-    private void SetPracticeSummary()
-    {
-        bool picked=false, opened=false;
-        foreach(var book in practiceBooks) picked|=book!=null && book.Practised;
-        foreach(var window in practiceWindows) opened|=window!=null && window.IsOpen;
-        title.text="自由练习 / Free practice";
-        explanation.text=(picked?"✓":"○")+" 拿书 / Book   "+(opened?"✓":"○")+" 推窗 / Window";
-        if(CurrentPhase==Phase.Ready) explanation.text="长按A键开始\nPress and hold A to start";
-    }
     private void SetCompactTask()
     {
         if(CurrentPhase==Phase.OpenDoor) SetText("观察门外 / Doorway","靠近并推开教室门 / Push classroom door","");
@@ -298,13 +353,8 @@ public sealed class CampusLessonDirector : MonoBehaviour
     private void Present()
     {
         UpdatePresentationVisibility(); demonstration?.Show(CurrentPhase,page); route.Hide();
-        if(CurrentPhase==Phase.Controls)
-        {
-            string[] h={"头显与安全 / Headset & safety","双手传送 / Either-hand teleport","双手交互 / Two-hand interaction"};
-            string[] t={"自然转头观察；检查佩戴和活动空间。当前可自由探索，无火灾。\nLook around naturally. Check your fit and clear space. You may explore safely now.","任一摇杆向前推并保持，用对应手柄瞄准绿色落点；摇杆回中后传送，单次最多 3 米。左摇杆按下暂停。暂停或结束菜单出现后，任一手柄射线瞄准按钮变绿，按对应扳机点击。\nHold either stick forward to aim at green ground. Re-centre to teleport up to 3 m. Click the left stick to pause. In pause/results menus, aim either ray until green and press that trigger.","扳机握持、推动，松开可投掷。\nHold the trigger to grab and push; release to throw."};
-            SetText(h[page],t[page],"教学页播完按A键进入下一页。\nPress A to advance to the next page after the teaching page.");
-        }
-        else if(CurrentPhase==Phase.Ready) SetText("自由练习 / Free practice","可继续移动、拿书和推窗。开始后观看系统动画，移动与物体操作暂时锁定。无需实际坐下。\nKeep practising. The opening locks locomotion and object input. Do not physically sit.","按住右手柄 A 键 0.75 秒开始；不使用扳机。\nHold right A for 0.75 s to begin. Triggers only interact.");
+        if(CurrentPhase==Phase.Controls) return;
+        if(CurrentPhase==Phase.Ready) SetText("准备开始 / Ready","开始后将播放开场动画。无需实际坐下。\nThe opening will play. Do not physically sit.","长按右手柄 A 键开始。\nHold right A to begin.");
         else if(CurrentPhase==Phase.Classroom) SetText("系统动画中 / Opening cinematic","就位、翻书、放书、虚拟坐下\nSettle in, read, put book down, sit virtually","");
         else if(CurrentPhase==Phase.Alarm) SetText("系统动画 · 火灾警报 / Opening · Alarm","注意警报，保持冷静 / Notice alarm; stay calm","");
         else if(CurrentPhase==Phase.Rise) SetText("准备起身 / Prepare to stand","警报与异常焦糊气味提示可能发生火灾。准备观察教室出口。\nThe alarm and burning smell suggest a fire. Prepare to observe the classroom exit.","阅读后按右手柄 A 键虚拟起身。无需实际站起。\nRead, then press right A to stand virtually.");
@@ -327,18 +377,21 @@ public sealed class CampusLessonDirector : MonoBehaviour
     private void UpdatePresentationVisibility()
     {
         bool message=CampusMessagePresenter.Instance!=null && CampusMessagePresenter.Instance.IsVisible;
-        lessonPanel.SetActive(CurrentPhase!=Phase.Complete && (!message || WorldInteractionLocked));
+        lessonPanel.SetActive(CurrentPhase==Phase.Controls ? tutorial!=null && tutorial.ShowingWindowDemo :
+            CurrentPhase!=Phase.Complete && (!message || WorldInteractionLocked));
         if(gameplayHUD!=null) gameplayHUD.SetActive(CurrentPhase>=Phase.OpenDoor);
-        if(minimap!=null) minimap.SetActive(!WorldInteractionLocked && !announcement);
+        if(minimap!=null) minimap.SetActive(CurrentPhase>=Phase.OpenDoor && !WorldInteractionLocked && !announcement);
     }
     public void BypassForChecks()
     {
+        ClearTutorial();
         bypassed=true; locomotion.SetScriptedLock(false); SetHandsVisible(true); SetStoryHands(false); SetFade(0); lessonPanel.SetActive(false); route.Hide();
         if(seated) { MoveRig(standingRig); seated=false; }
         fireOrigin.SetActive(true); doorwayPlume.SetActive(false); doorwayExposure.enabled=false; destination?.SetHighlighted(false); CurrentPhase=Phase.Complete;
     }
     private void OnDisable()
     {
+        ClearTutorial();
         if(Instance==this) Instance=null; destination?.SetHighlighted(false); SetHandsVisible(true); SetStoryHands(false); if(route!=null) route.Hide(); SetFade(0);
         if(locomotion!=null) locomotion.SetScriptedLock(false);
         if(lessonPanel!=null) lessonPanel.SetActive(false);

@@ -39,6 +39,8 @@ public static partial class CampusSceneBuilder
         var root=new GameObject("07 Guided Classroom Lesson"); var lesson=root.AddComponent<CampusLessonDirector>();
         Set(lesson,"trackedHead",head); Set(lesson,"locomotion",movement);
         var classroom=UnityEngine.Object.FindObjectsOfType<Transform>(true).Single(t=>t.name=="401 教室");
+        Set(lesson,"classroomBoard",classroom.Find("Teaching board"));
+        Set(lesson,"classroomBoardSign",classroom.Find("Sign LEARN · CREATE · COLLABORATE")?.gameObject);
         var classroomDoor=classroom.GetComponentInChildren<CampusHingeInteractable>(true); Set(lesson,"classroomDoor",classroomDoor);
         SetArray(lesson,"practiceWindows",UnityEngine.Object.FindObjectsOfType<RuntimeFireWindow>(true).Where(w=>
         { var p=w.GetComponent<Renderer>().bounds.center; return p.x>-20 && p.x<-10 && p.z>9 && p.y>11.4f && p.y<15; }).Cast<UnityEngine.Object>().ToArray());
@@ -80,8 +82,8 @@ public static partial class CampusSceneBuilder
             arrow.gameObject.SetActive(false);
         }
         SetArray(route,"arrows",arrows.Cast<UnityEngine.Object>().ToArray()); Set(lesson,"route",route);
-        // Restore the known 401 starting position only; never rotate a tracked head.
-        movement.transform.SetPositionAndRotation(new Vector3(-12.2f,11.4f,5.2f),Quaternion.Euler(0,180,0));
+        // Start in the clear aisle; the cinematic keeps its separate desk-facing pose.
+        movement.transform.SetPositionAndRotation(new Vector3(-11.82f,11.4f,5.4f),Quaternion.identity);
         var presentation=(GameObject)new SerializedObject(lesson).FindProperty("lessonPanel").objectReferenceValue;
         presentation.transform.SetPositionAndRotation(head.TransformPoint(new Vector3(0,-.10f,1.6f)),head.rotation);
     }
@@ -172,9 +174,9 @@ public static partial class CampusSceneBuilder
         var bodyText=UItext("Lesson explanation",canvasRoot.transform,new Vector2(710,142),24); bodyText.rectTransform.anchoredPosition=new Vector2(0,100);
         var hint=UItext("Lesson hint",canvasRoot.transform,new Vector2(710,72),19); hint.rectTransform.anchoredPosition=new Vector2(0,-202);
         foreach(var text in new[]{heading,bodyText,hint}) { text.enableWordWrapping=true; text.enableAutoSizing=true; text.fontSizeMin=16; text.fontSizeMax=text.fontSize; }
-        heading.text="头显与安全 / Headset & safety";
-        bodyText.text="自然转头观察；调整佩戴并确认周围空间安全。不适时暂停。\nLook around naturally. Check your fit and clear space; pause if uncomfortable.";
-        hint.text="可自由移动与练习；教学自动继续，A 可跳过。\nExplore freely. Teaching advances automatically; A skips.";
+        heading.text="操作教学";
+        bodyText.text="看看四周，熟悉一下教室。";
+        hint.text="";
         Set(lesson,"title",heading); Set(lesson,"explanation",bodyText); Set(lesson,"footer",hint);
         canvasRoot.AddComponent<CampusUIForeground>().Configure(AssetDatabase.LoadAssetAtPath<Shader>("Assets/Scripts/Campus/Shaders/CampusForegroundUI.shader"),AssetDatabase.LoadAssetAtPath<Shader>("Assets/TextMesh Pro/Shaders/TMP_SDF Overlay.shader"));
         var demo=new GameObject("Animated 3D instruction models"); demo.transform.SetParent(panel.transform,false); demo.transform.localPosition=new Vector3(0,-.17f,-.04f);

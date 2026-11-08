@@ -41,6 +41,9 @@ namespace Valve.VR
             }
         }
         
+        public virtual SteamVR_Action_Boolean TutorialMap => SteamVR_Actions.default_TutorialMap;
+        public virtual SteamVR_Action_Boolean TutorialTask => SteamVR_Actions.default_TutorialTask;
+
         public virtual SteamVR_Action_Boolean Pause
         {
             get

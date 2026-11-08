@@ -234,12 +234,16 @@ public class VRTeleporter : MonoBehaviour
         var body=playerRoot.GetComponent<CharacterController>();
         bool restoreBody=body!=null && body.enabled;
         if(restoreBody) body.enabled=false;
+        if(useCampusInput)
+            foreach(var hand in playerRoot.GetComponentsInChildren<CampusHandInteractor>())
+                hand.ReleaseWindowGrip();
         playerRoot.position=destination;
         if(trackedHands!=null) foreach(var hand in trackedHands)
             if(hand!=null && hand.TrackingSpace==playerRoot) hand.FollowRigTranslation(delta);
         if(moveChair) rescueStudent.FollowTeleport(chairPosition,chairRotation);
         if(restoreBody) body.enabled=true;
         Physics.SyncTransforms();
+        if(useCampusInput) CampusLessonDirector.Instance?.RecordTutorialTeleport(teleportTarget);
     }
 
     public bool IsWithinRange(Vector3 point)
@@ -249,7 +253,6 @@ public class VRTeleporter : MonoBehaviour
         return (maxTeleportDistance<=0 || Vector3.Distance(feet,point)<=maxTeleportDistance+.0001f) &&
             (maxHeightChange<=0 || Mathf.Abs(point.y-playerRoot.position.y)<=maxHeightChange);
     }
-
     private bool IsPlayerCollider(Collider candidate)
     {
         Transform t=candidate.transform;
@@ -289,7 +292,7 @@ public class VRTeleporter : MonoBehaviour
         Vector3 requested=originalHit.point;
         landing=requested;
         bool floor=IsWalkableHit(originalHit);
-        if(floor && IsWithinRange(requested) && HasStandingClearance(requested) && HasClearTravelPath(requested) &&
+        if(floor && LessonAllowsLanding(requested) && IsWithinRange(requested) && HasStandingClearance(requested) && HasClearTravelPath(requested) &&
             CanPlaceFollowingChair(requested)) return true;
         if(!useCampusInput || originalHit.normal.y<.65f) return false;
         // Small edge tolerance: show the corrected endpoint, and validate every
@@ -300,12 +303,15 @@ public class VRTeleporter : MonoBehaviour
             Vector3 offset=new Vector3(Mathf.Cos(angle),0,Mathf.Sin(angle))*(ring*.15f);
             // A ray grazing a desk's top edge may still have clear floor beside it.
             if(!TryGetFirstBlockingHit(requested+offset+Vector3.up*.08f,Vector3.down,floor?.16f:1.1f,out var hit) ||
-                !IsWalkableHit(hit) || !IsWithinRange(hit.point) || !HasStandingClearance(hit.point) ||
+                !IsWalkableHit(hit) || !LessonAllowsLanding(hit.point) || !IsWithinRange(hit.point) || !HasStandingClearance(hit.point) ||
                 !HasClearTravelPath(hit.point) || !CanPlaceFollowingChair(hit.point)) continue;
             landing=hit.point; return true;
         }
         return false;
     }
+
+    private bool LessonAllowsLanding(Vector3 point) =>
+        !useCampusInput || CampusLessonDirector.Instance==null || CampusLessonDirector.Instance.AllowsTeleportLanding(point);
 
     private bool CanPlaceFollowingChair(Vector3 playerFeet)
     {

@@ -8,6 +8,7 @@ using System.Reflection;
 using Jiao.HealthTime;
 using UnityEditor;
 using UnityEngine;
+using Step = CampusClassroomTutorial.Step;
 
 public sealed class CampusLessonDriver : MonoBehaviour
 {
@@ -53,14 +54,15 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Check(health.HealthPercent==1,"Teaching protects health from passive drain and direct damage");
         Check(lesson==CampusLessonDirector.Instance && lesson.CurrentPhase==CampusLessonDirector.Phase.Controls,"Entry begins with the scene-local controls demonstration");
         Check(!Field<GameObject>(lesson,"fireOrigin").activeSelf && !Field<AudioSource>(lesson,"alarm").isPlaying && spread.RoomAge==0,"Practice has no fire, alarm or advancing smoke");
-        Check(lesson.IsPractice && !lesson.MovementLocked && !lesson.WorldInteractionLocked && lesson.DamageSuppressed,"Initial teaching allows free movement and world interaction without damage");
+        Check(lesson.IsPractice && lesson.MovementLocked && lesson.WorldInteractionLocked && lesson.DamageSuppressed,"Observation starts safely with teleport and world interaction gated");
         var resolution=FindObjectOfType<ResolutionCoordinator>();
         Check(!resolution.TryShowVictory() && resolution.CurrentOutcome==ResolutionCoordinator.Outcome.None,"Safe endpoints cannot finish the game during free practice");
         var height=movement.GetComponent<CampusTrackingHeight>(); var space=Field<Transform>(height,"trackingSpace");
         Check(head.parent==space && hands.All(h=>h.transform.parent==space && Field<GameObject>(h.GetComponent<DummyController>(),"controller").GetComponent<Valve.VR.SteamVR_Behaviour_Pose>().origin==space),"Head, controller poses and visible interaction proxies use one calibrated origin");
 
         Check(Valve.VR.SteamVR_Input.GetBooleanAction("LessonConfirm")!=null,"A has its own generated SteamVR action, distinct from grabbing");
-        var anchors=GameObject.Find("05 Player & Shared Systems").GetComponentsInChildren<WorldSpaceUIAnchor>(true);
+        var anchors=GameObject.Find("05 Player & Shared Systems").GetComponentsInChildren<WorldSpaceUIAnchor>(true)
+            .Where(anchor=>anchor.enabled).ToArray();
         Check(anchors.All(a=>Mathf.Abs(Field<Vector3>(a,"headLocalOffset").x)<.01f && Field<bool>(a,"followHead")),"All personal HUD/menu anchors are horizontally centred and follow the eyes");
         var map=Field<GameObject>(lesson,"minimap").GetComponent<WorldSpaceUIAnchor>();
         Check(Field<Vector3>(map,"headLocalOffset").z==1.6f && Field<Vector3>(map,"headLocalOffset").y>-.4f,"The map moves from the extreme lower-left into the forward comfort cone");
@@ -94,52 +96,242 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Check(Vector3.ProjectOnPlane(movement.transform.position-rigPosition,Vector3.up).magnitude<.001f && head.localRotation==headRotation && FindObjectsOfType<VRTeleporter>().Length==2,"Entry uses either-hand teleport; joystick input does not slide or turn the view");
         MoveRig(movement,rigPosition);
         exposure.Tick(true,20); Check(health.HealthPercent==1,"Practice reading and exploration cannot cause smoke damage");
-        lesson.Confirm(); Check(lesson.Page==0,"A fresh page cannot be skipped before its reading gate");
-        lesson.Tick(.3f);
-        Check(layout.IsAnimating && Field<CanvasGroup>(layout,"textGroup").alpha>0 && Field<CanvasGroup>(layout,"textGroup").alpha<1,"The UI unfolds and fades in rather than instantly appearing");
-        Capture("Lesson_13_Unfold",head); lesson.Tick(1); Capture("Lesson_01_Headset",head);
-        Check(lesson.ControlsDisplaySeconds==30 && lesson.MinimumReadingSeconds==12,"Headset demonstration allows thirty seconds with a deliberate reading gate");
-        lesson.Tick(8); Check(lesson.Page==0,"Headset is not automatically replaced after the old twelve-second interval");
-        var books=FindObjectsOfType<CampusPracticeBook>(); var practiceWindows=Field<RuntimeFireWindow[]>(lesson,"practiceWindows");
-        Check(books.Length==2 && practiceWindows.Length>=2,"Initial classroom has two grabbable books and rear opening windows");
-        var owner=hands[0]; var free=hands[1];
-        owner.transform.position=books[0].transform.position; var pulses=new List<float>(); Action<float> recorder=a=>pulses.Add(a); owner.HapticRequested+=recorder;
-        owner.RefreshContact(); owner.ProcessGrip(true,true,false);
-        Check(books[0].IsHeld && !books[0].GetComponent<Rigidbody>().useGravity,"Either hand can directly pick up a practice book");
-        Check(!free.Begin(books[0]),"A second hand cannot steal an already held book");
-        owner.transform.position+=Vector3.up*.25f; owner.ProcessGrip(false,true,false);
-        Check(lesson.Page==0 && books[0].Practised,"A world trigger action practises grabbing without advancing the lesson");
-        owner.ProcessGrip(false,false,true); owner.HapticRequested-=recorder;
-        Check(!books[0].IsHeld && books[0].GetComponent<Rigidbody>().useGravity && pulses.SequenceEqual(new[]{.3f,.22f}),"Practice book release drops it and requests matching grab/drop vibrations");
-        var window=practiceWindows[0].HighlightTarget.GetComponentInParent<CampusHingeInteractable>();
-        window.SetAngle(45); window.OnInteractStart(owner.transform); window.OnInteractEnd(owner.transform);
-        Check(window.Angle==45 && !CampusMessagePresenter.Instance.IsVisible,"Rear windows open during practice without a premature fire warning");
-        window.SetAngle(0);
+        var tutorial=Field<CampusClassroomTutorial>(lesson,"tutorial");
+        var tutorialView=Field<CampusTutorialView>(tutorial,"view");
+        var prompt=Field<CanvasGroup>(tutorialView,"promptGroup");
+        var owner=hands[0];
+        var handVisual=owner.GetComponent<CampusHandVisual>();
+        var boardSign=Field<GameObject>(lesson,"classroomBoardSign");
+        var board=Field<Transform>(tutorialView,"world").Find("Quest 3 diagrams on classroom board");
+        Check(!boardSign.activeSelf && board.GetComponentsInChildren<TMPro.TMP_Text>().Select(t=>t.text)
+            .OrderBy(t=>t).SequenceEqual(new[]{"A","B","X","Y"}),"The board shows only the two diagrams and their button labels during training");
+        lesson.Confirm();
+        lesson.Tick(2.2f);
+        Check(tutorial.CurrentStep==Step.LookAround && !owner.Begin(lesson.ClassroomDoor),"A cannot skip observation and the classroom door remains closed");
+        lesson.Tick(7.2f);
+        Check(tutorial.CurrentStep==Step.LookAround && prompt.alpha>.75f,
+            "The observation reminder stays readable after seven seconds if the player has not looked around");
+        head.Rotate(Vector3.up,50f,Space.World);
+        lesson.Tick(.1f);
+        Check(tutorial.CurrentStep==Step.LookDown,"Turning the head advances observation");
+        head.localRotation=Quaternion.Euler(35,0,0);
+        var tracking=typeof(CampusTrackedHandPose).GetProperty(nameof(CampusTrackedHandPose.PhysicalTrackingValid));
+        for(int i=0;i<hands.Length;i++)
+        {
+            tracking.SetValue(hands[i].GetComponent<CampusTrackedHandPose>(),true);
+            hands[i].transform.position=head.TransformPoint(new Vector3(i==0?-.18f:.18f,-.12f,.45f));
+        }
+        lesson.Tick(.4f);
+        Check(tutorial.CurrentStep==Step.LookDown,"Looking down keeps its full seven-second prompt");
+        head.localRotation=headRotation;
+        lesson.Tick(6.7f);
+        Check(tutorial.CurrentStep==Step.MoveHands,"Looking at both hands is remembered when the player looks up again");
+        foreach(var hand in hands) hand.transform.position+=Vector3.up*.16f;
+        lesson.Tick(.1f);
+        Check(tutorial.CurrentStep==Step.MoveHands,"Raising both hands leaves time to practise squeezing the triggers");
+        owner.ProcessGrip(true,true,false);
+        Check(Field<bool>(handVisual,"gripping"),"A trigger closes the empty hand while world interaction is locked");
+        owner.ProcessGrip(false,false,true);
+        Check(!Field<bool>(handVisual,"gripping"),"Releasing the trigger opens the empty hand");
+        lesson.Tick(7f);
+        Check(tutorial.CurrentStep==Step.TeleportDemo && lesson.MovementLocked,"Hand practice leads to the movement-locked 2D demo");
+        CheckTutorialText(tutorialView);
+        head.localRotation=headRotation;
         var pause=FindObjectOfType<SystemUIPauseController>(); float beforePause=lesson.PhaseAge;
         pause.ShowPause(); lesson.Tick(20); lesson.Confirm();
         Check(lesson.PhaseAge==beforePause && health.HealthPercent==1,"Pause freezes teaching, confirmations and health");
         pause.ResumeGame();
-        yield return Advance(lesson); Check(lesson.Page==1,"A key advances to left-stick teaching without a contact button");
-        lesson.Tick(1); Capture("Lesson_02_LeftStick",head);
-        Check(lesson.ControlsDisplaySeconds==40 && FindObjectsOfType<CampusTeachingHand>(true).Length==2,"Controller teaching includes two animated detailed 3D hands for forty seconds");
-        var demo=Field<CampusLessonAnimation>(lesson,"demonstration");
-        demo.Tick(15); Capture("Lesson_18_PauseKeyDemo",head);
-        Check(Field<TMPro.TMP_Text>(demo,"actionLabel").text.Contains("暂停"),"The actual left-stick click pause control is demonstrated");
-        demo.Tick(5);
-        Check(Field<TMPro.TMP_Text>(demo,"actionLabel").text.Contains("射线") && Field<GameObject>(demo,"menuDemo").activeInHierarchy,
-            "Teaching demonstrates the green menu ray and matching trigger after pause");
-        yield return Advance(lesson); Check(lesson.Page==2,"A key advances to push/grab teaching without trigger confirmation");
-        lesson.Tick(1); Capture("Lesson_03_Interaction",head);
-        demo.Tick(15); Capture("Lesson_19_AKeyDemo",head);
-        Check(Field<TMPro.TMP_Text>(demo,"actionLabel").text.Contains("右 A"),"The right A key is animated independently of the grabbing triggers");
-        yield return Advance(lesson);
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Ready && !lesson.MovementLocked,"Controls end in an unlocked practice/ready phase");
-        lesson.Tick(30);
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Ready && !layout.IsFull,"An idle ready page shrinks but never starts the game automatically");
-        Capture("Lesson_10_PracticeHUD",head);
-        yield return Advance(lesson);
+        lesson.Tick(7.1f);
+        Check(tutorial.CurrentStep==Step.FirstLanding && !lesson.MovementLocked && !lesson.AllowsTeleportLanding(new Vector3(-12.2f,11.4f,0)),"Teleport unlocks inside the classroom after the demo");
+        lesson.RecordTutorialTeleport(CampusClassroomTutorial.DoorSpot);
+        lesson.Tick(.1f);
+        Check(tutorial.CurrentStep==Step.FirstLanding,"Landing away from the target does not finish the step");
+        var marker=Field<LineRenderer>(tutorialView,"marker");
+        var world=Field<Transform>(tutorialView,"world");
+        Check(world.Find("Intermediate teleport marker")==null && marker.gameObject.activeSelf,
+            "The tutorial creates only one teleport marker");
+        Land(lesson,movement,CampusClassroomTutorial.FirstSpot);
+        Check(tutorial.CurrentStep==Step.Arrival,"Teleporting to the first marker shows brief arrival feedback");
+        lesson.Tick(7.1f);
+        Check(tutorial.CurrentStep==Step.ToWindow && !tutorial.ShowingWindowDemo,"The window marker follows without replaying the teleport animation");
+        Vector3 windowMarker=marker.GetPosition(0);
+        lesson.Tick(9f);
+        Check(prompt.alpha>.75f,"The window instruction stays visible while the player works out how to get there");
+        Land(lesson,movement,new Vector3(-12.15f,11.4f,9.35f));
+        Land(lesson,movement,new Vector3(-13.80f,11.4f,9.35f));
+        Check(tutorial.CurrentStep==Step.ToWindow && marker.GetPosition(0)==windowMarker,
+            "Unmarked jumps are allowed and leave the single window goal in place");
+        Land(lesson,movement,tutorial.WindowSpot);
+        Check(tutorial.ShowingWindowDemo && lesson.MovementLocked,"Window arrival starts a locked 3D demonstration");
+        var window=Field<CampusHingeInteractable>(tutorial,"window");
+        Check(!owner.Begin(window),"The window cannot be pushed during its demo");
+        lesson.Tick(6.9f);
+        Check(tutorial.ShowingWindowDemo,"The 3D window demo remains visible just before seven seconds");
+        lesson.Tick(.2f);
+        Vector3 contact=window.transform.TransformPoint(Field<Vector3>(tutorial,"windowContact"));
+        var glass=window.GetComponentInChildren<BoxCollider>();
+        Check(glass.bounds.size.x>3f && Mathf.Abs(window.transform.position.x-glass.bounds.max.x)<.02f,
+            "The whole pane uses its original rightmost hinge");
+        Check(Mathf.Abs(contact.x-glass.bounds.min.x-.0832f)<.005f &&
+            Mathf.Abs(tutorial.WindowSpot.x-contact.x)<.01f,"The standing marker and grip stay at the existing point on the free end");
+        owner.transform.position+=window.transform.position-owner.ContactPoint;
+        Check(!owner.Begin(window),"The tutorial window cannot be grabbed from the hinge side");
+        owner.transform.position+=contact-owner.ContactPoint;
+        Physics.SyncTransforms();
+        owner.RefreshContact(); owner.ProcessGrip(true,true,false);
+        Check(window.IsHeld && Field<bool>(handVisual,"gripping") && !Field<bool>(handVisual,"pushing"),
+            "The local highlight sits on the actual pane and the hand closes around it while held");
+        lesson.Tick(.1f);
+        Check(tutorial.CurrentStep==Step.OpenWindow,"A stationary grip alone does not complete the window exercise");
+        window.TryGetWindowGrip(owner.transform,out Vector3 smallGrip);
+        Vector3 smallStart=owner.transform.position;
+        MoveWindowHand(owner,window,smallStart,smallGrip,2f);
+        owner.ProcessGrip(false,true,false);
+        lesson.Tick(.1f);
+        Check(Mathf.Abs(window.Angle-2f)<.1f && tutorial.CurrentStep==Step.WindowDone,
+            "A small outward push completes the exercise at the actual hand-driven angle");
+        handVisual.SendMessage("LateUpdate");
+        var glove=owner.transform.Find("Detailed tracked glove");
+        var rest=Field<Vector3>(handVisual,"gloveRest");
+        window.TryGetWindowGrip(owner.transform,out var heldPoint);
+        Check(Vector3.Distance(owner.ContactPoint+glove.position-owner.transform.TransformPoint(rest),heldPoint)<.002f,
+            "The visible hand stays on the same spot of the rotating window");
+        Check(heldPoint.z>smallGrip.z+.08f && Vector3.Distance(heldPoint,smallGrip)<.15f,
+            "The pane starts to open outward with a small hand displacement");
+        lesson.Tick(7.1f);
+        MoveWindowHand(owner,window,smallStart,smallGrip,4f);
+        owner.ProcessGrip(false,true,false);
+        Check(tutorial.CurrentStep==Step.WindowDone && window.IsHeld && Mathf.Abs(window.Angle-4f)<.1f,
+            "The window still follows the hand after the success prompt has been visible for seven seconds");
+        owner.ProcessGrip(false,false,true);
+        Check(!window.IsHeld && !Field<bool>(handVisual,"gripping") && glove.localPosition==rest,
+            "Releasing the trigger lets go and restores the glove to the controller");
+        contact=window.transform.TransformPoint(Field<Vector3>(tutorial,"windowContact"));
+        owner.transform.position+=contact-owner.ContactPoint;
+        Physics.SyncTransforms();
+        owner.RefreshContact(); owner.ProcessGrip(true,true,false);
+        Check(window.TryGetWindowGrip(owner.transform,out Vector3 secondGrip),"The same contact point can be grabbed again after success");
+        MoveWindowHand(owner,window,owner.transform.position,secondGrip,2f);
+        owner.ProcessGrip(false,true,false);
+        Check(Mathf.Abs(window.Angle-6f)<.1f,"Re-grabbing continues the motion without resetting the window");
+        owner.ProcessGrip(false,false,true);
+        lesson.Tick(.1f);
+        Check(tutorial.CurrentStep==Step.ToButton && lesson.AllowsHandTarget(window) && prompt.gameObject.activeSelf,
+            "The next instruction appears while the window remains available for practice");
+        Land(lesson,movement,new Vector3(-13.80f,11.4f,9.35f));
+        Land(lesson,movement,new Vector3(-12.15f,11.4f,9.35f));
+        Land(lesson,movement,CampusClassroomTutorial.ButtonSpot);
+        lesson.Tick(7.1f);
+        owner.transform.position+=tutorialView.Button.transform.position-owner.ContactPoint;
+        Physics.SyncTransforms();
+        owner.RefreshContact(); owner.ProcessGrip(true,true,false);
+        lesson.Tick(.1f);
+        Check(tutorialView.Button.Pressed && tutorialView.Button.IsHeld && tutorial.CurrentStep==Step.ButtonDone,
+            "The button registers the press while the hand still holds it");
+        lesson.Tick(7.1f);
+        owner.ProcessGrip(false,true,false);
+        Check(tutorial.CurrentStep==Step.ButtonDone && Field<bool>(handVisual,"gripping"),
+            "The button lesson waits for trigger release");
+        owner.ProcessGrip(false,false,true);
+        Check(!tutorialView.Button.IsHeld && !Field<bool>(handVisual,"gripping"),"Releasing the button opens the hand immediately");
+        lesson.Tick(.1f);
+        Land(lesson,movement,CampusClassroomTutorial.BookSpot);
+        lesson.Tick(7.1f);
+        var practiceBook=Field<CampusPracticeBook>(tutorial,"book");
+        var home=Field<Vector3>(tutorial,"bookHome");
+        owner.transform.position+=practiceBook.transform.position-owner.ContactPoint;
+        Physics.SyncTransforms();
+        owner.RefreshContact(); owner.ProcessGrip(true,true,false);
+        Check(practiceBook.IsHeld && !hands[1].Begin(practiceBook),"The existing held-trigger grab cannot be stolen by a second hand");
+        owner.transform.position+=Vector3.up*.2f; owner.ProcessGrip(false,true,false);
+        lesson.Tick(.1f);
+        Check(tutorial.CurrentStep==Step.InspectBook,"Lifting the book leaves time for wrist movement");
+        lesson.Tick(7.1f); lesson.Tick(7.1f);
+        owner.Release();
+        var practiceBody=practiceBook.GetComponent<Rigidbody>();
+        practiceBody.position=home-Vector3.up*.45f;
+        practiceBook.transform.position=practiceBody.position;
+        lesson.Tick(.5f);
+        Check(tutorial.CurrentStep==Step.PickUp && Vector3.Distance(practiceBook.transform.position,home)<.01f,"A book lost under the desk resets for another try");
+        Check(owner.Begin(practiceBook),"The reset book is available to pick up");
+        owner.transform.position=home+Vector3.up*.16f; owner.ProcessGrip(false,true,false);
+        lesson.Tick(.1f); lesson.Tick(7.1f); lesson.Tick(7.1f);
+        owner.Release();
+        practiceBody.position=home+Vector3.left*.08f;
+        practiceBook.transform.position=practiceBody.position;
+        lesson.Tick(.3f); lesson.Tick(.7f);
+        Check(tutorial.CurrentStep==Step.Health && health.HealthPercent==1,"Loose tabletop placement completes and introduces a simulated health bar");
+        lesson.Tick(4.7f);
+        Check(Field<TMPro.TMP_Text>(tutorialView,"hpNumber").text=="82" && health.HealthPercent==1,"The tutorial health animation does not change real health");
+        CheckTutorialText(tutorialView);
+        lesson.Tick(2.4f); lesson.Tick(7.1f);
+        lesson.Tick(.1f,false,true);
+        Check(tutorial.CurrentStep==Step.MapOpen,"Y does not operate the minimap");
+        var mapPanel=Field<CanvasGroup>(tutorialView,"mapGroup").transform;
+        Vector3 mapCorner=mapPanel.localPosition;
+        float compactScale=mapPanel.localScale.x;
+        lesson.Tick(.1f,true,false); lesson.Tick(.25f,true,false);
+        Check(tutorial.CurrentStep==Step.MapClose,"Holding X leaves the minimap expanded");
+        Check(mapPanel.localPosition.x>mapCorner.x && mapPanel.localPosition.x<0f && mapPanel.localScale.x>compactScale,
+            "The minimap interpolates both position and scale");
+        lesson.Tick(.3f);
+        Check(Mathf.Abs(mapPanel.localPosition.x)<.001f && Mathf.Abs(mapPanel.localPosition.y)<.001f,
+            "X opens the minimap at the center of view");
+        CheckTutorialText(tutorialView);
+        lesson.Tick(.1f,true,false); lesson.Tick(.25f);
+        Check(tutorial.CurrentStep==Step.MapFolding && mapPanel.localPosition.x<0 && mapPanel.localPosition.x>mapCorner.x,
+            "A second X animates the map back before the task demo starts");
+        lesson.Tick(.3f); lesson.Tick(7.1f);
+        Check(mapPanel.localPosition==mapCorner,"The minimap returns to its original corner");
+        var taskPanel=Field<CanvasGroup>(tutorialView,"taskGroup").transform;
+        Vector3 taskCorner=taskPanel.localPosition;
+        lesson.Tick(.1f,false,true);
+        lesson.Tick(.25f);
+        Check(taskPanel.localPosition.x<taskCorner.x && taskPanel.localPosition.x>0f && taskPanel.localScale.x>compactScale,
+            "The task card scales and travels toward the center");
+        lesson.Tick(.3f);
+        Check(Mathf.Abs(taskPanel.localPosition.x)<.001f && Mathf.Abs(taskPanel.localPosition.y)<.001f,
+            "Y opens the task card at the center of view");
+        CheckTutorialText(tutorialView);
+        lesson.Tick(.1f,false,true); lesson.Tick(.55f);
+        Check(taskPanel.localPosition==taskCorner,"The task card animates back to its original corner");
+        Check(tutorial.CurrentStep==Step.ToDoor && lesson.ClassroomDoor.Angle==0,"Two separate Y presses fold the task card and lead to the closed door");
+        Check(Field<TMPro.TMP_Text>(tutorialView,"prompt").text.Contains("自由活动") &&
+            Field<TMPro.TMP_Text>(tutorialView,"prompt").text.Contains("结束教学并开始演练"),
+            "The final prompt explains free movement and what happens at the doorway marker");
+        CheckTutorialText(tutorialView);
+        foreach(var classroomBook in Field<CampusPracticeBook[]>(lesson,"practiceBooks"))
+        {
+            GripAt(owner,classroomBook.transform.position);
+            Check(classroomBook.IsHeld,"Both classroom books can be picked up during free practice: "+classroomBook.name);
+            owner.ProcessGrip(false,false,true);
+            classroomBook.ResetBook();
+        }
+        foreach(var classroomWindow in Field<RuntimeFireWindow[]>(lesson,"practiceWindows"))
+        {
+            var pane=classroomWindow.HighlightTarget;
+            var hinge=pane.GetComponentInParent<CampusHingeInteractable>();
+            GripAt(owner,pane.GetComponent<BoxCollider>().bounds.center);
+            Check(hinge.TryGetWindowGrip(owner.transform,out Vector3 grip),
+                "Each classroom window accepts normal contact during free practice: "+classroomWindow.name);
+            float initialAngle=hinge.Angle;
+            MoveWindowHand(owner,hinge,owner.transform.position,grip,3f);
+            owner.ProcessGrip(false,true,false);
+            Check(Mathf.Abs(hinge.Angle-initialAngle-3f)<.1f,"The reopened window interaction still follows the hand");
+            owner.ProcessGrip(false,false,true);
+            hinge.SetAngle(0);
+        }
+        GripAt(owner,tutorialView.Button.transform.position);
+        Check(tutorialView.Button.IsHeld,"The teaching button can be pressed again during free practice");
+        owner.ProcessGrip(false,false,true);
+        Check(!owner.Begin(lesson.ClassroomDoor) && !lesson.AllowsHandTarget(lesson.TargetTowel),
+            "Free classroom practice keeps the exit door closed and does not unlock corridor targets");
+        Land(lesson,movement,CampusClassroomTutorial.DoorSpot);
+        Check(tutorial.CurrentStep==Step.Complete,"The final teleport completes the tutorial");
+        lesson.Tick(7.1f);
 
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Classroom && lesson.MovementLocked,"Explicit A hold starts the locked first-person cinematic");
+        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Classroom && lesson.MovementLocked,"The last marker hands off automatically to the original cinematic");
+        Check(boardSign.activeSelf,"The classroom's original sign returns after the tutorial");
         Vector3 lockedPosition=movement.transform.position; movement.Step(Vector2.right,1,.5f);
         Check(movement.ScriptedLocked && !movement.Body.enabled && movement.transform.position==lockedPosition,"Cinematic disables the actual movement controller, including all stick directions");
         movement.transform.position+=Vector3.right*.6f; lesson.SendMessage("LateUpdate");
@@ -155,6 +347,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
         head.localRotation=Quaternion.Euler(18,0,0); Capture("Lesson_04_PutBookDown",head); head.localRotation=headRotation;
         foreach(var inputHand in hands)
         {
+            inputHand.GetComponent<CampusHandVisual>().Tick(1f);
             var source=inputHand.GetComponentInChildren<SkinnedMeshRenderer>(true); var temporary=new Mesh(); source.BakeMesh(temporary,false);
             var story=Field<Transform>(lesson,inputHand.InputSource==Valve.VR.SteamVR_Input_Sources.LeftHand?"storyLeftHand":"storyRightHand");
             var vertices=story.GetComponentInChildren<MeshFilter>().sharedMesh.vertices;
@@ -202,6 +395,8 @@ public sealed class CampusLessonDriver : MonoBehaviour
         EnvironmentCapture("Lesson_22_FireFrom401",new Vector3(-12.2f,13.1f,1.1f),new Vector3(-2.2f,12.4f,-1.7f),lesson,movement,head);
         lesson.Tick(15); Check(lesson.TaskAnnouncement && layout.IsFull,"Task card remains expanded beyond the former twelve-second interval");
         exposure.Tick(true,20); Check(health.HealthPercent==hp,"Task announcement protects the player's reading time");
+        // The synthetic smoke warning uses Unity time, unlike the manual lesson clock.
+        CampusMessagePresenter.Instance.Hide();
         yield return Advance(lesson); lesson.Tick(1);
         float activeHealth=health.HealthPercent;
         yield return new WaitForSeconds(.25f);
@@ -241,11 +436,23 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Check(!panel.gameObject.activeSelf && !Field<CampusLessonRoute>(lesson,"route").Visible,"Completed tasks remove their card and route");
         owner.Release();
         Check(!Field<CampusDestinationHighlight>(lesson,"destination").Highlighted,"Restroom highlighting clears after the towel task");
-        var stairGlass=FindObjectsOfType<CampusStairWindow>().First(w=>w.transform.position.x<0 && w.transform.position.y>11);
+        var roomWindows=FindObjectsOfType<RuntimeFireWindow>();
+        var stairWindows=FindObjectsOfType<CampusStairWindow>();
+        Check(roomWindows.Length==78 && stairWindows.Length==8,"All room and stair windows are present for grip checks");
+        foreach(var roomWindow in roomWindows)
+        {
+            var pane=roomWindow.HighlightTarget;
+            CheckWindowTracking(owner,pane.GetComponentInParent<CampusHingeInteractable>(),
+                pane.GetComponent<BoxCollider>().bounds.center,roomWindow.name);
+        }
+        foreach(var stairWindow in stairWindows)
+            CheckWindowTracking(owner,stairWindow.Hinge,stairWindow.Hinge.transform.Find("Window handle").position,
+                "Stair window "+stairWindow.transform.position);
+        var stairGlass=stairWindows.First(w=>w.transform.position.x<0 && w.transform.position.y>11);
         stairGlass.Hinge.SetAngle(90);
         EnvironmentCapture("Lesson_23_StairGlassOpen",new Vector3(-23,13.1f,.3f),new Vector3(-23,13,-1.5f),lesson,movement,head);
         stairGlass.Hinge.SetAngle(0);
-        yield return ThrowChecks(books[1],towel,owner,movement);
+        yield return ThrowChecks(practiceBook,towel,owner,movement);
         // A real dropped rigidbody and crouched head, not a direct Begin() bypass.
         var roomFloor=new Vector3(-15,11.4f,-5);
         MoveRig(movement,roomFloor); head.localPosition=new Vector3(0,.65f,0);
@@ -333,6 +540,56 @@ public sealed class CampusLessonDriver : MonoBehaviour
         }
         motion.GetVelocity(now,out var linear,out _); Check(linear.magnitude<.01f,"Artificial body walking/rotation never contributes to throwing speed");
         movement.transform.SetPositionAndRotation(position,rotation); motion.ResetHistory(); book.ResetBook(); motion.enabled=true;
+    }
+    private void CheckTutorialText(CampusTutorialView view)
+    {
+        foreach(var root in new[]{Field<Transform>(view,"hud"),Field<Transform>(view,"world")})
+            foreach(var text in root.GetComponentsInChildren<TMPro.TMP_Text>())
+            {
+                text.ForceMeshUpdate();
+                if(text.isTextOverflowing) throw new InvalidOperationException("Tutorial text overflow: "+text.text);
+            }
+    }
+    private static void GripAt(CampusHandInteractor hand,Vector3 point)
+    {
+        hand.transform.position+=point-hand.ContactPoint;
+        Physics.SyncTransforms();
+        hand.RefreshContact();
+        hand.ProcessGrip(true,true,false);
+    }
+    private static void MoveWindowHand(CampusHandInteractor hand,CampusHingeInteractable window,
+        Vector3 start,Vector3 grip,float degrees)
+    {
+        Vector3 radius=grip-window.transform.position;
+        hand.transform.position=start+Quaternion.AngleAxis(degrees,window.transform.up)*radius-radius;
+    }
+    private void CheckWindowTracking(CampusHandInteractor hand,CampusHingeInteractable window,Vector3 at,string name)
+    {
+        window.SetAngle(0);
+        hand.transform.position+=at-hand.ContactPoint;
+        Physics.SyncTransforms();
+        Vector3 grip=default;
+        if(!hand.Begin(window) || !window.TryGetWindowGrip(hand.transform,out grip))
+            throw new InvalidOperationException("Cannot hold "+name);
+        MoveWindowHand(hand,window,hand.transform.position,grip,24f*Field<float>(window,"openSign"));
+        hand.ProcessGrip(false,true,false);
+        Check(Mathf.Abs(window.Angle-24f)<.1f,name+" follows the hand arc without amplified travel");
+        hand.Release();
+        window.SetAngle(0);
+    }
+    private void Land(CampusLessonDirector lesson,CampusLocomotion movement,Vector3 point)
+    {
+        Physics.SyncTransforms();
+        var teleporter=FindObjectOfType<VRTeleporter>();
+        var resolve=typeof(VRTeleporter).GetMethod("TryResolveLanding",BindingFlags.Instance|BindingFlags.NonPublic);
+        Check(Physics.Raycast(point+Vector3.up*.22f,Vector3.down,out var hit,.45f,
+            Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore), $"Tutorial marker at {point:F2} is on a solid floor");
+        object[] landing={hit,Vector3.zero};
+        Check((bool)resolve.Invoke(teleporter,landing) && Vector3.Distance((Vector3)landing[1],point)<=.1f,
+            $"Tutorial marker at {point:F2} is a valid teleport landing from {movement.transform.position:F2}");
+        typeof(VRTeleporter).GetField("teleportTarget",BindingFlags.Instance|BindingFlags.NonPublic).SetValue(teleporter,landing[1]);
+        typeof(VRTeleporter).GetMethod("ExecuteTeleport",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(teleporter,null);
+        lesson.Tick(.1f);
     }
     private void MoveRig(CampusLocomotion movement,Vector3 p)
     { bool active=movement.Body.enabled; movement.Body.enabled=false; movement.transform.position=p; movement.Body.enabled=active; Physics.SyncTransforms(); }

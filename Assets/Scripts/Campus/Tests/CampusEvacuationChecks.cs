@@ -51,7 +51,11 @@ public sealed partial class CampusRevisionDriver
                 Vector3 atGlass=window.transform.position+Vector3.down*.5f+Vector3.forward*.11f;
                 input.transform.position+=atGlass-input.ContactPoint; Physics.SyncTransforms(); input.RefreshContact();
                 Check(Field<MonoBehaviour>(input,"candidate")==hinge && Vector3.Distance(input.ContactPoint,head.position)<.75f,"Actual reachable palm contact selects A/B stair window: "+window.transform.position+" / "+input.InputSource);
-                input.ProcessGrip(true,true,false); input.transform.position+=Vector3.back*.30f; input.ProcessGrip(false,true,false);
+                input.ProcessGrip(true,true,false);
+                Check(hinge.TryGetWindowGrip(input.transform,out Vector3 contact),"The stair sash captures the actual hand contact point");
+                Vector3 radius=contact-hinge.transform.position;
+                input.transform.position+=Quaternion.AngleAxis(-90f,hinge.transform.up)*radius-radius;
+                input.ProcessGrip(false,true,false);
                 Check(hinge.IsHeldBy(input.transform) && Mathf.Abs(hinge.Angle-90)<.1f && pane.transform.position.z<window.transform.position.z-.5f,"Actual trigger and physical push opens visible stair pane fully");
                 input.ProcessGrip(false,false,true);
             }

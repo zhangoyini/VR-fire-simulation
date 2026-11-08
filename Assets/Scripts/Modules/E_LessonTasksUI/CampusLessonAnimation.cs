@@ -12,21 +12,49 @@ public sealed class CampusLessonAnimation : MonoBehaviour
     private CampusLessonDirector.Phase phase;
     private int page;
     private float time;
+    private bool windowDemo;
     private GameObject menuDemo;
     private Transform menuDemoButton, menuDemoBeam;
     private Material menuDemoMaterial;
     public void Show(CampusLessonDirector.Phase current,int currentPage)
     {
-        phase=current; page=currentPage; time=0;
+        phase=current; page=currentPage; time=0; windowDemo=false;
         if(menuDemo!=null) menuDemo.SetActive(false);
         headsetGroup.SetActive(current==CampusLessonDirector.Phase.Controls && page==0);
         controllerGroup.SetActive(current==CampusLessonDirector.Phase.Controls && page>0);
         towelGroup.SetActive(current==CampusLessonDirector.Phase.WetTowel || current==CampusLessonDirector.Phase.FindTowel);
         smokeGroup.SetActive(current==CampusLessonDirector.Phase.SmokeLesson);
     }
+    public void ShowWindowDemo()
+    {
+        Show(CampusLessonDirector.Phase.Controls,2);
+        windowDemo=true;
+    }
     public void Tick(float dt)
     {
         time+=Mathf.Max(0,dt); float wave=.5f+.5f*Mathf.Sin(time*2);
+        if(windowDemo)
+        {
+            float reach=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.4f,1.9f,time));
+            float swing=Mathf.SmoothStep(0,1,Mathf.InverseLerp(2.5f,5.2f,time));
+            bool held=time>=1.9f && time<5.6f;
+            leftController.localPosition=new Vector3(-.23f,0,0);
+            door.localRotation=Quaternion.Euler(0,180f+12f*swing,0);
+            Vector3 contact=door.localPosition+door.localRotation*new Vector3(.18f,.04f,0);
+            Vector3 grip=contact+new Vector3(-.02f,-.045f,-.06f);
+            float withdraw=Mathf.SmoothStep(0,1,Mathf.InverseLerp(5.6f,6.5f,time));
+            rightController.localPosition=Vector3.Lerp(new Vector3(.11f,0,-.13f),grip,reach*(1f-withdraw));
+            rightController.localRotation=Quaternion.Euler(-25,-8,12);
+            leftHand?.SetGrip(.45f);
+            rightHand?.SetGrip(held?1f:.45f);
+            trigger.localScale=new Vector3(.055f,.025f,held?.012f:.025f);
+            if(actionLabel!=null)
+            {
+                string text="按住扳机抓住窗扇，沿弧线向外推";
+                if(actionLabel.text!=text) actionLabel.text=text;
+            }
+            return;
+        }
         if(headsetGroup.activeSelf) { headset.localRotation=Quaternion.Euler(0,-18+Mathf.Sin(time)*20,0); headset.localPosition=new Vector3(0,0,-.025f+wave*.04f); }
         if(controllerGroup.activeSelf)
         {
