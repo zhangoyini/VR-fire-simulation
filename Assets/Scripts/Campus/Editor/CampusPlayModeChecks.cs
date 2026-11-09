@@ -142,7 +142,7 @@ public sealed class CampusCheckDriver : MonoBehaviour
         Check(SceneManager.GetActiveScene().name=="CampusTraining","No stair or endpoint scene transition");
         res.ResetResolution(); health.ResetHealth();
         var call=FindObjectOfType<CampusRefugeCall>(); head.position=Get<Collider>(call,"refugeVolume").bounds.center; call.OnInteractStart(head);
-        Check(res.CurrentOutcome==ResolutionCoordinator.Outcome.Victory && health.IsPaused,"2F refuge intercom confirms safe endpoint");
+        Check(res.CurrentOutcome==ResolutionCoordinator.Outcome.None && !health.IsPaused,"2F refuge intercom leaves evacuation running");
         res.ResetResolution(); health.ResetHealth(); Put(health,"currentHealth",.00001f);
         yield return null; yield return null;
         Check(res.CurrentOutcome==ResolutionCoordinator.Outcome.GameOver,"Health depletion preserves failure outcome");

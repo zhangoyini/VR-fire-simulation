@@ -1,5 +1,3 @@
-using Harbourview.Journey;
-using Jiao.HealthTime;
 using UnityEngine;
 
 public sealed class CampusRefugeCall : MonoBehaviour, IInteractable
@@ -13,14 +11,11 @@ public sealed class CampusRefugeCall : MonoBehaviour, IInteractable
     public void OnInteractEnd(Transform hand) { }
     public void OnInteractStart(Transform hand)
     {
-        if(CampusLessonDirector.Instance!=null && !CampusLessonDirector.Instance.ExerciseStarted) return;
-        if (trackedHead == null || refugeVolume == null || resolution == null) return;
+        var lesson = CampusLessonDirector.Instance;
+        if (lesson == null || !lesson.ExerciseStarted || Time.timeScale == 0) return;
+        if (trackedHead == null || refugeVolume == null || resolution == null ||
+            resolution.CurrentOutcome != ResolutionCoordinator.Outcome.None) return;
         if (!refugeVolume.bounds.Contains(trackedHead.position)) return;
-        JourneyDirector.Instance?.Request(JourneyState.Refuge);
-        if (!resolution.TryShowVictory()) return;
-        HealthTimeController.Instance?.Pause(true);
-        FindObjectOfType<HealthTimeBar>()?.StopWarning();
-        Jiao.HealthTime.AudioManager.Instance?.StopWarning();
-        SessionLogger.Write("REFUGE_INTERCOM_CONFIRMED");
+        lesson.ConfirmRescue();
     }
 }

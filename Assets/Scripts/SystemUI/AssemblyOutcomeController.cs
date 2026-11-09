@@ -37,6 +37,7 @@ public class AssemblyOutcomeController : MonoBehaviour
         if (!resolution.TryShowVictory())
             return;
 
+        CampusLessonDirector.Instance?.CompleteAssembly();
         health.Pause(true);
         if (healthBar != null) healthBar.StopWarning();
         if (audioManager != null) audioManager.StopWarning();

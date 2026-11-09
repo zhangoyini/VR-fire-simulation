@@ -423379,6 +423379,7 @@ MonoBehaviour:
   trackedHead: {fileID: 1363151216}
   locomotion: {fileID: 870320516}
   classroomDoor: {fileID: 962995854}
+  exitDoor: {fileID: 909287740}
   smokeSpread: {fileID: 2119780784}
   fireOrigin: {fileID: 103840260}
   doorwayPlume: {fileID: 666622072}

@@ -224,7 +224,7 @@ internal sealed class CampusClassroomTutorial
                 if (xDown) Enter(Step.MapFolding, "");
                 break;
             case Step.MapFolding:
-                if (age >= CampusTutorialView.ZoomSeconds)
+                if (age >= CampusNavigationPanels.ZoomSeconds)
                     Enter(Step.TaskDemo, "按左手柄的 Y 查看任务详情，再按 Y 收起", demo: CampusTutorialView.Demo.Y);
                 break;
             case Step.TaskDemo:
@@ -237,7 +237,7 @@ internal sealed class CampusClassroomTutorial
                 if (yDown) Enter(Step.TaskFolding, "");
                 break;
             case Step.TaskFolding:
-                if (age >= CampusTutorialView.ZoomSeconds)
+                if (age >= CampusNavigationPanels.ZoomSeconds)
                     Enter(Step.MenuPractice, "按下左摇杆打开菜单。\n用手柄射线选中「继续」，按扳机返回游戏。", demo: CampusTutorialView.Demo.Menu);
                 break;
             case Step.ToDoor:

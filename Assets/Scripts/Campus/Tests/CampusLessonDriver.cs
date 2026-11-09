@@ -45,6 +45,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
     {
         yield return null; yield return null;
         var lesson=FindObjectOfType<CampusLessonDirector>(); lesson.ManualTickForChecks=true;
+        var navigation=Field<CampusNavigationPanels>(lesson,"panels");
         var movement=FindObjectOfType<CampusLocomotion>(true); var head=Camera.main.transform;
         var layout=lesson.GetComponent<CampusLessonLayout>(); var health=HealthTimeController.Instance;
         var exposure=FindObjectOfType<CampusSmokeExposure>(); exposure.enabled=false;
@@ -267,7 +268,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
         lesson.Tick(2.4f); lesson.Tick(7.1f);
         lesson.Tick(.1f,false,true);
         Check(tutorial.CurrentStep==Step.MapOpen,"Y does not operate the minimap");
-        var mapPanel=Field<CanvasGroup>(tutorialView,"mapGroup").transform;
+        var mapPanel=Field<CanvasGroup>(navigation,"mapGroup").transform;
         Vector3 mapCorner=mapPanel.localPosition;
         float compactScale=mapPanel.localScale.x;
         lesson.Tick(.1f,true,false); lesson.Tick(.25f,true,false);
@@ -283,7 +284,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
             "A second X animates the map back before the task demo starts");
         lesson.Tick(.3f); lesson.Tick(7.1f);
         Check(mapPanel.localPosition==mapCorner,"The minimap returns to its original corner");
-        var taskPanel=Field<CanvasGroup>(tutorialView,"taskGroup").transform;
+        var taskPanel=Field<CanvasGroup>(navigation,"taskGroup").transform;
         Vector3 taskCorner=taskPanel.localPosition;
         lesson.Tick(.1f,false,true);
         lesson.Tick(.25f);
@@ -424,6 +425,15 @@ public sealed class CampusLessonDriver : MonoBehaviour
         lesson.Tick(2.1f);
 
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.OpenDoor && lesson.TaskAnnouncement && !lesson.MovementLocked && movement.Body.enabled,"Finishing the cinematic immediately restores free movement, without waiting for a task confirmation");
+        var taskDetails=Field<TMPro.TMP_Text>(navigation,"taskText");
+        lesson.Tick(.55f,true,false);
+        Check(Mathf.Abs(mapPanel.localPosition.x)<.001f,"Formal exercise uses the same centered X map as teaching");
+        lesson.Tick(.25f,false,true);
+        Check(mapPanel.localPosition.x<0 && taskPanel.localPosition==taskCorner,"Y folds the map before expanding task details");
+        lesson.Tick(.55f,false,false);
+        Check(mapPanel.localPosition==mapCorner && Mathf.Abs(taskPanel.localPosition.x)<.001f && taskDetails.text.Contains("主任务 · 疏散到一楼操场"),
+            "Formal Y details show the main objective in the shared task panel");
+        lesson.Tick(.55f,false,true);
         foreach(var hand in hands) { hand.GetComponent<CampusTrackedHandPose>().ApplyLocalPose(originalHead+new Vector3(hand.InputSource==Valve.VR.SteamVR_Input_Sources.LeftHand?-.22f:.22f,-.32f,.4f),Quaternion.identity); hand.GetComponent<CampusHandVisual>().SendMessage("LateUpdate"); }
         Check(hands.All(h=>h.GetComponentsInChildren<SkinnedMeshRenderer>(true).All(m=>m.enabled && m.updateWhenOffscreen)),"Both detailed tracked hands are restored after the movie");
         Capture("Lesson_14_HandsRestored",head);
@@ -454,17 +464,22 @@ public sealed class CampusLessonDriver : MonoBehaviour
         float activeHealth=health.HealthPercent;
         yield return new WaitForSeconds(.25f);
         Check(health.HealthPercent<activeHealth,"Passive eight-minute health drain resumes after the task card folds");
-        var panel=Field<GameObject>(lesson,"lessonPanel").transform; Vector3 compact=head.InverseTransformPoint(panel.position);
-        Check(!lesson.MovementLocked && !layout.IsFull && Mathf.Abs(compact.x)<.01f && Mathf.Abs(compact.y)<.1f,"Unfinished task 1 stays directly ahead, rather than in an uncomfortable corner");
+        var panel=Field<GameObject>(lesson,"lessonPanel").transform;
+        Check(!lesson.MovementLocked && !panel.gameObject.activeSelf,"The automatic task 1 prompt folds away");
         Capture("Lesson_12_TaskHUD",head);
         Check(Field<CampusLessonRoute>(lesson,"route").Visible && FindObjectsOfType<LineRenderer>(true).All(l=>!l.enabled),"Task automatically shows floor chevrons with idle teleport arcs hidden");
-        lesson.Tick(30); Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel && panel.gameObject.activeSelf,"An unfinished task stays pinned rather than timing out");
+        lesson.Tick(30); lesson.Tick(.55f,false,true);
+        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel && taskDetails.text.Contains("到 411 卫生间") && Mathf.Abs(taskPanel.localPosition.x)<.001f,
+            "An unfinished task stays available in Y details after the popup folds");
+        lesson.Tick(.1f,false,false); lesson.Tick(.55f,false,true);
         lesson.ClassroomDoor.SetAngle(0); lesson.Tick(.1f); Check(!lesson.DoorwayExposure.isActiveAndEnabled,"Closing the door removes its local visible exposure plume");
         lesson.ClassroomDoor.SetAngle(30);
         var towel=lesson.TargetTowel; owner.transform.position=towel.transform.position; owner.Begin(towel); lesson.Tick(.1f);
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel,"Remote towel pickup outside the restroom does not issue task 2");
         MoveHead(movement,head,new Vector3(-16.4f,13.1f,-3.3f)); lesson.Tick(.1f); owner.ProcessGrip(false,true,false);
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.WetTowel && lesson.TaskAnnouncement && towel.IsHeld,"Task 1 completion expands task 2 without forcing the held towel to drop");
+        Check(taskDetails.text.Contains("已完成</color>  任务 1") && taskDetails.text.Contains("进行中</color>  任务 2"),
+            "Task details retain completed task 1 and activate task 2");
 
         Check(!lesson.MovementLocked && !lesson.WorldInteractionLocked,"Task 2 announcement does not interrupt held-towel or faucet operations");
         lesson.Tick(1); Capture("Lesson_09_WetTask",head);
@@ -550,6 +565,36 @@ public sealed class CampusLessonDriver : MonoBehaviour
         view.ShowGameplay();
         Check(FindObjectsOfType<MeshFilter>(true).All(m=>m.sharedMesh!=null),"All story and practice meshes retain saved geometry");
         Check(FindObjectsOfType<CampusLessonDirector>(true).Length==1 && FindObjectsOfType<Canvas>(true).Count(c=>c.name=="Seating fade")==1 && FindObjectsOfType<Transform>(true).Count(t=>t.name=="Lesson contact confirmation")==0,"Repeated scene application leaves one lesson, one fade and no blue confirmation object");
+
+        MoveHead(movement,head,new Vector3(-22.5f,9.3f,.5f)); lesson.Tick(.1f);
+        Check(taskDetails.text.Contains("进行中</color>  任务 3"),"The 3F debris approach activates task 3");
+        MoveHead(movement,head,new Vector3(21.5f,9.3f,0)); lesson.Tick(.1f);
+        Check(taskDetails.text.Contains("已完成</color>  任务 3"),"Reaching the east stair entrance completes task 3");
+        var call=FindObjectOfType<CampusRefugeCall>();
+        MoveHead(movement,head,Field<Collider>(call,"refugeVolume").bounds.center); lesson.Tick(.1f);
+        call.OnInteractStart(head);
+        Check(taskDetails.text.Contains("进行中</color>  可选支线") && resolution.CurrentOutcome==ResolutionCoordinator.Outcome.None,
+            "Descending from 3F offers the rescue and ringing early cannot end the exercise");
+        var student=FindObjectOfType<CampusRescueStudent>();
+        typeof(CampusRescueStudent).GetMethod("Deliver",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(student,null);
+        lesson.Tick(.1f);
+        Check(taskDetails.text.Contains("同学已送达") && taskDetails.text.Contains("进行中</color>  可选支线"),"Delivery asks for call-button confirmation");
+        call.OnInteractStart(head); lesson.Tick(.1f);
+        Check(taskDetails.text.Contains("已完成</color>  可选支线") && resolution.CurrentOutcome==ResolutionCoordinator.Outcome.None && Time.timeScale==1,
+            "Ringing after delivery completes only the optional rescue");
+        MoveHead(movement,head,new Vector3(0,1.7f,-8.5f)); lesson.Tick(.1f);
+        Check(taskDetails.text.Contains("进行中</color>  任务 4"),"Arriving on 1F publishes the exit task");
+        Field<Transform>(lesson,"exitDoor").GetComponentInChildren<CampusHingeInteractable>().SetAngle(45);
+        lesson.Tick(.1f);
+        Check(taskDetails.text.Contains("已完成</color>  任务 4") && resolution.CurrentOutcome==ResolutionCoordinator.Outcome.None,
+            "Opening an exit leaf completes task 4 while the main objective stays active");
+        taskDetails.ForceMeshUpdate(true);
+        Check(!taskDetails.isTextOverflowing,"The shared card fits the complete task list");
+        var assembly=FindObjectOfType<AssemblyOutcomeController>();
+        Field<Harbourview.Journey.SafeZoneEndpoint>(assembly,"endpoint").onReached.Invoke();
+        Check(resolution.CurrentOutcome==ResolutionCoordinator.Outcome.Victory &&
+            Field<CampusExerciseTasks>(lesson,"tasks").Details(lesson.CurrentPhase).Contains("已完成</color>  主任务"),
+            "The outdoor endpoint completes the main objective and wins the exercise");
     }
     private void EnvironmentCapture(string name,Vector3 position,Vector3 look,CampusLessonDirector lesson,CampusLocomotion movement,Transform head)
     {
@@ -596,7 +641,8 @@ public sealed class CampusLessonDriver : MonoBehaviour
     }
     private void CheckTutorialText(CampusTutorialView view)
     {
-        foreach(var root in new[]{Field<Transform>(view,"hud"),Field<Transform>(view,"world")})
+        foreach(var root in new[]{Field<Transform>(view,"hud"),Field<Transform>(view,"world"),
+            Field<GameObject>(Field<CampusNavigationPanels>(view,"panels"),"root").transform})
             foreach(var text in root.GetComponentsInChildren<TMPro.TMP_Text>())
             {
                 text.ForceMeshUpdate();

@@ -44,7 +44,8 @@ public sealed class CampusExperience : MonoBehaviour
         if (debriefLabel != null)
         {
             int elapsed = Mathf.RoundToInt(Time.time - startTime);
-            debriefLabel.text = $"本次练习用时 {elapsed / 60:D2}:{elapsed % 60:D2}  /  Practice time\n" +
+            string result = outcome == ResolutionCoordinator.Outcome.Victory ? "主任务完成 · 已到达操场\n" : "";
+            debriefLabel.text = result + $"本次练习用时 {elapsed / 60:D2}:{elapsed % 60:D2}  /  Practice time\n" +
                 "识别警报 · 跟随标识 · 路线受阻时重新选择\nNotice cues · Follow signs · Choose another route\n" +
                 "请勿使用电梯或跳窗逃生。\nAvoid elevators and window escape.";
         }

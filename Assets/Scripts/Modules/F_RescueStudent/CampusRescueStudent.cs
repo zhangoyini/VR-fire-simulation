@@ -317,8 +317,11 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
         assistanceView?.Hide();
         Rescued = true;
         dwell = 0f;
-        SessionLogger.Write("RESCUE_COMPLETED");
-        CampusMessagePresenter.Instance?.Show(doneText);
+        SessionLogger.Write("RESCUE_DELIVERED");
+        var lesson = CampusLessonDirector.Instance;
+        lesson?.StudentDelivered();
+        CampusMessagePresenter.Instance?.Show(lesson == null ? doneText :
+            doneText + "\n请按呼叫铃确认 / Press the call button to confirm");
     }
 
     public void ResetQuest()

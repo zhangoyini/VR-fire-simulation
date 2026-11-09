@@ -42,6 +42,7 @@ public static partial class CampusSceneBuilder
         Set(lesson,"classroomBoard",classroom.Find("Teaching board"));
         Set(lesson,"classroomBoardSign",classroom.Find("Sign LEARN · CREATE · COLLABORATE")?.gameObject);
         var classroomDoor=classroom.GetComponentInChildren<CampusHingeInteractable>(true); Set(lesson,"classroomDoor",classroomDoor);
+        Set(lesson,"exitDoor",GameObject.Find("Interactive double exit door")?.transform);
         SetArray(lesson,"practiceWindows",UnityEngine.Object.FindObjectsOfType<RuntimeFireWindow>(true).Where(w=>
         { var p=w.GetComponent<Renderer>().bounds.center; return p.x>-20 && p.x<-10 && p.z>9 && p.y>11.4f && p.y<15; }).Cast<UnityEngine.Object>().ToArray());
         Set(lesson,"smokeSpread",UnityEngine.Object.FindObjectOfType<CampusSmokeSpread>());

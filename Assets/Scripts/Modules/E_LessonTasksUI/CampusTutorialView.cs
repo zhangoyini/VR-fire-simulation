@@ -6,11 +6,6 @@ using Step = CampusClassroomTutorial.Step;
 internal sealed class CampusTutorialView
 {
     internal enum Demo { None, Teleport, Grab, Release, Press, X, Y, Menu }
-    internal const float ZoomSeconds = .5f;
-    private static readonly Vector3 MapCorner = new Vector3(-.45f, -.34f, 1.45f);
-    private static readonly Vector3 TaskCorner = new Vector3(.57f, .26f, 1.45f);
-    private static readonly Vector3 PanelCenter = new Vector3(0, 0, 1.45f);
-
     private static readonly Color Ink = new Color(.025f, .07f, .085f, .96f);
     private static readonly Color Mint = new Color(.45f, .95f, .83f);
     private static readonly Color Green = new Color(.48f, .94f, .53f);
@@ -26,13 +21,12 @@ internal sealed class CampusTutorialView
     private readonly Material worldMaterial;
     private readonly Sprite disc;
     private readonly Texture2D discTexture;
-    private readonly CanvasGroup promptGroup, demoGroup, healthGroup, mapGroup, taskGroup;
-    private readonly TMP_Text prompt, demoCaption, hpNumber, taskText, taskLabel, mapLabel;
+    private readonly CanvasGroup promptGroup, demoGroup, healthGroup;
+    private readonly TMP_Text prompt, demoCaption, hpNumber;
     private readonly RectTransform promptBackground;
     private readonly Image hpFill, hpLost, hpGlow;
-    private readonly Image mapBadge;
-    private readonly GameObject mapBody;
-    private readonly RectTransform mapRect, taskRect, demoStick, mapContent;
+    private readonly CampusNavigationPanels panels;
+    private readonly RectTransform demoStick;
     private readonly Image demoX, demoY, demoTrigger, demoStickImage, arcDot, playerDot;
     private readonly Image[] arc = new Image[18];
     private readonly LineRenderer marker, contact, bookHighlight, placement;
@@ -40,13 +34,14 @@ internal sealed class CampusTutorialView
     private readonly MaterialPropertyBlock tint = new MaterialPropertyBlock();
     private Step step;
     private Demo demo;
-    private float promptAge, mapZoom, taskZoom, fadeFrom;
+    private float promptAge, fadeFrom;
     internal CampusTutorialButton Button { get; }
 
     internal CampusTutorialView(Transform parent, Transform head, Transform board, GameObject boardSign,
-        TMP_FontAsset font, GameObject minimap)
+        TMP_FontAsset font, CampusNavigationPanels panels)
     {
         this.font = font;
+        this.panels = panels;
         this.boardSign = boardSign;
         world = new GameObject("Classroom tutorial props").transform;
         world.SetParent(parent, false);
@@ -92,32 +87,6 @@ internal sealed class CampusTutorialView
         hpFill.rectTransform.anchoredPosition = new Vector2(-153, 0);
         hpNumber = Label(healthGroup.transform, new Vector2(143, 0), new Vector2(75, 42), 25, "100");
 
-        mapGroup = CanvasAt("Teaching minimap", hud, MapCorner, .0017f);
-        mapBadge = Picture(mapGroup.transform, Vector2.zero, new Vector2(205, 49), Ink);
-        mapRect = mapBadge.rectTransform;
-        mapLabel = Label(mapGroup.transform, Vector2.zero, new Vector2(200, 42), 21, "X   小地图");
-        mapBody = Object.Instantiate(minimap, mapGroup.transform, false);
-        // Use the live floor plan and tracked position, with an independent tutorial layout.
-        foreach (var anchor in mapBody.GetComponents<WorldSpaceUIAnchor>()) anchor.enabled = false;
-        foreach (var foreground in mapBody.GetComponents<CampusUIForeground>()) foreground.enabled = false;
-        foreach (var label in mapBody.GetComponentsInChildren<TMP_Text>(true))
-        {
-            label.fontSizeMax = label.fontSize;
-            label.fontSizeMin = label.fontSize * .65f;
-            label.enableAutoSizing = true;
-        }
-        var mapCanvas = mapBody.GetComponent<Canvas>();
-        mapCanvas.overrideSorting = false;
-        mapBody.transform.localScale = Vector3.one;
-        mapBody.transform.localRotation = Quaternion.identity;
-        mapContent = mapBody.GetComponent<RectTransform>();
-        mapBody.SetActive(true);
-
-        taskGroup = CanvasAt("Example task card", hud, TaskCorner, .0017f);
-        taskRect = Picture(taskGroup.transform, Vector2.zero, new Vector2(205, 52), Ink).rectTransform;
-        taskLabel = Label(taskGroup.transform, Vector2.zero, new Vector2(196, 48), 21, "Y   示例任务");
-        taskText = Label(taskGroup.transform, Vector2.zero, new Vector2(270, 130), 21, "Y   示例任务\n\n查看教室出口\n到门内侧的标记处");
-
         var foregroundHud = hud.gameObject.AddComponent<CampusUIForeground>();
         foregroundHud.Configure(Shader.Find("Campus/Foreground UI"));
         if (board != null)
@@ -155,8 +124,6 @@ internal sealed class CampusTutorialView
         demoGroup.gameObject.SetActive(demo != Demo.None);
         promptGroup.gameObject.SetActive(step == Step.FadePrompt || !string.IsNullOrEmpty(text));
         healthGroup.gameObject.SetActive(step >= Step.Health);
-        mapGroup.gameObject.SetActive(step >= Step.MapDemo);
-        taskGroup.gameObject.SetActive(step >= Step.TaskDemo);
         contact.gameObject.SetActive(step == Step.WindowDemo || step == Step.OpenWindow || step == Step.WindowDone);
         bookHighlight.gameObject.SetActive(false);
         buttonFace.transform.localScale = new Vector3(.045f, .115f, .115f);
@@ -184,7 +151,7 @@ internal sealed class CampusTutorialView
         if (demo != Demo.None) AnimateDiagram(age);
         if (step >= Step.Health) AnimateHealth(age);
         if (Button.Pressed) Tint(lamp, Button.GreenLight ? Green : Red);
-        if (step >= Step.MapDemo) SetMapAndTask(age, dt);
+        panels.ShowPractice(step, age, dt);
     }
 
     private void AnimateDiagram(float age)
@@ -248,30 +215,6 @@ internal sealed class CampusTutorialView
         string number = Mathf.RoundToInt(100 * (1 - loss)).ToString();
         if (hpNumber.text != number) hpNumber.text = number;
         healthGroup.alpha = Fade(t, 1.1f);
-    }
-
-    private void SetMapAndTask(float age, float dt)
-    {
-        mapZoom = Mathf.MoveTowards(mapZoom, step == Step.MapClose ? 1f : 0f, dt / ZoomSeconds);
-        taskZoom = Mathf.MoveTowards(taskZoom, step == Step.TaskClose ? 1f : 0f, dt / ZoomSeconds);
-        float mapScale = Mathf.SmoothStep(0f, 1f, mapZoom);
-        float taskScale = Mathf.SmoothStep(0f, 1f, taskZoom);
-        mapGroup.alpha = step == Step.MapDemo ? Fade(age, 1f) : 1f;
-        taskGroup.alpha = step == Step.TaskDemo ? Fade(age, 1f) : 1f;
-        mapGroup.transform.localPosition = Vector3.Lerp(MapCorner, PanelCenter, mapScale);
-        mapGroup.transform.localScale = Vector3.one * Mathf.Lerp(.0017f, .0033f, mapScale);
-        mapContent.localScale = Vector3.one * Mathf.Lerp(.56f, 1f, mapScale);
-        mapContent.anchoredPosition3D = new Vector3(0, Mathf.Lerp(67f, 0, mapScale), 0);
-        mapLabel.rectTransform.anchoredPosition = new Vector2(0, Mathf.Lerp(0, -106, mapScale));
-        mapLabel.alpha = 1f - mapScale;
-        mapBadge.canvasRenderer.SetAlpha(1f - mapScale);
-        mapRect.sizeDelta = Vector2.Lerp(new Vector2(205, 49), new Vector2(268, 44), mapScale);
-        mapRect.anchoredPosition = mapLabel.rectTransform.anchoredPosition;
-        taskGroup.transform.localPosition = Vector3.Lerp(TaskCorner, PanelCenter, taskScale);
-        taskGroup.transform.localScale = Vector3.one * Mathf.Lerp(.0017f, .0033f, taskScale);
-        taskRect.sizeDelta = Vector2.Lerp(new Vector2(205, 52), new Vector2(294, 145), taskScale);
-        taskLabel.alpha = 1f - taskScale;
-        taskText.alpha = taskScale;
     }
 
     internal void SetMarker(Vector3? point, bool success)
@@ -381,7 +324,7 @@ internal sealed class CampusTutorialView
         Label(parent, high, new Vector2(32, 42), 20, left ? "Y" : "B");
     }
 
-    private static CanvasGroup CanvasAt(string name, Transform parent, Vector3 offset, float scale)
+    internal static CanvasGroup CanvasAt(string name, Transform parent, Vector3 offset, float scale)
     {
         var go = new GameObject(name, typeof(RectTransform), typeof(Canvas), typeof(CanvasGroup));
         go.transform.SetParent(parent, false);
@@ -393,7 +336,7 @@ internal sealed class CampusTutorialView
         return group;
     }
 
-    private static Image Picture(Transform parent, Vector2 at, Vector2 size, Color color, Sprite sprite = null)
+    internal static Image Picture(Transform parent, Vector2 at, Vector2 size, Color color, Sprite sprite = null)
     {
         var go = new GameObject("Tutorial graphic", typeof(RectTransform), typeof(Image));
         go.transform.SetParent(parent, false);
@@ -406,7 +349,10 @@ internal sealed class CampusTutorialView
         return image;
     }
 
-    private TMP_Text Label(Transform parent, Vector2 at, Vector2 size, int pointSize, string value)
+    private TMP_Text Label(Transform parent, Vector2 at, Vector2 size, int pointSize, string value) =>
+        CreateLabel(font, parent, at, size, pointSize, value);
+
+    internal static TMP_Text CreateLabel(TMP_FontAsset font, Transform parent, Vector2 at, Vector2 size, int pointSize, string value)
     {
         var go = new GameObject("Tutorial label", typeof(RectTransform), typeof(TextMeshProUGUI));
         go.transform.SetParent(parent, false);
@@ -426,11 +372,16 @@ internal sealed class CampusTutorialView
     private static float Fade(float age, float duration) =>
         Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(age / duration));
 
-    internal void SetVisible(bool visible) => hud.gameObject.SetActive(visible);
+    internal void SetVisible(bool visible)
+    {
+        hud.gameObject.SetActive(visible);
+        if (!visible) panels.Hide(false, false);
+    }
 
     internal void Dispose()
     {
         if (boardSign != null) boardSign.SetActive(boardSignWasActive);
+        panels.Hide(false, false, fold: true);
         hud.gameObject.SetActive(false);
         world.gameObject.SetActive(false);
         Object.Destroy(hud.gameObject);
