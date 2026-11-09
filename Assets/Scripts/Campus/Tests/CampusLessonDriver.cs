@@ -500,11 +500,23 @@ public sealed class CampusLessonDriver : MonoBehaviour
         lesson.Tick(6.1f); lesson.Tick(.1f);
         Check(noticeText.text.Contains("任务 1 完成"),"Task 1 completion receives a separate confirmation");
         lesson.Tick(2.1f); lesson.Tick(.1f);
-        Check(noticeGroup.gameObject.activeSelf && noticeText.text.Contains("任务 2"),"Task 2 publishes a six-second notification");
+        Check(noticeGroup.gameObject.activeSelf && noticeText.text.Contains("任务 2") && noticeText.color == Color.white,
+            "Task 2 uses the standard task notification styling");
         Capture("Lesson_09_WetTask",head);
         var faucet=FindObjectsOfType<CampusFaucet>().Where(f=>lesson.Restroom.bounds.Contains(f.transform.position))
             .OrderBy(f=>Vector3.Distance(f.transform.position,head.position)).First();
         Check(Outlines(primaryOutline,faucet.transform.position),"Task 2 highlights the faucet lever before opening it");
+        Vector3 faucetViewPosition=head.position;
+        Quaternion faucetViewRotation=head.rotation;
+        MoveHead(movement,head,faucet.transform.position+new Vector3(0,.65f,.75f));
+        head.rotation=Quaternion.LookRotation(faucet.transform.position+Vector3.up*.24f-head.position);
+        lesson.Tick(.1f);
+        var faucetHint=Field<TMPro.TMP_Text>(navigation,"objectHint");
+        Check(faucetHint.gameObject.activeInHierarchy && faucetHint.text.Contains("打开水龙头") &&
+            faucetHint.color==Color.black && faucetHint.fontStyle==TMPro.FontStyles.Bold,
+            "The contextual faucet instruction is visible in bold black text");
+        MoveHead(movement,head,faucetViewPosition);
+        head.rotation=faucetViewRotation;
         faucet.SetWater(true); lesson.Tick(.1f);
         Check(Outlines(primaryOutline,faucet.WaterVolume.bounds.center),"Starting the tap moves the highlight to the running water");
         owner.transform.SetPositionAndRotation(faucet.WaterVolume.transform.position-new Vector3(0,0,.065f),Quaternion.identity);
@@ -519,7 +531,19 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Capture("Lesson_20_RestroomObjective",head);
         PutAtFace(owner.transform,towel,head); lesson.Tick(1.6f);
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Descend && Field<CampusLessonRoute>(lesson,"route").Visible && noticeGroup.gameObject.activeSelf,"Face coverage advances to staircase guidance while the task 2 notice is visible");
+        float hpBeforeProtectedSmoke=health.HealthPercent;
+        exposure.Tick(false,0);
+        exposure.Tick(true,exposure.GraceSeconds+10f);
+        Check(exposure.IsProtected && Mathf.Abs((hpBeforeProtectedSmoke-health.HealthPercent)*100f-1f)<.001f,
+            "Ten seconds of smoke after the grace period cost one health point with wet-towel protection");
+        CheckLowerFloorSmoke(spread,exposure,health,true);
         owner.Release(); lesson.Tick(.2f); Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Descend,"Dropping the towel cannot complete the descent");
+        float hpBeforeUnprotectedSmoke=health.HealthPercent;
+        exposure.Tick(true,1f);
+        Check(!exposure.IsProtected && Mathf.Abs((hpBeforeUnprotectedSmoke-health.HealthPercent)*100f-2f)<.001f,
+            "Releasing the towel immediately restores two smoke damage per second without resetting exposure");
+        CheckLowerFloorSmoke(spread,exposure,health,false);
+        exposure.Tick(false,0);
         owner.Begin(towel); MoveHead(movement,head,new Vector3(-23,9.3f,0)); PutAtFace(owner.transform,towel,head); lesson.Tick(1.6f);
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Complete && !lesson.MovementLocked && !lesson.DamageSuppressed,"Only arriving on 3F with the held wet towel at the face completes the chapter");
         Check(FindObjectOfType<ResolutionCoordinator>().CurrentOutcome==ResolutionCoordinator.Outcome.None,"Chapter completion cannot bypass whole-building evacuation");
@@ -591,12 +615,14 @@ public sealed class CampusLessonDriver : MonoBehaviour
         MoveHead(movement,head,new Vector3(-22.5f,9.3f,.5f)); lesson.Tick(.1f);
         Check(taskDetails.text.Contains("进行中</color>  任务 3"),"The 3F debris approach activates task 3");
         var eastStair=Field<TMPro.TextMeshPro>(highlights,"eastStairLabel");
-        var obstacleOutline=Field<LineRenderer>(highlights,"obstacle");
-        Check(obstacleOutline.enabled && obstacleOutline.sharedMaterial.color.r>obstacleOutline.sharedMaterial.color.g && eastStair.gameObject.activeInHierarchy,
-            "Task 3 shows an orange debris outline and a cyan sign at the east stair");
+        var debrisParts=Field<Renderer[]>(highlights,"debrisRenderers");
+        var debrisMaterials=Field<Material[][]>(highlights,"debrisOriginal");
+        Check(debrisParts.Length>1 && debrisParts.Select((part,i)=>!part.sharedMaterials.SequenceEqual(debrisMaterials[i])).Count(lit=>lit)>1 &&
+            eastStair.gameObject.activeInHierarchy,"Task 3 lights the debris itself and shows the east stair sign");
         MoveHead(movement,head,new Vector3(21.5f,9.3f,0)); lesson.Tick(.1f);
         Check(taskDetails.text.Contains("已完成</color>  任务 3"),"Reaching the east stair entrance completes task 3");
-        Check(!obstacleOutline.enabled && !eastStair.gameObject.activeInHierarchy,"The completed detour clears both markers");
+        Check(debrisParts.Select((part,i)=>part.sharedMaterials.SequenceEqual(debrisMaterials[i])).All(restored=>restored) &&
+            !eastStair.gameObject.activeInHierarchy,"The completed detour restores the debris surfaces and clears the sign");
         messages.Hide();
         for(int i=0;i<10;i++) lesson.Tick(6.1f);
         var call=FindObjectOfType<CampusRefugeCall>();
@@ -641,14 +667,36 @@ public sealed class CampusLessonDriver : MonoBehaviour
         taskDetails.ForceMeshUpdate(true);
         Check(!taskDetails.isTextOverflowing,"The shared card fits the complete task list");
         var assembly=FindObjectOfType<AssemblyOutcomeController>();
+        var goalArea=Field<GameObject>(highlights,"assemblyArea");
+        Bounds painted=goalArea.GetComponent<Renderer>().bounds, trigger=assembly.CompletionBounds.bounds;
+        Check(goalArea.activeInHierarchy && Mathf.Abs(painted.center.x-trigger.center.x)<.01f &&
+            Mathf.Abs(painted.center.z-trigger.center.z)<.01f && Mathf.Abs(painted.size.x-trigger.size.x)<.01f &&
+            Mathf.Abs(painted.size.z-trigger.size.z)<.01f,"The lit assembly floor footprint matches the real victory trigger");
         Field<Harbourview.Journey.SafeZoneEndpoint>(assembly,"endpoint").onReached.Invoke();
         Check(resolution.CurrentOutcome==ResolutionCoordinator.Outcome.Victory &&
             Field<CampusExerciseTasks>(lesson,"tasks").Details(lesson.CurrentPhase).Contains("已完成</color>  主任务"),
             "The outdoor endpoint completes the main objective and wins the exercise");
-        Check(!primaryOutline.gameObject.activeInHierarchy,"The assembly highlight clears at victory");
+        Check(!primaryOutline.gameObject.activeInHierarchy && !goalArea.activeInHierarchy,"The assembly highlights clear at victory");
     }
     private static bool Outlines(LineRenderer outline, Vector3 target) => outline.enabled && outline.gameObject.activeInHierarchy &&
         Vector3.Distance((outline.GetPosition(0)+outline.GetPosition(2))*.5f,target)<.55f;
+
+    private void CheckLowerFloorSmoke(CampusSmokeSpread spread,CampusSmokeExposure exposure,HealthTimeController health,bool covered)
+    {
+        foreach (int floor in new[]{2,1})
+        {
+            var stage=spread.Stages.First(s=>s.particles.name==floor+"F corridor x=10");
+            bool enabled=stage.exposure.enabled;
+            stage.exposure.enabled=true;
+            Vector3 center=stage.exposure.GetComponent<BoxCollider>().bounds.center;
+            float before=health.HealthPercent;
+            exposure.RecordTeleport(center-Vector3.right*.9f,center+Vector3.right*.9f);
+            float expected=(floor==2 ? 1f : .5f)*(covered ? .05f : 1f);
+            Check(Mathf.Abs((before-health.HealthPercent)*100f-expected)<.001f,
+                $"Floor {floor} corridor uses {expected} HP/s across a one-second teleport path (covered={covered})");
+            stage.exposure.enabled=enabled;
+        }
+    }
     private void EnvironmentCapture(string name,Vector3 position,Vector3 look,CampusLessonDirector lesson,CampusLocomotion movement,Transform head)
     {
         Vector3 rigPosition=movement.transform.position; Quaternion headRotation=head.localRotation;

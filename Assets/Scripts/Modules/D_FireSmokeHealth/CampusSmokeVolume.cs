@@ -5,6 +5,7 @@ using UnityEngine;
 public sealed class CampusSmokeVolume : MonoBehaviour
 {
     public static readonly HashSet<CampusSmokeVolume> Active = new HashSet<CampusSmokeVolume>();
+    internal float Strength { get; set; } = 1f;
     private BoxCollider volume;
     private void OnEnable() { volume = GetComponent<BoxCollider>(); Active.Add(this); }
     private void OnDisable() { Active.Remove(this); }

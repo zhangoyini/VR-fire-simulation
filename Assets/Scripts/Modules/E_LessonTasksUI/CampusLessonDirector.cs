@@ -436,7 +436,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
             }
         }
         highlights?.Show(CurrentPhase, tasks, inRestroom, targetTowel, nearestFaucet);
-        panels?.ShowObjectHint(target,hint);
+        panels?.ShowObjectHint(target,hint,nearestFaucet != null);
     }
 
     private void HideObjectiveHighlights()

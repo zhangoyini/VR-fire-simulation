@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -12,12 +13,19 @@ internal sealed class CampusObjectiveHighlights
 
     private readonly GameObject root;
     private readonly Transform head;
-    private readonly Material objectiveMaterial, warningMaterial;
-    private readonly LineRenderer primary, secondary, obstacle;
+    private readonly Material objectiveMaterial;
+    private readonly LineRenderer primary, secondary;
     private readonly TextMeshPro eastStairLabel;
-    private readonly Renderer classroomBar, debris, refugeSign, callButton, assemblySign;
+    private readonly Renderer classroomBar, refugeSign, callButton, assemblySign;
+    private readonly Transform debrisAnchor;
+    private readonly Renderer[] debrisRenderers;
+    private readonly Material[][] debrisOriginal, debrisLit;
+    private readonly Dictionary<Material, Material> debrisMaterials = new Dictionary<Material, Material>();
+    private readonly GameObject assemblyArea;
+    private readonly Mesh assemblyMesh;
     private readonly Renderer[] exitBars, pushGrips;
     private readonly CampusRescueStudent student;
+    private bool debrisHighlighted;
 
     internal CampusObjectiveHighlights(Transform parent, Transform head, TMP_FontAsset font,
         CampusHingeInteractable classroomDoor, Transform exitDoor, CampusRescueStudent student)
@@ -28,16 +36,18 @@ internal sealed class CampusObjectiveHighlights
         root.transform.SetParent(parent, false);
         var shader = Shader.Find("Universal Render Pipeline/Unlit");
         objectiveMaterial = new Material(shader) { color = Cyan };
-        warningMaterial = new Material(shader) { color = Amber };
         primary = CreateOutline("Primary objective", objectiveMaterial);
         secondary = CreateOutline("Second handle", objectiveMaterial);
-        obstacle = CreateOutline("Stair obstacle", warningMaterial);
 
         classroomBar = classroomDoor.transform.Find("Push bar")?.GetComponent<Renderer>();
         exitBars = FindParts(exitDoor, "Panic bar");
         pushGrips = FindParts(student != null ? student.transform : null, "Push grip");
-        debris = GameObject.Find("3F Stair A collapsed storage pile")?.transform
-            .Find("Toppled storage cabinet")?.GetComponent<Renderer>();
+        var debrisRoot = GameObject.Find("3F Stair A collapsed storage pile");
+        debrisAnchor = debrisRoot?.transform.Find("Toppled storage cabinet");
+        debrisRenderers = debrisRoot != null ? debrisRoot.GetComponentsInChildren<MeshRenderer>()
+            .Where(part => part.name != "Sign backing" && part.GetComponent<TMP_Text>() == null).ToArray() : System.Array.Empty<Renderer>();
+        debrisOriginal = debrisRenderers.Select(part => part.sharedMaterials).ToArray();
+        debrisLit = new Material[debrisRenderers.Length][];
         refugeSign = SignBacking(GameObject.Find("Sign 2F REFUGE  /  二层避难区")?.transform);
         callButton = GameObject.Find("Intercom button")?.GetComponent<Renderer>();
 
@@ -49,6 +59,9 @@ internal sealed class CampusObjectiveHighlights
                 if (child.name == "Sign ASSEMBLY POINT" && (frontSign == null || child.position.z > frontSign.position.z))
                     frontSign = child;
         assemblySign = SignBacking(frontSign);
+        var assemblyBounds = Object.FindObjectOfType<AssemblyOutcomeController>()?.CompletionBounds;
+        if (assemblyBounds != null)
+            assemblyArea = CreateAssemblyArea(assemblyBounds, out assemblyMesh);
 
         var eastLanding = GameObject.Find("Stair B — continuous physical stairs")?.transform.Find("Full landing 3F");
         if (eastLanding != null)
@@ -71,8 +84,13 @@ internal sealed class CampusObjectiveHighlights
         CampusTowelInteractable towel, CampusFaucet faucet)
     {
         root.SetActive(true);
-        primary.enabled = secondary.enabled = obstacle.enabled = false;
+        primary.enabled = secondary.enabled = false;
         bool showEastStair = false;
+        bool showDebris = tasks.Floor == 3 && tasks.DetourActive && debrisAnchor != null &&
+            (head.position - debrisAnchor.position).sqrMagnitude <= 7f * 7f;
+        SetDebrisHighlight(showDebris);
+        bool showAssembly = tasks.Floor == 1 && tasks.AssemblyApproach;
+        if (assemblyArea != null) assemblyArea.SetActive(showAssembly);
 
         switch (tasks.Floor)
         {
@@ -90,7 +108,6 @@ internal sealed class CampusObjectiveHighlights
                 break;
             case 3:
                 if (!tasks.DetourActive) break;
-                Draw(obstacle, debris, 7f);
                 if (eastStairLabel == null) break;
                 Vector3 offset = eastStairLabel.transform.position - head.position;
                 if (offset.sqrMagnitude < 48f * 48f && offset.sqrMagnitude > .01f)
@@ -111,19 +128,76 @@ internal sealed class CampusObjectiveHighlights
                     if (exitBars.Length > 0) DrawFlat(primary, exitBars[0], 14f, .11f);
                     if (exitBars.Length > 1) DrawFlat(secondary, exitBars[1], 14f, .11f);
                 }
-                else if (tasks.AssemblyApproach) DrawFlat(primary, assemblySign, 40f);
+                else if (showAssembly) DrawFlat(primary, assemblySign, 40f);
                 break;
         }
         if (eastStairLabel != null) eastStairLabel.gameObject.SetActive(showEastStair);
     }
 
-    internal void Hide() => root.SetActive(false);
+    internal void Hide()
+    {
+        SetDebrisHighlight(false);
+        root.SetActive(false);
+    }
 
     internal void Dispose()
     {
+        SetDebrisHighlight(false);
         Object.Destroy(root);
         Object.Destroy(objectiveMaterial);
-        Object.Destroy(warningMaterial);
+        if (assemblyMesh != null) Object.Destroy(assemblyMesh);
+        foreach (var material in debrisMaterials.Values) Object.Destroy(material);
+    }
+
+    private void SetDebrisHighlight(bool active)
+    {
+        if (debrisHighlighted == active) return;
+        debrisHighlighted = active;
+        for (int i = 0; i < debrisRenderers.Length; i++)
+        {
+            var part = debrisRenderers[i];
+            if (part == null) continue;
+            if (active && debrisLit[i] == null) debrisLit[i] = debrisOriginal[i].Select(HighlightMaterial).ToArray();
+            part.sharedMaterials = active ? debrisLit[i] : debrisOriginal[i];
+        }
+    }
+
+    private Material HighlightMaterial(Material original)
+    {
+        if (original == null || !original.HasProperty("_BaseColor")) return original;
+        if (debrisMaterials.TryGetValue(original, out var material)) return material;
+
+        material = new Material(original);
+        material.SetColor("_BaseColor", Color.Lerp(original.GetColor("_BaseColor"), Amber, .65f));
+        if (material.HasProperty("_EmissionColor"))
+        {
+            material.EnableKeyword("_EMISSION");
+            material.SetColor("_EmissionColor", Amber * .35f);
+        }
+        debrisMaterials.Add(original, material);
+        return material;
+    }
+
+    private GameObject CreateAssemblyArea(BoxCollider zone, out Mesh mesh)
+    {
+        var area = new GameObject("Assembly success area highlight");
+        area.transform.SetParent(root.transform, false);
+        Vector3 half = zone.size * .5f;
+        Vector3 center = zone.center - Vector3.up * (half.y - .055f);
+        Vector3 x = Vector3.right * half.x, z = Vector3.forward * half.z;
+        Vector3[] vertices = { center - x - z, center - x + z, center + x + z, center + x - z };
+        for (int i = 0; i < vertices.Length; i++)
+            vertices[i] = area.transform.InverseTransformPoint(zone.transform.TransformPoint(vertices[i]));
+        Color tint = new Color(Cyan.r, Cyan.g, Cyan.b, .34f);
+        mesh = new Mesh { name = "Assembly trigger footprint", vertices = vertices, triangles = new[] { 0, 1, 2, 0, 2, 3 },
+            colors = new[] { tint, tint, tint, tint } };
+        area.AddComponent<MeshFilter>().sharedMesh = mesh;
+        var renderer = area.AddComponent<MeshRenderer>();
+        renderer.sharedMaterial = Resources.Load<Material>("TeleportDestinationMarker");
+        renderer.shadowCastingMode = ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+        area.SetActive(false);
+        return area;
     }
 
     private LineRenderer CreateOutline(string name, Material material)

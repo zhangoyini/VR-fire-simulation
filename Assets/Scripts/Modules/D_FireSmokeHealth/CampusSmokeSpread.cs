@@ -16,6 +16,8 @@ public sealed class CampusSmokeSpread : MonoBehaviour
         public float delay, fillSeconds = 6, emissionRate = 7;
         public float minimumSize = .65f, maximumSize = 1.05f;
         public float settlingDepth;
+        [Range(.25f, 1f)] public float strength = 1f;
+        internal float Strength => strength > 0f ? strength : 1f;
     }
     [SerializeField] private CampusHingeInteractable roomDoor;
     [SerializeField] private ParticleSystem doorwaySmoke;
@@ -42,7 +44,11 @@ public sealed class CampusSmokeSpread : MonoBehaviour
         if (doorwaySmoke != null && !doorwayPositionCached) { doorwayClosedPosition = doorwaySmoke.transform.position; doorwayPositionCached = true; }
         foreach (var stage in stages)
         {
-            if (stage.exposure != null) stage.exposure.enabled = false;
+            if (stage.exposure != null)
+            {
+                stage.exposure.Strength = stage.Strength;
+                stage.exposure.enabled = false;
+            }
             if (stage.particles == null) continue;
             if(!sourcePositions.ContainsKey(stage.particles)) sourcePositions[stage.particles]=stage.particles.transform.position;
             if(stage.settlingDepth>0) stage.particles.transform.position=sourcePositions[stage.particles];
@@ -69,9 +75,10 @@ public sealed class CampusSmokeSpread : MonoBehaviour
             float density = Mathf.Clamp01((age - stage.delay) / Mathf.Max(.1f, stage.fillSeconds));
             if (stage.particles != null)
             {
-                var emission = stage.particles.emission; emission.rateOverTime = stage.emissionRate * density;
+                var emission = stage.particles.emission; emission.rateOverTime = stage.emissionRate * density * stage.Strength;
                 var main = stage.particles.main;
-                main.startSize = new ParticleSystem.MinMaxCurve(stage.minimumSize * Mathf.Lerp(.6f,1,density), stage.maximumSize * Mathf.Lerp(.6f,1,density));
+                float sizeScale = Mathf.Lerp(.6f, 1f, density) * Mathf.Lerp(.72f, 1f, stage.Strength);
+                main.startSize = new ParticleSystem.MinMaxCurve(stage.minimumSize * sizeScale, stage.maximumSize * sizeScale);
                 if(stage.settlingDepth>0 && sourcePositions.TryGetValue(stage.particles,out var ceilingPosition))
                     stage.particles.transform.position=ceilingPosition-Vector3.up*(stage.settlingDepth*Mathf.SmoothStep(0,1,density));
             }

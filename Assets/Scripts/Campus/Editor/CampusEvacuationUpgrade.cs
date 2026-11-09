@@ -200,9 +200,11 @@ public static partial class CampusSceneBuilder
         var centre = p; centre.y = (floor-1)*Storey+1.7f;
         // Stair flight volumes follow their height, not the flat corridor floor.
         if (name.StartsWith("Descending")) centre = p-Vector3.up*.65f;
-        stages.Add(new CampusSmokeSpread.Stage { particles=particles,exposure=FlowVolume(root,name+" exposure",centre,volume),floor=floor,delay=delay,fillSeconds=fill,emissionRate=rate,minimumSize=dense?.95f:.8f,maximumSize=dense?1.8f:1.55f,settlingDepth=name.Contains("corridor")?.55f:name.Contains("landing")?.35f:0 });
+        bool corridor = name.Contains("corridor");
+        float strength = floor == 1 ? (corridor ? .25f : .5f) : floor == 2 ? (corridor ? .5f : .75f) : 1f;
+        stages.Add(new CampusSmokeSpread.Stage { particles=particles,exposure=FlowVolume(root,name+" exposure",centre,volume),floor=floor,delay=delay,fillSeconds=fill,emissionRate=rate,minimumSize=dense?.95f:.8f,maximumSize=dense?1.8f:1.55f,settlingDepth=corridor?.55f:name.Contains("landing")?.35f:0,strength=strength });
         var velocity=particles.velocityOverLifetime;
-        if(name.Contains("corridor"))
+        if(corridor)
         {
             float drift=Mathf.Sign(p.x+(floor==4?2.2f:0))*(floor==4?.09f:-.07f);
             velocity.x=new ParticleSystem.MinMaxCurve(drift,drift); // Match the Y/Z TwoConstants mode.

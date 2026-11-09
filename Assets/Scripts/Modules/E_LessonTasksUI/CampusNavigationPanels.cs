@@ -19,12 +19,13 @@ internal sealed class CampusNavigationPanels
     private readonly Transform head;
     private readonly CanvasGroup mapGroup, taskGroup, noticeGroup;
     private readonly TMP_Text mapLabel, taskLabel, taskText, noticeText, objectHint;
-    private readonly Image mapBadge, noticeBackground;
+    private readonly Image mapBadge, objectHintBackground;
+    private readonly GameObject objectHintRoot;
     private readonly RectTransform mapRect, mapContent, taskRect;
     private float mapZoom, taskZoom, taskHeight = 145f;
     private Panel requested;
     private bool wasX, wasY;
-    private readonly Queue<(string text, bool complete, float delay, bool darkText)> notices = new Queue<(string, bool, float, bool)>();
+    private readonly Queue<(string text, bool complete, float delay)> notices = new Queue<(string, bool, float)>();
     private float noticeRemaining, noticeDelay;
 
     internal bool IsExpanded => requested != Panel.None || mapZoom > 0 || taskZoom > 0;
@@ -60,19 +61,16 @@ internal sealed class CampusNavigationPanels
         taskText.alignment = TextAlignmentOptions.Left;
 
         noticeGroup = CampusTutorialView.CanvasAt("Exercise task notification", root.transform, new Vector3(0, .27f, 1.45f), .002f);
-        noticeBackground = CampusTutorialView.Picture(noticeGroup.transform, Vector2.zero, new Vector2(440, 82), Ink);
+        CampusTutorialView.Picture(noticeGroup.transform, Vector2.zero, new Vector2(440, 82), Ink);
         noticeText = CampusTutorialView.CreateLabel(font, noticeGroup.transform, Vector2.zero, new Vector2(416, 70), 23, "");
         noticeGroup.gameObject.SetActive(false);
 
-        var hintObject = new GameObject("Nearby exercise operation hint", typeof(RectTransform));
-        hintObject.transform.SetParent(root.transform, false);
-        objectHint = hintObject.AddComponent<TextMeshPro>();
-        objectHint.font = font;
-        objectHint.fontSize = .28f;
-        objectHint.rectTransform.sizeDelta = new Vector2(.68f, .14f);
-        objectHint.alignment = TextAlignmentOptions.Center;
-        objectHint.color = new Color(.72f, 1f, .9f);
-        hintObject.SetActive(false);
+        var hintCanvas = CampusTutorialView.CanvasAt("Nearby exercise operation hint", root.transform, Vector3.zero, .0017f);
+        objectHintRoot = hintCanvas.gameObject;
+        objectHintBackground = CampusTutorialView.Picture(hintCanvas.transform, Vector2.zero, new Vector2(394, 52),
+            new Color(.94f, .96f, .95f, .98f));
+        objectHint = CampusTutorialView.CreateLabel(font, hintCanvas.transform, Vector2.zero, new Vector2(374, 46), 20, "");
+        objectHintRoot.SetActive(false);
         root.AddComponent<CampusUIForeground>().Configure(Shader.Find("Campus/Foreground UI"));
         Hide(false, false);
     }
@@ -105,10 +103,10 @@ internal sealed class CampusNavigationPanels
         TickNotice(dt, IsExpanded || (CampusMessagePresenter.Instance?.HasPriorityWarning ?? false));
     }
 
-    internal void QueueNotice(string text, bool complete = false, float delay = 0, bool darkText = false)
+    internal void QueueNotice(string text, bool complete = false, float delay = 0)
     {
         if (notices.Count == 0) noticeDelay = delay;
-        notices.Enqueue((text, complete, delay, darkText));
+        notices.Enqueue((text, complete, delay));
     }
 
     private void TickNotice(float dt, bool blocked)
@@ -129,8 +127,7 @@ internal sealed class CampusNavigationPanels
         {
             noticeRemaining = notice.complete ? 2f : 6f;
             noticeText.text = notice.text;
-            noticeText.color = notice.darkText ? Color.black : notice.complete ? new Color(.48f, .94f, .53f) : Color.white;
-            noticeBackground.color = notice.darkText ? new Color(.94f, .96f, .95f, .98f) : Ink;
+            noticeText.color = notice.complete ? new Color(.48f, .94f, .53f) : Color.white;
         }
         else
         {
@@ -146,7 +143,7 @@ internal sealed class CampusNavigationPanels
         noticeGroup.gameObject.SetActive(true);
     }
 
-    internal void ShowObjectHint(Transform target, string text)
+    internal void ShowObjectHint(Transform target, string text, bool faucetHint)
     {
         bool visible = false;
         if (target != null && !IsExpanded)
@@ -156,11 +153,14 @@ internal sealed class CampusNavigationPanels
             visible = offset.sqrMagnitude <= 1.6f * 1.6f && Vector3.Angle(head.forward, offset) < 35f;
             if (visible)
             {
-                objectHint.transform.SetPositionAndRotation(position, Quaternion.LookRotation(offset));
+                objectHintRoot.transform.SetPositionAndRotation(position, Quaternion.LookRotation(offset));
                 objectHint.text = text;
+                objectHint.fontStyle = faucetHint ? FontStyles.Bold : FontStyles.Normal;
+                objectHint.color = faucetHint ? Color.black : new Color(.72f, 1f, .9f);
+                objectHintBackground.gameObject.SetActive(faucetHint);
             }
         }
-        objectHint.gameObject.SetActive(visible);
+        objectHintRoot.SetActive(visible);
     }
 
     internal void Hide(bool x, bool y, bool fold = false)

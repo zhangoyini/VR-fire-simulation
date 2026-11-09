@@ -12,6 +12,8 @@ public class AssemblyOutcomeController : MonoBehaviour
     [SerializeField] private HealthTimeBar healthBar;
     [SerializeField] private Jiao.HealthTime.AudioManager audioManager;
 
+    internal BoxCollider CompletionBounds => completionZone != null ? completionZone.GetComponent<BoxCollider>() : null;
+
     private void Start()
     {
         if (endpoint == null || completionZone == null || resolution == null || health == null)

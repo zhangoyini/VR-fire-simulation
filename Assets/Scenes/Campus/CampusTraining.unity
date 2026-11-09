@@ -152308,171 +152308,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 451583985}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!43 &451713393
-Mesh:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 11
-  m_SubMeshes:
-  - serializedVersion: 2
-    firstByte: 0
-    indexCount: 24
-    topology: 0
-    baseVertex: 0
-    firstVertex: 0
-    vertexCount: 8
-    localAABB:
-      m_Center: {x: 0, y: 0.01, z: 0}
-      m_Extent: {x: 1.65, y: 0, z: 1.275}
-  m_Shapes:
-    vertices: []
-    shapes: []
-    channels: []
-    fullWeights: []
-  m_BindPose: []
-  m_BoneNameHashes: 
-  m_RootBoneNameHash: 0
-  m_BonesAABB: []
-  m_VariableBoneCountWeights:
-    m_Data: 
-  m_MeshCompression: 0
-  m_IsReadable: 1
-  m_KeepVertices: 1
-  m_KeepIndices: 1
-  m_IndexFormat: 0
-  m_IndexBuffer: 000004000100010004000500010005000200020005000600020006000300030006000700030007000000000007000400
-  m_VertexData:
-    serializedVersion: 3
-    m_VertexCount: 8
-    m_Channels:
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 3
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 12
-      format: 0
-      dimension: 4
-    - stream: 0
-      offset: 28
-      format: 0
-      dimension: 2
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    m_DataSize: 288
-    _typelessdata: 0000c03f0ad7233c000090bf000000000000803f0000803f0000803f00000000000000000000c0bf0ad7233c000090bf000000000000803f0000803f0000803f0000803f000000000000c0bf0ad7233c0000903f000000000000803f0000803f0000803f00000000000000000000c03f0ad7233c0000903f000000000000803f0000803f0000803f0000803f000000003333d33f0ad7233c3333a3bf000000000000803f0000803f00000000000000000000803f3333d3bf0ad7233c3333a3bf000000000000803f0000803f000000000000803f0000803f3333d3bf0ad7233c3333a33f000000000000803f0000803f00000000000000000000803f3333d33f0ad7233c3333a33f000000000000803f0000803f000000000000803f0000803f
-  m_CompressedMesh:
-    m_Vertices:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UV:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Normals:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Tangents:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Weights:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_NormalSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_TangentSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_FloatColors:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_BoneIndices:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Triangles:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UVInfo: 0
-  m_LocalAABB:
-    m_Center: {x: 0, y: 0.01, z: 0}
-    m_Extent: {x: 1.65, y: 0, z: 1.275}
-  m_MeshUsageFlags: 0
-  m_CookingOptions: 30
-  m_BakedConvexCollisionMesh: 
-  m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
-  m_MeshOptimizationFlags: 1
-  m_StreamData:
-    serializedVersion: 2
-    offset: 0
-    size: 0
-    path: 
 --- !u!1 &452045491
 GameObject:
   m_ObjectHideFlags: 0
@@ -189069,8 +188904,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 534931918}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.39, y: 0, z: -0.046}
+  m_LocalRotation: {x: 0, y: 0, z: 1, w: 0}
+  m_LocalPosition: {x: 0.39011955, y: -0.0086398125, z: -0.04599997}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -189078,7 +188913,7 @@ Transform:
   - {fileID: 1679343125}
   - {fileID: 574681120}
   m_Father: {fileID: 1231874536}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
 --- !u!1 &535705435
 GameObject:
   m_ObjectHideFlags: 0
@@ -247636,6 +247471,46 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 734082370}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!21 &734117669
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Sprites/Default
+  m_Shader: {fileID: 10753, guid: 0000000000000000f000000000000000, type: 0}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - PixelSnap: 0
+    - _EnableExternalAlpha: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
 --- !u!1 &734501657
 GameObject:
   m_ObjectHideFlags: 0
@@ -276897,7 +276772,7 @@ Transform:
   m_GameObject: {fileID: 784386081}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.029, z: 0}
   m_LocalScale: {x: 1.2399999, y: 0.38, z: 0.035}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -322158,7 +322033,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 870320513}
-  m_Mesh: {fileID: 451713393}
+  m_Mesh: {fileID: 1052686984}
 --- !u!23 &870320520
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -322179,7 +322054,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1206624644}
+  - {fileID: 734117669}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -336289,7 +336164,7 @@ Transform:
   m_GameObject: {fileID: 921173344}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
-  m_LocalPosition: {x: 3, y: 2.65, z: -1.86}
+  m_LocalPosition: {x: 2.607, y: 2.98, z: -2.26}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -338085,8 +337960,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 928413627}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 1, w: -0.00000004371139}
-  m_LocalPosition: {x: 0.39, y: 0, z: -0.046}
+  m_LocalRotation: {x: -0, y: -1.4210855e-14, z: -0.017043782, w: 0.9998548}
+  m_LocalPosition: {x: 0.34613156, y: -0.054754972, z: -0.045999974}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -338094,7 +337969,7 @@ Transform:
   - {fileID: 831025602}
   - {fileID: 657036315}
   m_Father: {fileID: 921173345}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -1.953}
 --- !u!1 &928566388
 GameObject:
   m_ObjectHideFlags: 0
@@ -369877,6 +369752,171 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1052476644}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!43 &1052686984
+Mesh:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 11
+  m_SubMeshes:
+  - serializedVersion: 2
+    firstByte: 0
+    indexCount: 24
+    topology: 0
+    baseVertex: 0
+    firstVertex: 0
+    vertexCount: 8
+    localAABB:
+      m_Center: {x: 0, y: 0.01, z: 0}
+      m_Extent: {x: 1.65, y: 0, z: 1.275}
+  m_Shapes:
+    vertices: []
+    shapes: []
+    channels: []
+    fullWeights: []
+  m_BindPose: []
+  m_BoneNameHashes: 
+  m_RootBoneNameHash: 0
+  m_BonesAABB: []
+  m_VariableBoneCountWeights:
+    m_Data: 
+  m_MeshCompression: 0
+  m_IsReadable: 1
+  m_KeepVertices: 1
+  m_KeepIndices: 1
+  m_IndexFormat: 0
+  m_IndexBuffer: 000004000100010004000500010005000200020005000600020006000300030006000700030007000000000007000400
+  m_VertexData:
+    serializedVersion: 3
+    m_VertexCount: 8
+    m_Channels:
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 12
+      format: 0
+      dimension: 4
+    - stream: 0
+      offset: 28
+      format: 0
+      dimension: 2
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 288
+    _typelessdata: 0000c03f0ad7233c000090bf000000000000803f0000803f0000803f00000000000000000000c0bf0ad7233c000090bf000000000000803f0000803f0000803f0000803f000000000000c0bf0ad7233c0000903f000000000000803f0000803f0000803f00000000000000000000c03f0ad7233c0000903f000000000000803f0000803f0000803f0000803f000000003333d33f0ad7233c3333a3bf000000000000803f0000803f00000000000000000000803f3333d3bf0ad7233c3333a3bf000000000000803f0000803f000000000000803f0000803f3333d3bf0ad7233c3333a33f000000000000803f0000803f00000000000000000000803f3333d33f0ad7233c3333a33f000000000000803f0000803f000000000000803f0000803f
+  m_CompressedMesh:
+    m_Vertices:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UV:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Normals:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Tangents:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Weights:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_NormalSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_TangentSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_FloatColors:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_BoneIndices:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Triangles:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UVInfo: 0
+  m_LocalAABB:
+    m_Center: {x: 0, y: 0.01, z: 0}
+    m_Extent: {x: 1.65, y: 0, z: 1.275}
+  m_MeshUsageFlags: 0
+  m_CookingOptions: 30
+  m_BakedConvexCollisionMesh: 
+  m_BakedTriangleCollisionMesh: 
+  m_MeshMetrics[0]: 1
+  m_MeshMetrics[1]: 1
+  m_MeshOptimizationFlags: 1
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
 --- !u!1001 &1052703303
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -400478,7 +400518,7 @@ MonoBehaviour:
   trackedHead: {fileID: 1363151216}
   graceSeconds: 3
   damagePerSecond: 2
-  coveredDamageMultiplier: 0.4
+  coveredDamageMultiplier: 0.05
   equivalentWalkingSpeed: 1.8
 --- !u!114 &1130435072
 MonoBehaviour:
@@ -425513,46 +425553,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!21 &1206624644
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Sprites/Default
-  m_Shader: {fileID: 10753, guid: 0000000000000000f000000000000000, type: 0}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _AlphaTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - PixelSnap: 0
-    - _EnableExternalAlpha: 0
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Flip: {r: 1, g: 1, b: 1, a: 1}
-    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
-  m_BuildTextureStacks: []
 --- !u!1 &1206792813
 GameObject:
   m_ObjectHideFlags: 0
@@ -639700,7 +639700,7 @@ Transform:
   m_GameObject: {fileID: 1783244905}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000004371139}
-  m_LocalPosition: {x: 23, y: 2.65, z: -1.09}
+  m_LocalPosition: {x: 20.834, y: 2.65, z: -1.09}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -684490,8 +684490,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922955615}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 1, w: -0.00000004371139}
-  m_LocalPosition: {x: 0.39, y: 0, z: -0.046}
+  m_LocalRotation: {x: 1.7208455e-15, y: -3.5527133e-15, z: -0.0028630905, w: 0.9999959}
+  m_LocalPosition: {x: 0.34814453, y: -0.0034871101, z: -0.045999974}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -684499,7 +684499,7 @@ Transform:
   - {fileID: 508337964}
   - {fileID: 277634618}
   m_Father: {fileID: 1699048106}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -0.328}
 --- !u!1 &1923080356
 GameObject:
   m_ObjectHideFlags: 0
@@ -751498,6 +751498,7 @@ MonoBehaviour:
     minimumSize: 1
     maximumSize: 1.9
     settlingDepth: 0
+    strength: 1
   - particles: {fileID: 578223054}
     exposure: {fileID: 1341023845}
     roomClock: 0
@@ -751508,6 +751509,7 @@ MonoBehaviour:
     minimumSize: 0.65
     maximumSize: 1.15
     settlingDepth: 0
+    strength: 1
   - particles: {fileID: 1785755805}
     exposure: {fileID: 1866162056}
     roomClock: 0
@@ -751518,6 +751520,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 259805479}
     exposure: {fileID: 2075901969}
     roomClock: 0
@@ -751528,6 +751531,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 1428819090}
     exposure: {fileID: 1151635575}
     roomClock: 0
@@ -751538,6 +751542,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 890778980}
     exposure: {fileID: 653335006}
     roomClock: 0
@@ -751548,6 +751553,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 813966184}
     exposure: {fileID: 218084939}
     roomClock: 0
@@ -751558,6 +751564,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 1303108148}
     exposure: {fileID: 1897721848}
     roomClock: 0
@@ -751568,6 +751575,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 1524421475}
     exposure: {fileID: 1708427311}
     roomClock: 0
@@ -751578,6 +751586,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 1888059463}
     exposure: {fileID: 1976288259}
     roomClock: 0
@@ -751588,6 +751597,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 91707418}
     exposure: {fileID: 1522138680}
     roomClock: 0
@@ -751598,6 +751608,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 1097369076}
     exposure: {fileID: 676008170}
     roomClock: 0
@@ -751608,6 +751619,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 1693940957}
     exposure: {fileID: 1044685269}
     roomClock: 0
@@ -751618,6 +751630,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
+    strength: 1
   - particles: {fileID: 219974349}
     exposure: {fileID: 1198616638}
     roomClock: 0
@@ -751628,6 +751641,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
+    strength: 1
   - particles: {fileID: 1341305701}
     exposure: {fileID: 321128941}
     roomClock: 0
@@ -751638,6 +751652,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
+    strength: 1
   - particles: {fileID: 55127520}
     exposure: {fileID: 239126883}
     roomClock: 0
@@ -751648,6 +751663,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 1
   - particles: {fileID: 987548386}
     exposure: {fileID: 993356040}
     roomClock: 0
@@ -751658,6 +751674,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 1
   - particles: {fileID: 1867274504}
     exposure: {fileID: 1728738395}
     roomClock: 0
@@ -751668,6 +751685,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
+    strength: 1
   - particles: {fileID: 2077181158}
     exposure: {fileID: 111825132}
     roomClock: 0
@@ -751678,6 +751696,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 1
   - particles: {fileID: 724860757}
     exposure: {fileID: 1521012263}
     roomClock: 0
@@ -751688,6 +751707,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 1
   - particles: {fileID: 159288531}
     exposure: {fileID: 1622778185}
     roomClock: 0
@@ -751698,6 +751718,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 1175912312}
     exposure: {fileID: 1521563278}
     roomClock: 0
@@ -751708,6 +751729,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 1519806242}
     exposure: {fileID: 657471297}
     roomClock: 0
@@ -751718,6 +751740,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 376523097}
     exposure: {fileID: 1959693614}
     roomClock: 0
@@ -751728,6 +751751,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 2002868060}
     exposure: {fileID: 1062327341}
     roomClock: 0
@@ -751738,6 +751762,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 1466345319}
     exposure: {fileID: 2091905123}
     roomClock: 0
@@ -751748,6 +751773,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 379313255}
     exposure: {fileID: 271523351}
     roomClock: 0
@@ -751758,6 +751784,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 808679997}
     exposure: {fileID: 886821048}
     roomClock: 0
@@ -751768,6 +751795,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 270717465}
     exposure: {fileID: 1536128617}
     roomClock: 0
@@ -751778,6 +751806,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 2007918666}
     exposure: {fileID: 821204475}
     roomClock: 0
@@ -751788,6 +751817,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 1
   - particles: {fileID: 736887116}
     exposure: {fileID: 920870346}
     roomClock: 0
@@ -751798,6 +751828,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
+    strength: 0.75
   - particles: {fileID: 135913539}
     exposure: {fileID: 568810587}
     roomClock: 0
@@ -751808,6 +751839,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 0.75
   - particles: {fileID: 169009176}
     exposure: {fileID: 29880421}
     roomClock: 0
@@ -751818,6 +751850,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 0.75
   - particles: {fileID: 1688846285}
     exposure: {fileID: 595663871}
     roomClock: 0
@@ -751828,6 +751861,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
+    strength: 0.75
   - particles: {fileID: 1495948947}
     exposure: {fileID: 650672230}
     roomClock: 0
@@ -751838,6 +751872,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 0.75
   - particles: {fileID: 1603477403}
     exposure: {fileID: 661366617}
     roomClock: 0
@@ -751848,6 +751883,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 0.75
   - particles: {fileID: 1994469269}
     exposure: {fileID: 1532255954}
     roomClock: 0
@@ -751858,6 +751894,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 2053135377}
     exposure: {fileID: 2125856198}
     roomClock: 0
@@ -751868,6 +751905,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 1477358285}
     exposure: {fileID: 726747276}
     roomClock: 0
@@ -751878,6 +751916,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 1474979686}
     exposure: {fileID: 1037265368}
     roomClock: 0
@@ -751888,6 +751927,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 1274481516}
     exposure: {fileID: 1523896952}
     roomClock: 0
@@ -751898,6 +751938,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 1170596552}
     exposure: {fileID: 1025079674}
     roomClock: 0
@@ -751908,6 +751949,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 796379304}
     exposure: {fileID: 1107021487}
     roomClock: 0
@@ -751918,6 +751960,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 1952549033}
     exposure: {fileID: 1795096685}
     roomClock: 0
@@ -751928,6 +751971,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 1807791198}
     exposure: {fileID: 848361458}
     roomClock: 0
@@ -751938,6 +751982,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 1609055514}
     exposure: {fileID: 650440545}
     roomClock: 0
@@ -751948,6 +751993,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.5
   - particles: {fileID: 447243320}
     exposure: {fileID: 1345827936}
     roomClock: 0
@@ -751958,6 +752004,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
+    strength: 0.5
   - particles: {fileID: 353209094}
     exposure: {fileID: 131559673}
     roomClock: 0
@@ -751968,6 +752015,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 0.5
   - particles: {fileID: 514498533}
     exposure: {fileID: 283816640}
     roomClock: 0
@@ -751978,6 +752026,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 0.5
   - particles: {fileID: 1008061360}
     exposure: {fileID: 732321882}
     roomClock: 0
@@ -751988,6 +752037,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
+    strength: 0.5
   - particles: {fileID: 298049955}
     exposure: {fileID: 2126138686}
     roomClock: 0
@@ -751998,6 +752048,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 0.5
   - particles: {fileID: 452045494}
     exposure: {fileID: 1819989174}
     roomClock: 0
@@ -752008,6 +752059,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
+    strength: 0.5
   - particles: {fileID: 565827057}
     exposure: {fileID: 1484229388}
     roomClock: 0
@@ -752018,6 +752070,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   - particles: {fileID: 1065959049}
     exposure: {fileID: 1616227192}
     roomClock: 0
@@ -752028,6 +752081,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   - particles: {fileID: 1076310555}
     exposure: {fileID: 2143488840}
     roomClock: 0
@@ -752038,6 +752092,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   - particles: {fileID: 1540397667}
     exposure: {fileID: 1544522667}
     roomClock: 0
@@ -752048,6 +752103,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   - particles: {fileID: 846312782}
     exposure: {fileID: 1696081395}
     roomClock: 0
@@ -752058,6 +752114,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   - particles: {fileID: 1665962637}
     exposure: {fileID: 1850742806}
     roomClock: 0
@@ -752068,6 +752125,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   - particles: {fileID: 141290158}
     exposure: {fileID: 1264169341}
     roomClock: 0
@@ -752078,6 +752136,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   - particles: {fileID: 824673989}
     exposure: {fileID: 204295710}
     roomClock: 0
@@ -752088,6 +752147,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   - particles: {fileID: 745399195}
     exposure: {fileID: 833189290}
     roomClock: 0
@@ -752098,6 +752158,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   - particles: {fileID: 729994920}
     exposure: {fileID: 375832771}
     roomClock: 0
@@ -752108,6 +752169,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
+    strength: 0.25
   escapeDelay: 8
 --- !u!1 &2119920437
 GameObject:

@@ -490,7 +490,7 @@ public static class CampusTeleportChecks
         Set(towel,"<IsWet>k__BackingField",true); towel.OnInteractStart(grip); Physics.SyncTransforms();
         exposure.Tick(false,0); health.ResetHealth(); exposure.Tick(true,3);
         exposure.RecordTeleport(new Vector3(0,1.65f,0),new Vector3(2,1.65f,0));
-        Check(exposure.IsProtected && Mathf.Abs(health.HealthPercent-(1-2/1.8f*2*.4f/100))<.0001f,"A wet towel covering the face still reduces equivalent teleport damage");
+        Check(exposure.IsProtected && Mathf.Abs(health.HealthPercent-(1-2/1.8f*.1f/100))<.0001f,"A wet towel covering the face limits equivalent teleport damage to 0.1 HP/s");
         towel.OnInteractEnd(grip); CampusTowelInteractable.Active.Remove(towel); UnityEngine.Object.DestroyImmediate(cloth);
         exposure.Tick(false,0); health.ResetHealth();
         var overlapping=UnityEngine.Object.Instantiate(cloud); var overlappingSmoke=overlapping.GetComponent<CampusSmokeVolume>(); Call(overlappingSmoke,"OnEnable");

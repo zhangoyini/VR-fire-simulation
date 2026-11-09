@@ -48,7 +48,7 @@ internal sealed class CampusExerciseTasks
                 break;
             case CampusLessonDirector.Phase.WetTowel:
                 panels?.QueueNotice("任务 1 完成 · 已拿到毛巾", complete: true);
-                panels?.QueueNotice("任务 2 · 浸湿毛巾并撤离\n到洗手台打湿毛巾，再下到三楼。", darkText: true);
+                panels?.QueueNotice("任务 2 · 浸湿毛巾并撤离\n到洗手台打湿毛巾，再下到三楼。");
                 break;
             case CampusLessonDirector.Phase.Complete:
                 panels?.QueueNotice("任务 2 完成 · 继续前往一楼操场", complete: true);
@@ -129,7 +129,7 @@ internal sealed class CampusExerciseTasks
 
         var card = new StringBuilder("<b>任务详情</b>");
         Objective current = CurrentObjective(phase);
-        string assemblyInstruction = "沿疏散标识前往一楼室外操场的集合区。";
+        string assemblyInstruction = AssemblyApproach ? "进入操场上高亮的集合区并停留。" : "沿疏散标识前往一楼室外操场的集合区。";
         if (phase == CampusLessonDirector.Phase.OpenDoor)
             assemblyInstruction = "走近 401 教室门，握住扳机推开门，观察门外。";
         AddRow(card, assembly, "主任务 · 疏散到一楼操场", current == Objective.Assembly ? assemblyInstruction : null);
