@@ -15,23 +15,54 @@ public sealed class CampusExperience : MonoBehaviour
     private bool finished;
     private CampusSmokeExposure smokeExposure;
     private HealthTimeBar healthBar;
+    private HealthTimeController health;
+    private CampusLocomotion locomotion;
+    private CampusRescueStudent student;
+    private ResolutionCoordinator resolution;
+    private CampusDebriefReport report;
     private void Start()
     {
         startTime = Time.time;
         smokeExposure = FindObjectOfType<CampusSmokeExposure>();
         healthBar = FindObjectOfType<HealthTimeBar>(true);
+        health = HealthTimeController.Instance;
+        locomotion = trackedHead != null ? trackedHead.GetComponentInParent<CampusLocomotion>() : null;
+        student = FindObjectOfType<CampusRescueStudent>();
+        if (health != null) health.HealthLost += RecordLoss;
+        if (smokeExposure != null) smokeExposure.ExposureMeasured += RecordExposure;
         JourneyDirector.Instance?.Request(JourneyState.Awareness);
         if (alarm != null && CampusLessonDirector.Instance==null) alarm.PlayDelayed(9f);
-        var resolution = FindObjectOfType<ResolutionCoordinator>();
+        resolution = FindObjectOfType<ResolutionCoordinator>();
         if (resolution != null) resolution.OutcomeClaimed += OnOutcome;
     }
-    public void BeginTimedExercise() { startTime=Time.time; }
+    public void BeginTimedExercise()
+    {
+        startTime = Time.time;
+        report = new CampusDebriefReport { initialHealth = health != null ? health.CurrentHealth : 0 };
+        SessionLogger.Write("DEBRIEF_RUN_STARTED");
+    }
+
+    private void RecordLoss(float amount, HealthTimeController.LossSource source, Vector3? position)
+    {
+        if (!finished) report?.AddLoss(amount, source, position);
+    }
+
+    private void RecordExposure(float seconds, bool protection, bool teleport)
+    {
+        if (finished || report == null) return;
+        report.ObserveProtection(protection, Time.time - startTime);
+        report.MeasureSmoke(seconds, protection, teleport);
+    }
+
+    private int ExerciseFloor(int headFloor) => locomotion == null ? headFloor :
+        Mathf.Clamp(Mathf.FloorToInt((locomotion.transform.position.y + .15f) / 3.8f) + 1, 1, 4);
     private void Update()
     {
         if (trackedHead == null || finished) return;
         bool towelProtected = CampusTowelInteractable.HasProtection(trackedHead);
         healthBar?.SetTowelProtection(towelProtected);
         int floor = Mathf.Clamp(Mathf.FloorToInt((trackedHead.position.y - 0.8f) / 3.8f) + 1, 1, 4);
+        report?.Observe(ExerciseFloor(floor), CampusLessonDirector.Instance?.TargetTowel, towelProtected, Time.time - startTime);
         if (floorLabel != null) floorLabel.text = $"{floor}F   HP {Mathf.RoundToInt((HealthTimeController.Instance != null ? HealthTimeController.Instance.HealthPercent : 1) * 100)} / 血量";
         if (floorLabel != null)
         {
@@ -61,10 +92,35 @@ public sealed class CampusExperience : MonoBehaviour
                 "识别警报 · 跟随标识 · 路线受阻时重新选择\nNotice cues · Follow signs · Choose another route\n" +
                 "请勿使用电梯或跳窗逃生。\nAvoid elevators and window escape.";
         }
+        var lesson = CampusLessonDirector.Instance;
+        if (report == null || lesson == null) return;
+
+        int endFloor = ExerciseFloor(previousFloor);
+        report.duration = Time.time - startTime;
+        report.success = outcome == ResolutionCoordinator.Outcome.Victory;
+        report.depleted = health != null && health.IsDepleted;
+        report.endHealth = health != null ? health.CurrentHealth : 0;
+        report.endLocation = report.success ? "一楼室外操场安全集合点" :
+            lesson.Restroom != null && trackedHead != null && lesson.Restroom.bounds.Contains(trackedHead.position) ? "四楼 411 卫生间" :
+            endFloor > 0 ? endFloor + " 楼" : "未记录位置";
+        report.Observe(endFloor, lesson.TargetTowel, trackedHead != null && CampusTowelInteractable.HasProtection(trackedHead), report.duration);
+        report.Finish(lesson, student);
+        SessionLogger.Write("DEBRIEF_SUMMARY", JsonUtility.ToJson(report));
+        SessionLogger.Instance?.Flush();
+
+        var panel = resolution.GetComponent<SystemUIView>()?.OutcomePanel(outcome);
+        var navigation = resolution.GetComponent<SystemUINavigation>();
+        var font = debriefLabel != null ? debriefLabel.font : CampusMessagePresenter.Instance?.DisplayFont;
+        if (panel != null && navigation != null && font != null)
+        {
+            var debrief = new CampusDebriefView(panel, font, navigation, resolution.GetComponent<SystemUIAudio>(), report);
+            StartCoroutine(debrief.Play());
+        }
     }
     private void OnDestroy()
     {
-        var resolution = FindObjectOfType<ResolutionCoordinator>();
         if (resolution != null) resolution.OutcomeClaimed -= OnOutcome;
+        if (health != null) health.HealthLost -= RecordLoss;
+        if (smokeExposure != null) smokeExposure.ExposureMeasured -= RecordExposure;
     }
 }

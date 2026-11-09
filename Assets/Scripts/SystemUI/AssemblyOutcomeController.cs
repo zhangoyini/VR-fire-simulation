@@ -36,10 +36,9 @@ public class AssemblyOutcomeController : MonoBehaviour
     {
         if (endpoint.Type != SafeZoneEndpoint.EndpointType.GroundAssembly || health.IsDepleted)
             return;
-        if (!resolution.TryShowVictory())
+        if (!resolution.TryShowVictory(() => CampusLessonDirector.Instance?.CompleteAssembly()))
             return;
 
-        CampusLessonDirector.Instance?.CompleteAssembly();
         health.Pause(true);
         if (healthBar != null) healthBar.StopWarning();
         if (audioManager != null) audioManager.StopWarning();

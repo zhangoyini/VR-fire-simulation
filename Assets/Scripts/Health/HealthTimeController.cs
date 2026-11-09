@@ -37,16 +37,22 @@ namespace Jiao.HealthTime
         private readonly Dictionary<string, float> multiplierExpiry = new Dictionary<string, float>();
 
         public float HealthPercent => maxHealth > 0f ? currentHealth / maxHealth : 0f;
+        internal float CurrentHealth => currentHealth;
+        internal enum LossSource { Time, Smoke, Other }
+        internal event System.Action<float, LossSource, Vector3?> HealthLost;
         public bool IsDepleted => currentHealth <= 0f;
         public bool IsPaused => isPaused;
         public float DrainMultiplier => GetTotalMultiplier();
         private bool LessonDamageSuppressed => CampusLessonDirector.Instance != null &&
                                                CampusLessonDirector.Instance.DamageSuppressed;
 
-        public void TakeDamage(float amount)
+        public void TakeDamage(float amount) => TakeDamage(amount, LossSource.Other, null);
+        internal void TakeSmokeDamage(float amount, Vector3 position) => TakeDamage(amount, LossSource.Smoke, position);
+
+        private void TakeDamage(float amount, LossSource source, Vector3? position)
         {
             if (isPaused || LessonDamageSuppressed || IsDepleted || amount <= 0f) return;
-            currentHealth = Mathf.Max(0, currentHealth - amount);
+            ApplyLoss(amount, source, position);
             HealthChanged?.Invoke(HealthPercent);
             if (!hasTriggeredLowHealth && HealthPercent <= lowHealthThreshold)
             { hasTriggeredLowHealth = true; LowHealth?.Invoke(); }
@@ -83,7 +89,7 @@ namespace Jiao.HealthTime
             RemoveExpiredMultipliers();
 
             float drain = baseDrainPerSecond * GetTotalMultiplier() * Time.deltaTime;
-            currentHealth = Mathf.Max(0f, currentHealth - drain);
+            ApplyLoss(drain, LossSource.Time, null);
 
             HealthChanged?.Invoke(HealthPercent);
 
@@ -112,6 +118,13 @@ namespace Jiao.HealthTime
                 if (logEvents)
                     SessionLogger.Write("HEALTH_DEPLETED");
             }
+        }
+
+        private void ApplyLoss(float amount, LossSource source, Vector3? position)
+        {
+            float before = currentHealth;
+            currentHealth = Mathf.Max(0, currentHealth - amount);
+            if (currentHealth < before) HealthLost?.Invoke(before - currentHealth, source, position);
         }
 
         private float GetTotalMultiplier()

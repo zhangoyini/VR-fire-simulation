@@ -7,6 +7,12 @@ public class VRMenuButton : MonoBehaviour, IInteractable
     [SerializeField] private SystemUIAudio clickAudio;
     private static int lastActivationFrame = -1;
 
+    internal void Bind(UnityAction action, SystemUIAudio audio)
+    {
+        onClick.AddListener(action);
+        clickAudio = audio;
+    }
+
     public void OnHoverEnter() { }
 
     public void OnHoverExit() { }

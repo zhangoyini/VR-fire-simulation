@@ -56,6 +56,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
     private bool confirmConsumed;
     [System.NonSerialized] public bool ManualTickForChecks;
     public Phase CurrentPhase { get; private set; } = Phase.Controls;
+    internal CampusExerciseTasks ExerciseTasks => tasks;
     public float PhaseAge => age;
     public CampusTowelInteractable TargetTowel => targetTowel;
     public CampusHingeInteractable ClassroomDoor => classroomDoor;

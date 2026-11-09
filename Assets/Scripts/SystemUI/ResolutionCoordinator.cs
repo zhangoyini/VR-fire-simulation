@@ -20,10 +20,12 @@ public class ResolutionCoordinator : MonoBehaviour
         TryShowVictory();
     }
 
-    public bool TryShowVictory()
+    public bool TryShowVictory() => TryShowVictory(null);
+
+    internal bool TryShowVictory(System.Action beforeOutcome)
     {
         if(CampusLessonDirector.Instance!=null && !CampusLessonDirector.Instance.ExerciseStarted) return false;
-        if (!TryClaim(Outcome.Victory))
+        if (!TryClaim(Outcome.Victory, beforeOutcome))
             return false;
         if (view != null)
             view.ShowVictory();
@@ -41,11 +43,12 @@ public class ResolutionCoordinator : MonoBehaviour
     // FailureUI retains its existing presentation/health behavior after claiming this gate.
     public bool TryClaimGameOver() => TryClaim(Outcome.GameOver);
 
-    private bool TryClaim(Outcome outcome)
+    private bool TryClaim(Outcome outcome, System.Action beforeOutcome = null)
     {
         if (CurrentOutcome != Outcome.None)
             return false;
         CurrentOutcome = outcome;
+        beforeOutcome?.Invoke();
         OutcomeClaimed?.Invoke(outcome);
         if (outcomeAudio != null) outcomeAudio.PlayOutcome(outcome);
         return true;

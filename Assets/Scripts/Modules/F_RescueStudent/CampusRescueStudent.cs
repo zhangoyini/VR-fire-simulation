@@ -27,6 +27,7 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
         "同学已安全送达避难区\nStudent delivered to the 2F refuge";
 
     public State Current { get; private set; } = State.Waiting;
+    internal bool AssistanceStarted => started;
     public bool IsFollowing => isActiveAndEnabled && Current == State.Following && !Blocked;
     public float PlayerClearanceRadius => .2f - Mathf.Clamp(doorwayTolerance, 0, .1f);
 

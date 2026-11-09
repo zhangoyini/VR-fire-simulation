@@ -7,6 +7,9 @@ public class SystemUIView : MonoBehaviour
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private GameObject victoryPanel;
 
+    internal GameObject OutcomePanel(ResolutionCoordinator.Outcome outcome) =>
+        outcome == ResolutionCoordinator.Outcome.Victory ? victoryPanel : gameOverPanel;
+
     public void ShowGameplay()
     {
         SetVisibility(true, false, false, false);

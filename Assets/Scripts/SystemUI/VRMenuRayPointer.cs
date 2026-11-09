@@ -24,6 +24,16 @@ public class VRMenuRayPointer : MonoBehaviour
     public VRMenuButton CurrentTarget { get; private set; }
     public bool IsVisible => laser != null && laser.enabled;
 
+    internal void RegisterMenuButton(VRMenuButton button)
+    {
+        if (menuButtons == null) menuButtons = new[] { button };
+        else if (System.Array.IndexOf(menuButtons, button) < 0)
+        {
+            System.Array.Resize(ref menuButtons, menuButtons.Length + 1);
+            menuButtons[menuButtons.Length - 1] = button;
+        }
+    }
+
     private void Awake()
     {
         grabAction = SteamVR_Input.GetBooleanAction("GrabPinch");

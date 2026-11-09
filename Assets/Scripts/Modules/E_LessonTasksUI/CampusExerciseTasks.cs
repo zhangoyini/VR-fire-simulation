@@ -4,7 +4,7 @@ using UnityEngine;
 
 internal sealed class CampusExerciseTasks
 {
-    private enum Status { Hidden, Active, Complete }
+    internal enum Status { Hidden, Active, Complete }
     private enum Objective { Assembly, Towel, WetTowel, Detour, Rescue, Exit }
 
     // The regions follow the 3F landings beside the storage pile and the east stair entrance.
@@ -24,6 +24,10 @@ internal sealed class CampusExerciseTasks
     internal bool RescueActive => rescue == Status.Active;
     internal bool ExitActive => exit == Status.Active;
     internal bool AssemblyApproach => exit == Status.Complete && assembly == Status.Active;
+    internal Status DetourStatus => detour;
+    internal Status RescueStatus => rescue;
+    internal Status ExitStatus => exit;
+    internal bool ReachedEastStair { get; private set; }
 
     internal CampusExerciseTasks(Transform exitDoor, CampusRescueStudent student, CampusNavigationPanels panels)
     {
@@ -58,6 +62,7 @@ internal sealed class CampusExerciseTasks
 
     internal void Tick(Vector3 feet)
     {
+        if (EastStairEntrance.Contains(feet)) ReachedEastStair = true;
         if (detour == Status.Hidden && DebrisApproach.Contains(feet))
         {
             detour = Status.Active;
@@ -169,6 +174,20 @@ internal sealed class CampusExerciseTasks
         if (phase == CampusLessonDirector.Phase.WetTowel || phase == CampusLessonDirector.Phase.Descend)
             return Objective.WetTowel;
         return Objective.Assembly;
+    }
+
+    internal string CurrentTaskName(CampusLessonDirector.Phase phase)
+    {
+        switch (CurrentObjective(phase))
+        {
+            case Objective.Towel: return "任务 1 · 寻找毛巾";
+            case Objective.WetTowel: return "任务 2 · 浸湿毛巾并下到三楼";
+            case Objective.Detour: return "任务 3 · 改走 B 楼梯";
+            case Objective.Rescue:
+                return student != null && student.AssistanceStarted ? "可选支线 · 轮椅救援" : "前往操场集合点";
+            case Objective.Exit: return "任务 4 · 打开操场出口";
+            default: return phase == CampusLessonDirector.Phase.OpenDoor ? "观察 401 教室出口" : "前往操场集合点";
+        }
     }
 
     private static void AddRow(StringBuilder card, Status status, string title, string instruction)

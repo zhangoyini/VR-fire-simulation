@@ -672,11 +672,59 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Check(goalArea.activeInHierarchy && Mathf.Abs(painted.center.x-trigger.center.x)<.01f &&
             Mathf.Abs(painted.center.z-trigger.center.z)<.01f && Mathf.Abs(painted.size.x-trigger.size.x)<.01f &&
             Mathf.Abs(painted.size.z-trigger.size.z)<.01f,"The lit assembly floor footprint matches the real victory trigger");
-        Field<Harbourview.Journey.SafeZoneEndpoint>(assembly,"endpoint").onReached.Invoke();
-        Check(resolution.CurrentOutcome==ResolutionCoordinator.Outcome.Victory &&
-            Field<CampusExerciseTasks>(lesson,"tasks").Details(lesson.CurrentPhase).Contains("已完成</color>  主任务"),
-            "The outdoor endpoint completes the main objective and wins the exercise");
-        Check(!primaryOutline.gameObject.activeInHierarchy && !goalArea.activeInHierarchy,"The assembly highlights clear at victory");
+        bool failureRun = System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-campusDebriefFailure") >= 0;
+        health.TakeSmokeDamage(failureRun ? 200f : 4f, new Vector3(0, 9.3f, 0));
+        if (failureRun)
+            Check(resolution.CurrentOutcome==ResolutionCoordinator.Outcome.GameOver,"Actual health depletion opens the failure outcome");
+        else
+        {
+            Field<Harbourview.Journey.SafeZoneEndpoint>(assembly,"endpoint").onReached.Invoke();
+            Check(resolution.CurrentOutcome==ResolutionCoordinator.Outcome.Victory &&
+                Field<CampusExerciseTasks>(lesson,"tasks").Details(lesson.CurrentPhase).Contains("已完成</color>  主任务"),
+                "The outdoor endpoint completes the main objective and wins the exercise");
+            Check(!primaryOutline.gameObject.activeInHierarchy && !goalArea.activeInHierarchy,"The assembly highlights clear at victory");
+        }
+        yield return DebriefChecks(view, resolution, failureRun, owner, head);
+    }
+
+    private IEnumerator DebriefChecks(SystemUIView view, ResolutionCoordinator resolution, bool failure, CampusHandInteractor hand, Transform head)
+    {
+        var panel = view.OutcomePanel(resolution.CurrentOutcome);
+        var root = panel.transform.Find("Campus debrief");
+        var buttons = root.GetComponentsInChildren<VRMenuButton>(true);
+        var report = Field<CampusDebriefReport>(FindObjectOfType<CampusExperience>(), "report");
+        Check(panel.activeInHierarchy && report.success != failure && report.depleted == failure && report.smokeLossByFloor[2] >= 4,
+            "The real outcome opens a report with attributed smoke damage");
+        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text==(failure ? "演练失败" : "成功撤离")),
+            "The outcome summary appears first");
+        Check(buttons.All(button=>!button.isActiveAndEnabled),"The summary introduction has no clickable buttons");
+        var ray = hand.GetComponent<VRMenuRayPointer>();
+        ray.ProcessInput(false);
+        Check(!ray.IsVisible,"The menu ray is hidden during the introduction");
+
+        string[] pages = { "任务完成情况", "血量与受伤", "毛巾防护", "路线与改道" };
+        yield return new WaitForSecondsRealtime(2.12f);
+        foreach (string page in pages)
+        {
+            Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text==page) && buttons.All(button=>!button.isActiveAndEnabled),
+                "Automatic review shows " + page + " with buttons hidden");
+            foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>())
+            {
+                text.ForceMeshUpdate();
+                Check(!text.isTextOverflowing,"The outcome text fits: " + page);
+            }
+            yield return new WaitForSecondsRealtime(2.5f);
+        }
+        var details = buttons.Single(button=>button.name=="查看明细");
+        Check(details.isActiveAndEnabled && buttons.Count(button=>button.isActiveAndEnabled)==3,
+            "All three actions unlock after the ten-second automatic review");
+        hand.transform.position = head.position + head.rotation * new Vector3(.22f, -.2f, .05f);
+        hand.transform.rotation = Quaternion.LookRotation(details.transform.position - hand.transform.position);
+        ray.ProcessInput(false);
+        Check(ray.IsVisible && ray.CurrentTarget==details,"The controller ray selects the newly unlocked detail button");
+        ray.ProcessInput(true);
+        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text=="任务完成情况") &&
+            buttons.Any(button=>button.name=="下一页" && button.isActiveAndEnabled),"The detail action opens browsable review pages");
     }
     private static bool Outlines(LineRenderer outline, Vector3 target) => outline.enabled && outline.gameObject.activeInHierarchy &&
         Vector3.Distance((outline.GetPosition(0)+outline.GetPosition(2))*.5f,target)<.55f;

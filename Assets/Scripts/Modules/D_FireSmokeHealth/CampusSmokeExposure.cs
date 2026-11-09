@@ -18,11 +18,13 @@ public sealed class CampusSmokeExposure : MonoBehaviour
     public float DamagePerSecond => damagePerSecond;
     public float CoveredDamageMultiplier => coveredDamageMultiplier;
     public bool IsProtected { get; private set; }
+    internal event System.Action<float, bool, bool> ExposureMeasured;
     private void Update()
     {
         var health = HealthTimeController.Instance;
         if (health == null || health.IsPaused || health.IsDepleted) return;
-        Tick(trackedHead != null ? SmokeStrengthAt(trackedHead.position) : 0f, Time.deltaTime);
+        Vector3 position = trackedHead != null ? trackedHead.position : Vector3.zero;
+        Tick(trackedHead != null ? SmokeStrengthAt(position) : 0f, Time.deltaTime, position, false);
     }
     internal static float SmokeStrengthAt(Vector3 point)
     {
@@ -43,13 +45,18 @@ public sealed class CampusSmokeExposure : MonoBehaviour
         for(int i=1;i<boundaries.Count;i++)
         {
             float a=boundaries[i-1],b=boundaries[i];
-            if(b-a>.000001f) Tick(SmokeStrengthAt(Vector3.Lerp(from,to,(a+b)*.5f)),seconds*(b-a));
+            if(b-a>.000001f)
+            {
+                Vector3 position = Vector3.Lerp(from,to,(a+b)*.5f);
+                Tick(SmokeStrengthAt(position),seconds*(b-a),position,true);
+            }
         }
-        Tick(SmokeStrengthAt(to),0);
+        Tick(SmokeStrengthAt(to),0,to,true);
     }
-    public void Tick(bool inside, float seconds) => Tick(inside ? 1f : 0f, seconds);
+    public void Tick(bool inside, float seconds) => Tick(inside ? 1f : 0f, seconds,
+        trackedHead != null ? trackedHead.position : Vector3.zero, false);
 
-    private void Tick(float strength, float seconds)
+    private void Tick(float strength, float seconds, Vector3 position, bool teleport)
     {
         var health = HealthTimeController.Instance; if (Time.timeScale == 0 || health == null || health.IsPaused || health.IsDepleted) return;
         bool inside = strength > 0f;
@@ -58,10 +65,11 @@ public sealed class CampusSmokeExposure : MonoBehaviour
         if(!inside) { exposure=0; IsProtected=false; return; }
         if(CampusLessonDirector.Instance!=null && CampusLessonDirector.Instance.DamageSuppressed) return;
         IsProtected=CampusTowelInteractable.HasProtection(trackedHead);
+        if (seconds > 0) ExposureMeasured?.Invoke(seconds, IsProtected, teleport);
         float previous = exposure; exposure += Mathf.Max(0,seconds);
         // Keep the smoke clock while protected: repeatedly moving the towel away must
         // not grant a fresh grace period in the same smoke cloud.
         float damagingTime = Mathf.Max(0, exposure - graceSeconds) - Mathf.Max(0, previous - graceSeconds);
-        if (damagingTime > 0) health.TakeDamage(damagingTime * damagePerSecond * strength * (IsProtected?coveredDamageMultiplier:1) * health.DrainMultiplier);
+        if (damagingTime > 0) health.TakeSmokeDamage(damagingTime * damagePerSecond * strength * (IsProtected?coveredDamageMultiplier:1) * health.DrainMultiplier, position);
     }
 }
