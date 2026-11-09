@@ -50,7 +50,7 @@ public sealed class CampusLessonAnimation : MonoBehaviour
             trigger.localScale=new Vector3(.055f,.025f,held?.012f:.025f);
             if(actionLabel!=null)
             {
-                string text="按住扳机抓住窗扇，沿弧线向外推";
+                string text="按住扳机抓住窗扇，沿弧线向外推\nHold the trigger and swing the window outward.";
                 if(actionLabel.text!=text) actionLabel.text=text;
             }
             return;

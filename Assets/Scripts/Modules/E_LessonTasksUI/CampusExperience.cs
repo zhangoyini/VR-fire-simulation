@@ -81,13 +81,15 @@ public sealed class CampusExperience : MonoBehaviour
     private void OnOutcome(ResolutionCoordinator.Outcome outcome)
     {
         finished = true;
+        CampusMessagePresenter.Instance?.Hide();
         foreach (var teleporter in FindObjectsOfType<VRTeleporter>()) teleporter.enabled = false;
         if (alarm != null) alarm.Stop();
         JourneyDirector.Instance?.Request(JourneyState.Debrief);
         if (debriefLabel != null)
         {
             int elapsed = Mathf.RoundToInt(Time.time - startTime);
-            string result = outcome == ResolutionCoordinator.Outcome.Victory ? "主任务完成 · 已到达操场\n" : "";
+            string result = outcome == ResolutionCoordinator.Outcome.Victory ?
+                "主任务完成 · 已到达操场\nMain objective complete · Schoolyard reached\n" : "";
             debriefLabel.text = result + $"本次练习用时 {elapsed / 60:D2}:{elapsed % 60:D2}  /  Practice time\n" +
                 "识别警报 · 跟随标识 · 路线受阻时重新选择\nNotice cues · Follow signs · Choose another route\n" +
                 "请勿使用电梯或跳窗逃生。\nAvoid elevators and window escape.";
@@ -100,9 +102,11 @@ public sealed class CampusExperience : MonoBehaviour
         report.success = outcome == ResolutionCoordinator.Outcome.Victory;
         report.depleted = health != null && health.IsDepleted;
         report.endHealth = health != null ? health.CurrentHealth : 0;
-        report.endLocation = report.success ? "一楼室外操场安全集合点" :
-            lesson.Restroom != null && trackedHead != null && lesson.Restroom.bounds.Contains(trackedHead.position) ? "四楼 411 卫生间" :
+        bool inRestroom = lesson.Restroom != null && trackedHead != null && lesson.Restroom.bounds.Contains(trackedHead.position);
+        report.endLocation = report.success ? "一楼室外操场安全集合点" : inRestroom ? "四楼 411 卫生间" :
             endFloor > 0 ? endFloor + " 楼" : "未记录位置";
+        report.endLocationEnglish = report.success ? "Schoolyard assembly point (1F)" : inRestroom ? "Restroom 411 (4F)" :
+            endFloor > 0 ? $"Floor {endFloor}" : "Location unavailable";
         report.Observe(endFloor, lesson.TargetTowel, trackedHead != null && CampusTowelInteractable.HasProtection(trackedHead), report.duration);
         report.Finish(lesson, student);
         SessionLogger.Write("DEBRIEF_SUMMARY", JsonUtility.ToJson(report));

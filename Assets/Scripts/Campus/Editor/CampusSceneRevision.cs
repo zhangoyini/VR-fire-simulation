@@ -57,7 +57,9 @@ public static partial class CampusSceneBuilder
                 if(type=="电梯") { RevisedElevator(root,new Vector3(cx,y,-2.5f)); continue; }
                 if(type=="门厅") { Bench(root,new Vector3(cx-1,y,-7)); continue; }
                 RevisedPartition(root,cx,y,side,accent);
-                Sign($"{level+1}{(side>0?'0':'1')}{room+1} · {type}",root,new Vector3(cx+2.8f,y+2.88f,side*1.88f),side>0?0:180,new Vector2(1.6f,.33f),teal,.13f);
+                string english = type == "教室" ? "Classroom" : type == "卫生间" ? "Restroom" :
+                    type == "阅览室" ? "Reading Room" : type == "避难区" ? "Refuge Area" : "Lab";
+                Sign($"{level+1}{(side>0?'0':'1')}{room+1} · {type}\n<size=78%>{english}</size>",root,new Vector3(cx+2.8f,y+2.88f,side*1.88f),side>0?0:180,new Vector2(1.6f,.47f),teal,.13f);
                 if(type=="卫生间") RevisedRestroom(root,cx,y,level);
                 else if(type=="阅览室") RevisedLibrary(root,cx,y,level,zones);
                 else if(type=="避难区") BuildRefuge(root,zones,new Vector3(cx,y,-6));

@@ -29,7 +29,7 @@ public static partial class CampusSceneBuilder
     }
     private static void ConfigureLessonDestination(CampusLessonDirector lesson)
     {
-        var label=UnityEngine.Object.FindObjectsOfType<TextMeshPro>(true).Single(t=>t.text=="411 · 卫生间");
+        var label=UnityEngine.Object.FindObjectsOfType<TextMeshPro>(true).Single(t=>t.transform.parent?.name=="Sign 411 · 卫生间");
         label.color=Color.white;
         var plate=label.transform.parent.GetComponentInChildren<MeshRenderer>();
         plate.sharedMaterial=Mat("411 objective door plate",new Color(.025f,.16f,.19f));

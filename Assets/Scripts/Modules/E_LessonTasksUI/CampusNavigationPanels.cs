@@ -9,10 +9,11 @@ internal sealed class CampusNavigationPanels
     private enum Panel { None, Map, Tasks }
 
     internal const float ZoomSeconds = .5f;
-    private const float TaskTextWidth = 350f;
+    private const float TaskTextWidth = 470f;
     private static readonly Vector3 MapCorner = new Vector3(-.45f, -.34f, 1.45f);
     private static readonly Vector3 TaskCorner = new Vector3(.57f, .26f, 1.45f);
     private static readonly Vector3 PanelCenter = new Vector3(0, 0, 1.45f);
+    private const float ExpandedScale = .0033f;
     private static readonly Color Ink = new Color(.025f, .07f, .085f, .96f);
 
     private readonly GameObject root;
@@ -39,7 +40,7 @@ internal sealed class CampusNavigationPanels
         mapGroup = CampusTutorialView.CanvasAt("Minimap panel", root.transform, MapCorner, .0017f);
         mapBadge = CampusTutorialView.Picture(mapGroup.transform, Vector2.zero, new Vector2(205, 49), Ink);
         mapRect = mapBadge.rectTransform;
-        mapLabel = CampusTutorialView.CreateLabel(font, mapGroup.transform, Vector2.zero, new Vector2(200, 42), 21, "X   小地图");
+        mapLabel = CampusTutorialView.CreateLabel(font, mapGroup.transform, Vector2.zero, new Vector2(200, 42), 21, "X  小地图 / Map");
         var mapBody = Object.Instantiate(minimap, mapGroup.transform, false);
         foreach (var anchor in mapBody.GetComponents<WorldSpaceUIAnchor>()) anchor.enabled = false;
         foreach (var foreground in mapBody.GetComponents<CampusUIForeground>()) foreground.enabled = false;
@@ -56,20 +57,20 @@ internal sealed class CampusNavigationPanels
 
         taskGroup = CampusTutorialView.CanvasAt("Task details panel", root.transform, TaskCorner, .0017f);
         taskRect = CampusTutorialView.Picture(taskGroup.transform, Vector2.zero, new Vector2(205, 52), Ink).rectTransform;
-        taskLabel = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(196, 48), 21, "Y   任务详情");
-        taskText = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(TaskTextWidth, 124), 19, "");
+        taskLabel = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(196, 48), 21, "Y  任务详情 / Tasks");
+        taskText = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(TaskTextWidth, 124), 18, "");
         taskText.alignment = TextAlignmentOptions.Left;
 
-        noticeGroup = CampusTutorialView.CanvasAt("Exercise task notification", root.transform, new Vector3(0, .27f, 1.45f), .002f);
-        CampusTutorialView.Picture(noticeGroup.transform, Vector2.zero, new Vector2(440, 82), Ink);
-        noticeText = CampusTutorialView.CreateLabel(font, noticeGroup.transform, Vector2.zero, new Vector2(416, 70), 23, "");
+        noticeGroup = CampusTutorialView.CanvasAt("Exercise task notification", root.transform, new Vector3(0, .09f, 1.45f), .002f);
+        CampusTutorialView.Picture(noticeGroup.transform, Vector2.zero, new Vector2(504, 110), Ink);
+        noticeText = CampusTutorialView.CreateLabel(font, noticeGroup.transform, Vector2.zero, new Vector2(480, 94), 23, "");
         noticeGroup.gameObject.SetActive(false);
 
         var hintCanvas = CampusTutorialView.CanvasAt("Nearby exercise operation hint", root.transform, Vector3.zero, .0017f);
         objectHintRoot = hintCanvas.gameObject;
-        objectHintBackground = CampusTutorialView.Picture(hintCanvas.transform, Vector2.zero, new Vector2(394, 52),
+        objectHintBackground = CampusTutorialView.Picture(hintCanvas.transform, Vector2.zero, new Vector2(394, 70),
             new Color(.94f, .96f, .95f, .98f));
-        objectHint = CampusTutorialView.CreateLabel(font, hintCanvas.transform, Vector2.zero, new Vector2(374, 46), 20, "");
+        objectHint = CampusTutorialView.CreateLabel(font, hintCanvas.transform, Vector2.zero, new Vector2(374, 62), 20, "");
         objectHintRoot.SetActive(false);
         root.AddComponent<CampusUIForeground>().Configure(Shader.Find("Campus/Foreground UI"));
         Hide(false, false);
@@ -83,7 +84,7 @@ internal sealed class CampusNavigationPanels
         taskGroup.gameObject.SetActive(step >= Step.TaskDemo);
         mapGroup.alpha = step == Step.MapDemo ? Mathf.SmoothStep(0, 1, age) : 1;
         taskGroup.alpha = step == Step.TaskDemo ? Mathf.SmoothStep(0, 1, age) : 1;
-        SetTaskText("<b>任务详情</b>\n查看教室出口\n\n到门内侧的标记处。");
+        SetTaskText("<b>任务详情 / Tasks</b>\n查看教室出口  /  Find the classroom exit\n\n到门内侧的标记处。\n<size=85%>Go to the marker inside the doorway.</size>");
         requested = step == Step.MapClose ? Panel.Map : step == Step.TaskClose ? Panel.Tasks : Panel.None;
         Animate(dt);
     }
@@ -100,7 +101,6 @@ internal sealed class CampusNavigationPanels
         wasY = y;
         SetTaskText(details);
         Animate(dt);
-        TickNotice(dt, IsExpanded || (CampusMessagePresenter.Instance?.HasPriorityWarning ?? false));
     }
 
     internal void QueueNotice(string text, bool complete = false, float delay = 0)
@@ -109,9 +109,13 @@ internal sealed class CampusNavigationPanels
         notices.Enqueue((text, complete, delay));
     }
 
-    private void TickNotice(float dt, bool blocked)
+    internal void TickNotice(float dt)
     {
-        taskLabel.text = IsExpanded && notices.Count > 0 ? "Y   新任务" : "Y   任务详情";
+        var messages = CampusMessagePresenter.Instance;
+        bool priorityWarning = messages?.HasPriorityWarning ?? false;
+        if (IsExpanded && !priorityWarning) messages?.Hide();
+        bool blocked = IsExpanded || objectHintRoot.activeSelf || priorityWarning;
+        taskLabel.text = IsExpanded && notices.Count > 0 ? "Y  新任务 / New task" : "Y  任务详情 / Tasks";
         if (blocked || notices.Count == 0)
         {
             noticeGroup.gameObject.SetActive(false);
@@ -179,7 +183,7 @@ internal sealed class CampusNavigationPanels
     {
         if (taskText.text == text) return;
         taskText.text = text;
-        taskHeight = Mathf.Clamp(taskText.GetPreferredValues(text, TaskTextWidth, 0).y + 22f, 145f, 265f);
+        taskHeight = Mathf.Clamp(taskText.GetPreferredValues(text, TaskTextWidth, 0).y + 34f, 145f, 318f);
         taskText.rectTransform.sizeDelta = new Vector2(TaskTextWidth, taskHeight - 20f);
     }
 
@@ -190,8 +194,9 @@ internal sealed class CampusNavigationPanels
         taskZoom = Mathf.MoveTowards(taskZoom, requested == Panel.Tasks && mapZoom == 0 ? 1f : 0f, amount);
         float mapScale = Mathf.SmoothStep(0f, 1f, mapZoom);
         float taskScale = Mathf.SmoothStep(0f, 1f, taskZoom);
+        mapGroup.alpha *= 1f - taskScale;
         mapGroup.transform.localPosition = Vector3.Lerp(MapCorner, PanelCenter, mapScale);
-        mapGroup.transform.localScale = Vector3.one * Mathf.Lerp(.0017f, .0033f, mapScale);
+        mapGroup.transform.localScale = Vector3.one * Mathf.Lerp(.0017f, ExpandedScale, mapScale);
         mapContent.localScale = Vector3.one * Mathf.Lerp(.56f, 1f, mapScale);
         mapContent.anchoredPosition3D = new Vector3(0, Mathf.Lerp(67f, 0, mapScale), 0);
         mapLabel.rectTransform.anchoredPosition = new Vector2(0, Mathf.Lerp(0, -106, mapScale));
@@ -199,8 +204,10 @@ internal sealed class CampusNavigationPanels
         mapBadge.canvasRenderer.SetAlpha(1f - mapScale);
         mapRect.sizeDelta = Vector2.Lerp(new Vector2(205, 49), new Vector2(268, 44), mapScale);
         mapRect.anchoredPosition = mapLabel.rectTransform.anchoredPosition;
-        taskGroup.transform.localPosition = Vector3.Lerp(TaskCorner, PanelCenter, taskScale);
-        taskGroup.transform.localScale = Vector3.one * Mathf.Lerp(.0017f, .0033f, taskScale);
+        // Taller cards grow downwards so the health HUD stays visible.
+        var taskCenter = PanelCenter + Vector3.up * Mathf.Min(0, .35f - taskHeight * ExpandedScale / 2f);
+        taskGroup.transform.localPosition = Vector3.Lerp(TaskCorner, taskCenter, taskScale);
+        taskGroup.transform.localScale = Vector3.one * Mathf.Lerp(.0017f, ExpandedScale, taskScale);
         taskRect.sizeDelta = Vector2.Lerp(new Vector2(205, 52), new Vector2(TaskTextWidth + 24f, taskHeight), taskScale);
         taskLabel.alpha = 1f - taskScale;
         taskText.alpha = taskScale;

@@ -75,7 +75,7 @@ internal sealed class CampusTutorialView
         arcDot = Picture(demoGroup.transform, Vector2.zero, Vector2.one * 18, Green, disc);
         playerDot = Picture(demoGroup.transform, Vector2.zero, Vector2.one * 9, Color.white, disc);
         demoCaption = Label(demoGroup.transform, new Vector2(95, 25), new Vector2(285, 126), 26, "");
-        Label(demoGroup.transform, new Vector2(0, -101), new Vector2(480, 38), 18, "Quest 3  ·  左手柄示意");
+        Label(demoGroup.transform, new Vector2(0, -101), new Vector2(480, 38), 18, "Quest 3  ·  左手柄 / Left controller");
 
         healthGroup = CanvasAt("Teaching health", hud, new Vector3(0, .40f, 1.45f), .0015f);
         Picture(healthGroup.transform, Vector2.zero, new Vector2(370, 61), Ink);
@@ -118,9 +118,11 @@ internal sealed class CampusTutorialView
         if (step != Step.FadePrompt) UpdatePrompt(text);
         fadeFrom = promptGroup.alpha;
         promptAge = 0;
-        float width = demo != Demo.None || step == Step.Health || step == Step.ToDoor ? 700 : 450;
-        promptBackground.sizeDelta = new Vector2(width, 105);
-        prompt.rectTransform.sizeDelta = new Vector2(width - 50, 92);
+        bool multiline = step == Step.Health || step == Step.ToDoor || step == Step.MenuPractice;
+        float width = demo != Demo.None || multiline ? 700 : 450;
+        float height = multiline ? 164 : 122;
+        promptBackground.sizeDelta = new Vector2(width, height);
+        prompt.rectTransform.sizeDelta = new Vector2(width - 50, height - 12);
         demoGroup.gameObject.SetActive(demo != Demo.None);
         promptGroup.gameObject.SetActive(step == Step.FadePrompt || !string.IsNullOrEmpty(text));
         healthGroup.gameObject.SetActive(step >= Step.Health);
@@ -185,17 +187,17 @@ internal sealed class CampusTutorialView
         switch (demo)
         {
             case Demo.Teleport:
-                caption = "前推摇杆瞄准蓝色落点\n让摇杆回中，完成瞬移";
-                demoCaption.rectTransform.anchoredPosition = new Vector2(95, -59);
+                caption = "前推摇杆瞄准蓝色落点\n让摇杆回中，完成瞬移\n<size=80%>Push the stick to aim.\nRelease it to teleport.</size>";
+                demoCaption.rectTransform.anchoredPosition = new Vector2(95, -45);
                 break;
-            case Demo.Grab: caption = "用任一手柄\n持续按住扳机"; break;
-            case Demo.Release: caption = "手移到桌面上方\n松开扳机"; break;
+            case Demo.Grab: caption = "用任一手柄\n持续按住扳机\n<size=80%>Hold the trigger on\neither controller.</size>"; break;
+            case Demo.Release: caption = "手移到桌面上方\n松开扳机\n<size=80%>Move over the desk.\nRelease the trigger.</size>"; break;
             case Demo.Press:
-                caption = "手靠近按钮，按下扳机\n指示灯亮起后松开";
+                caption = "手靠近按钮，按下扳机\n指示灯亮起后松开\n<size=80%>Press near the button.\nRelease when it lights up.</size>";
                 break;
-            case Demo.X: caption = "左手柄下方的 X 键\n按一次展开，再按一次收起"; break;
-            case Demo.Y: caption = "左手柄上方的 Y 键\n按一次查看，再按一次收起"; break;
-            default: caption = "按下左摇杆打开菜单\n选中「继续」返回游戏"; break;
+            case Demo.X: caption = "左手柄下方的 X 键\n按一次展开，再按一次收起\n<size=80%>Press X to open the map.\nPress again to close it.</size>"; break;
+            case Demo.Y: caption = "左手柄上方的 Y 键\n按一次查看，再按一次收起\n<size=80%>Press Y to view Tasks.\nPress again to close it.</size>"; break;
+            default: caption = "按下左摇杆打开菜单\n选中「继续」返回游戏\n<size=80%>Click the left stick to pause.\nSelect Resume to return.</size>"; break;
         }
         if (demo != Demo.Teleport) demoCaption.rectTransform.anchoredPosition = new Vector2(95, 25);
         if (demoCaption.text != caption) demoCaption.text = caption;

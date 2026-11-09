@@ -178,7 +178,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
             { BeginStory(); return; }
             if(!windowDemo && tutorial.ShowingWindowDemo)
             {
-                SetText("开窗演示","抓住窗扇远离转轴的一端，沿弧线向外推。","");
+                SetText("开窗演示 / Opening a window","抓住窗扇远离转轴的一端，沿弧线向外推。\nGrip the edge away from the hinge and swing it outward.","");
                 layout.Arrange(true);
                 demonstration.ShowWindowDemo();
             }
@@ -222,6 +222,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
                 tasks.Tick(feet);
                 panels?.ShowExercise(x, y, dt, tasks.Details(CurrentPhase));
                 UpdateExerciseGuidance();
+                panels?.TickNotice(dt);
             }
         }
         else panels?.Hide(x, y, fold: true);
@@ -389,7 +390,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         UpdatePresentationVisibility();
         demonstration?.Show(CurrentPhase,0);
         if(CurrentPhase==Phase.Ready)
-            SetText("准备开始 / Ready","开始后将播放短开场。","长按右手柄 A 键开始。 / Hold right A to begin.");
+            SetText("准备开始 / Ready","开始后将播放短开场。\nA short intro plays before the drill.","长按右手柄 A 键开始。 / Hold right A to begin.");
         else if(CurrentPhase==Phase.Classroom)
             SetText("课间 / Between classes","","");
         else if(CurrentPhase==Phase.Alarm)
@@ -416,7 +417,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if (CurrentPhase == Phase.FindTowel && !targetTowel.IsHeld && inRestroom)
         {
             target = targetTowel.transform;
-            hint = "握住扳机，拿起干毛巾";
+            hint = "握住扳机，拿起干毛巾\n<size=80%>Hold the trigger to pick up the towel.</size>";
         }
         else if (CurrentPhase == Phase.WetTowel && targetTowel.IsHeld)
         {
@@ -432,8 +433,9 @@ public sealed class CampusLessonDirector : MonoBehaviour
                 nearest = distance;
                 nearestFaucet = faucet;
                 target = faucet.transform;
-                hint = targetTowel.IsWet ? "毛巾已湿，持续握持并遮住口鼻" :
-                    faucet.IsOn ? "在流水下保持 1.5 秒" : "用空闲手按扳机打开水龙头";
+                hint = targetTowel.IsWet ? "毛巾已湿，持续握持并遮住口鼻\n<size=80%>Hold the wet towel over your nose and mouth.</size>" :
+                    faucet.IsOn ? "在流水下保持 1.5 秒\n<size=80%>Hold under running water for 1.5 s.</size>" :
+                    "用空闲手按扳机打开水龙头\n<size=80%>Use your free hand's trigger to turn on the tap.</size>";
             }
         }
         highlights?.Show(CurrentPhase, tasks, inRestroom, targetTowel, nearestFaucet);

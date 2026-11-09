@@ -15,6 +15,7 @@ internal sealed class CampusDebriefReport
     public bool towelPickedUp, towelWet, rescueStarted, rescueDelivered, eastStairReached;
     public bool success, depleted;
     public string endLocation, currentTask;
+    internal string endLocationEnglish, currentTaskEnglish;
     public CampusExerciseTasks.Status[] tasks = new CampusExerciseTasks.Status[4];
     public CampusExerciseTasks.Status rescue;
 
@@ -84,6 +85,7 @@ internal sealed class CampusDebriefReport
         tasks[3] = exercise.ExitStatus;
         eastStairReached = exercise.ReachedEastStair;
         currentTask = exercise.CurrentTaskName(phase);
+        currentTaskEnglish = exercise.CurrentTaskName(phase, english: true);
         rescue = exercise.RescueStatus;
         rescueStarted = student != null && student.AssistanceStarted;
         rescueDelivered = student != null && student.Current == CampusRescueStudent.State.Delivered;

@@ -39,6 +39,12 @@ public sealed class CampusLessonDriver : MonoBehaviour
         yield return null; yield return null;
         var lesson=FindObjectOfType<CampusLessonDirector>(); lesson.ManualTickForChecks=true;
         var navigation=Field<CampusNavigationPanels>(lesson,"panels");
+        var roomSigns=FindObjectsOfType<TMPro.TextMeshPro>().Where(text=>
+            text.transform.parent != null && System.Text.RegularExpressions.Regex.IsMatch(
+                text.transform.parent.name, @"^Sign \d{3} · (教室|卫生间|实验室|阅览室|避难区)$")).ToArray();
+        Check(roomSigns.Length==27 && roomSigns.All(text=>text.text.Contains("\n<size=78%>")),
+            "All 27 room plaques show English under the Chinese room name");
+        foreach (var text in roomSigns) CheckTextFit(text);
         var movement=FindObjectOfType<CampusLocomotion>(true); var head=Camera.main.transform;
         var health=HealthTimeController.Instance;
         var exposure=FindObjectOfType<CampusSmokeExposure>(); exposure.enabled=false;
@@ -436,6 +442,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
         var noticeGroup=Field<CanvasGroup>(navigation,"noticeGroup");
         var noticeText=Field<TMPro.TMP_Text>(navigation,"noticeText");
         Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("主任务"),"The main objective appears in the separate notification");
+        CheckTextFit(noticeText);
         var taskDetails=Field<TMPro.TMP_Text>(navigation,"taskText");
         lesson.Tick(.55f,true,false);
         Check(Mathf.Abs(mapPanel.localPosition.x)<.001f,"Formal exercise uses the same centered X map as teaching");
@@ -495,6 +502,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.WetTowel && towel.IsHeld && noticeText.text.Contains("任务 1"),"Collecting the towel advances to task 2 while the task 1 notice is still displayed");
         Check(taskDetails.text.Contains("已完成</color>  任务 1") && taskDetails.text.Contains("进行中</color>  任务 2"),
             "Task details retain completed task 1 and activate task 2");
+        CheckTextFit(taskDetails);
 
         Check(!lesson.MovementLocked && !lesson.WorldInteractionLocked,"Task 2 announcement does not interrupt held-towel or faucet operations");
         lesson.Tick(6.1f); lesson.Tick(.1f);
@@ -513,8 +521,11 @@ public sealed class CampusLessonDriver : MonoBehaviour
         lesson.Tick(.1f);
         var faucetHint=Field<TMPro.TMP_Text>(navigation,"objectHint");
         Check(faucetHint.gameObject.activeInHierarchy && faucetHint.text.Contains("打开水龙头") &&
-            faucetHint.color==Color.black && faucetHint.fontStyle==TMPro.FontStyles.Bold,
-            "The contextual faucet instruction is visible in bold black text");
+            faucetHint.text.Contains("turn on the tap") && faucetHint.color==Color.black &&
+            faucetHint.fontStyle==TMPro.FontStyles.Bold,"The bilingual faucet instruction is visible in bold black text");
+        Check(!noticeGroup.gameObject.activeSelf,"The faucet prompt takes priority over the task notification");
+        CheckTextFit(faucetHint);
+        CheckTextFit(noticeText);
         MoveHead(movement,head,faucetViewPosition);
         head.rotation=faucetViewRotation;
         faucet.SetWater(true); lesson.Tick(.1f);
@@ -630,6 +641,8 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Check(!noticeGroup.gameObject.activeSelf,"The floor-arrival notice gives the player a short settling interval");
         lesson.Tick(.31f);
         Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("轮椅救援"),"The optional rescue actually displays its notification on 2F");
+        CheckTextFit(noticeText);
+        CheckTextFit(taskDetails);
         call.OnInteractStart(head);
         Check(taskDetails.text.Contains("进行中</color>  可选支线") && resolution.CurrentOutcome==ResolutionCoordinator.Outcome.None,
             "Descending from 3F offers the rescue and ringing early cannot end the exercise");
@@ -655,6 +668,8 @@ public sealed class CampusLessonDriver : MonoBehaviour
         MoveHead(movement,head,new Vector3(0,1.7f,-8.5f)); lesson.Tick(.51f);
         Check(taskDetails.text.Contains("进行中</color>  任务 4"),"Arriving on 1F publishes the exit task");
         Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("任务 4"),"Task 4 actually displays its notification on 1F");
+        CheckTextFit(noticeText);
+        CheckTextFit(taskDetails);
         var exitBars=Field<Renderer[]>(highlights,"exitBars");
         Check(exitBars.Length==2 && Outlines(primaryOutline,exitBars[0].bounds.center) && Outlines(secondOutline,exitBars[1].bounds.center),
             "Task 4 highlights both exit-door push bars");
@@ -664,8 +679,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
             "Opening an exit leaf completes task 4 while the main objective stays active");
         Check(Outlines(primaryOutline,Field<Renderer>(highlights,"assemblySign").bounds.center) && !secondOutline.enabled,
             "Opening the exit transfers the highlight to the outdoor assembly sign");
-        taskDetails.ForceMeshUpdate(true);
-        Check(!taskDetails.isTextOverflowing,"The shared card fits the complete task list");
+        CheckTextFit(taskDetails);
         var assembly=FindObjectOfType<AssemblyOutcomeController>();
         var goalArea=Field<GameObject>(highlights,"assemblyArea");
         Bounds painted=goalArea.GetComponent<Renderer>().bounds, trigger=assembly.CompletionBounds.bounds;
@@ -695,36 +709,40 @@ public sealed class CampusLessonDriver : MonoBehaviour
         var report = Field<CampusDebriefReport>(FindObjectOfType<CampusExperience>(), "report");
         Check(panel.activeInHierarchy && report.success != failure && report.depleted == failure && report.smokeLossByFloor[2] >= 4,
             "The real outcome opens a report with attributed smoke damage");
-        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text==(failure ? "演练失败" : "成功撤离")),
-            "The outcome summary appears first");
+        Check(!CampusMessagePresenter.Instance.IsVisible, "Exercise prompts are cleared before showing the debrief");
+        string result = failure ? "演练失败\n<size=78%>Evacuation incomplete" : "成功撤离\n<size=78%>Evacuation successful";
+        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text.StartsWith(result)),
+            "The bilingual outcome summary appears first");
+        foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>()) CheckTextFit(text);
         Check(buttons.All(button=>!button.isActiveAndEnabled),"The summary introduction has no clickable buttons");
         var ray = hand.GetComponent<VRMenuRayPointer>();
         ray.ProcessInput(false);
         Check(!ray.IsVisible,"The menu ray is hidden during the introduction");
 
-        string[] pages = { "任务完成情况", "血量与受伤", "毛巾防护", "路线与改道" };
+        var pages = new[] { ("任务完成情况", "Task progress", "Find a towel"), ("血量与受伤", "Health and damage", "Smoke damage"),
+            ("毛巾防护", "Towel protection", "Towel wetted"), ("路线与改道", "Route and detour", "Floors visited") };
         yield return new WaitForSecondsRealtime(2.12f);
-        foreach (string page in pages)
+        foreach (var (chinese, english, detail) in pages)
         {
-            Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text==page) && buttons.All(button=>!button.isActiveAndEnabled),
-                "Automatic review shows " + page + " with buttons hidden");
-            foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>())
-            {
-                text.ForceMeshUpdate();
-                Check(!text.isTextOverflowing,"The outcome text fits: " + page);
-            }
+            var labels = root.GetComponentsInChildren<TMPro.TMP_Text>();
+            Check(labels.Any(text=>text.text.StartsWith(chinese + "\n<size=78%>" + english)) &&
+                labels.Any(text=>text.text.Contains(detail)) && buttons.All(button=>!button.isActiveAndEnabled),
+                "Automatic review shows " + english + " with both languages and buttons hidden");
+            foreach (var text in labels) CheckTextFit(text);
             yield return new WaitForSecondsRealtime(2.5f);
         }
         var details = buttons.Single(button=>button.name=="查看明细");
         Check(details.isActiveAndEnabled && buttons.Count(button=>button.isActiveAndEnabled)==3,
             "All three actions unlock after the ten-second automatic review");
+        foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>()) CheckTextFit(text);
         hand.transform.position = head.position + head.rotation * new Vector3(.22f, -.2f, .05f);
         hand.transform.rotation = Quaternion.LookRotation(details.transform.position - hand.transform.position);
         ray.ProcessInput(false);
         Check(ray.IsVisible && ray.CurrentTarget==details,"The controller ray selects the newly unlocked detail button");
         ray.ProcessInput(true);
-        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text=="任务完成情况") &&
+        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text.StartsWith("任务完成情况\n")) &&
             buttons.Any(button=>button.name=="下一页" && button.isActiveAndEnabled),"The detail action opens browsable review pages");
+        foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>()) CheckTextFit(text);
     }
     private static bool Outlines(LineRenderer outline, Vector3 target) => outline.enabled && outline.gameObject.activeInHierarchy &&
         Vector3.Distance((outline.GetPosition(0)+outline.GetPosition(2))*.5f,target)<.55f;
@@ -792,11 +810,13 @@ public sealed class CampusLessonDriver : MonoBehaviour
     {
         foreach(var root in new[]{Field<Transform>(view,"hud"),Field<Transform>(view,"world"),
             Field<GameObject>(Field<CampusNavigationPanels>(view,"panels"),"root").transform})
-            foreach(var text in root.GetComponentsInChildren<TMPro.TMP_Text>())
-            {
-                text.ForceMeshUpdate();
-                if(text.isTextOverflowing) throw new InvalidOperationException("Tutorial text overflow: "+text.text);
-            }
+            foreach(var text in root.GetComponentsInChildren<TMPro.TMP_Text>()) CheckTextFit(text);
+    }
+    private static void CheckTextFit(TMPro.TMP_Text text)
+    {
+        text.ForceMeshUpdate();
+        if (text.isTextOverflowing)
+            throw new InvalidOperationException($"Text overflow in {text.rectTransform.rect.size} at font size {text.fontSize}: {text.text}");
     }
     private static void GripAt(CampusHandInteractor hand,Vector3 point)
     {
