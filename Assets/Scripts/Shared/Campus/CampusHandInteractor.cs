@@ -38,9 +38,6 @@ public sealed class CampusHandInteractor : MonoBehaviour
         var lesson=CampusLessonDirector.Instance;
         if ((blocked || (lesson!=null && !lesson.AllowsHandTarget(held ?? candidate))) && !(candidate is VRMenuButton))
         {
-            // Keep the just-collected towel held while task 2 unfolds. Releases still work.
-            if(!blocked && lesson!=null && lesson.CurrentPhase==CampusLessonDirector.Phase.WetTowel && lesson.TaskAnnouncement && held==lesson.TargetTowel && grip && !up)
-            { ((IInteractable)held).OnInteract(transform); return; }
             Release();
             if (!blocked && lesson.IsPractice && grip && !up) UpdateGesture(true);
             return;

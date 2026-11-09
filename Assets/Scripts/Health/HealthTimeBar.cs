@@ -10,6 +10,8 @@ namespace Jiao.HealthTime
     /// </summary>
     public class HealthTimeBar : MonoBehaviour
     {
+        private static readonly Color TowelProtectionColor = new Color(0.18f, 0.62f, 1f);
+
         [Header("血条组件")]
         [Tooltip("UI Slider，范围 0~1")]
         [SerializeField] private Slider slider;
@@ -36,6 +38,7 @@ namespace Jiao.HealthTime
         [SerializeField] private float flashInterval = 0.5f;
 
         private Coroutine _flashCoroutine;
+        private bool towelProtected;
 
         private void Start()
         {
@@ -95,6 +98,14 @@ namespace Jiao.HealthTime
                 warningImage.enabled = false;
         }
 
+        internal void SetTowelProtection(bool active)
+        {
+            if (towelProtected == active) return;
+            towelProtected = active;
+            if (fillImage != null)
+                fillImage.color = GetColorForPercent(HealthTimeController.Instance?.HealthPercent ?? 1f);
+        }
+
         private void OnHealthChanged(float percent)
         {
             // 同时更新 Slider 值和 Fill 的 RectTransform，避免 Slider 的 Fill Rect 机制失效
@@ -135,6 +146,9 @@ namespace Jiao.HealthTime
 
         private Color GetColorForPercent(float percent)
         {
+            if (towelProtected)
+                return TowelProtectionColor;
+
             if (percent <= dangerThreshold)
                 return dangerColor;
 

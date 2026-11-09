@@ -13,6 +13,7 @@ public sealed class CampusSmokeExposure : MonoBehaviour
     private float exposure;
     private bool wasInside;
     public float Exposure => exposure;
+    public bool InSmoke => wasInside;
     public float GraceSeconds => graceSeconds;
     public float DamagePerSecond => damagePerSecond;
     public float CoveredDamageMultiplier => coveredDamageMultiplier;

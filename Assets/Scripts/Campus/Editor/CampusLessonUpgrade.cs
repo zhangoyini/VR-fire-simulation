@@ -246,10 +246,11 @@ public static partial class CampusSceneBuilder
         Cube("Opening desk tabletop",desk,p+Vector3.up*.735f,new Vector3(.85f,.04f,.65f),wood);
         foreach(int x in new[]{-1,1}) foreach(int z in new[]{-1,1})
             Cube("Opening desk leg",desk,p+new Vector3(x*.36f,.35f,z*.25f),new Vector3(.045f,.70f,.045f),dark);
-        Cube("Opening seat cushion",desk,new Vector3(-12.2f,11.82f,5.25f),new Vector3(.44f,.065f,.4f),teal,false,false);
+        Vector3 seatCenter = new Vector3(-12.2f,11.82f,5.25f);
+        Cube("Opening seat cushion",desk,seatCenter,new Vector3(.44f,.065f,.4f),teal,false,false);
         Cube("Opening seat back",desk,new Vector3(-12.2f,12.15f,5.46f),new Vector3(.44f,.50f,.055f),teal,false,false);
         var rest=Group("Book resting point",desk); rest.position=p+Vector3.up*.78f; Set(lesson,"bookRest",rest);
-        var standing=Group("Opening standing position",root.transform); standing.SetPositionAndRotation(new Vector3(-12.2f,11.4f,5.2f),Quaternion.Euler(0,180,0)); Set(lesson,"storyStandingPoint",standing);
+        var standing=Group("Opening standing position",root.transform); standing.SetPositionAndRotation(new Vector3(seatCenter.x,p.y,seatCenter.z),Quaternion.Euler(0,180,0)); Set(lesson,"storyStandingPoint",standing);
         var book=Group("Opening story book",root.transform);
         TeachingCube("Book pages",book,Vector3.zero,new Vector3(.22f,.032f,.30f),white).GetComponent<Renderer>().sharedMaterial=white;
         TeachingCube("Book cover",book,new Vector3(0,.020f,0),new Vector3(.23f,.008f,.31f),teal).GetComponent<Renderer>().sharedMaterial=teal;

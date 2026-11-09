@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,24 +9,29 @@ internal sealed class CampusNavigationPanels
     private enum Panel { None, Map, Tasks }
 
     internal const float ZoomSeconds = .5f;
+    private const float TaskTextWidth = 350f;
     private static readonly Vector3 MapCorner = new Vector3(-.45f, -.34f, 1.45f);
     private static readonly Vector3 TaskCorner = new Vector3(.57f, .26f, 1.45f);
     private static readonly Vector3 PanelCenter = new Vector3(0, 0, 1.45f);
     private static readonly Color Ink = new Color(.025f, .07f, .085f, .96f);
 
     private readonly GameObject root;
-    private readonly CanvasGroup mapGroup, taskGroup;
-    private readonly TMP_Text mapLabel, taskLabel, taskText;
-    private readonly Image mapBadge;
+    private readonly Transform head;
+    private readonly CanvasGroup mapGroup, taskGroup, noticeGroup;
+    private readonly TMP_Text mapLabel, taskLabel, taskText, noticeText, objectHint;
+    private readonly Image mapBadge, noticeBackground;
     private readonly RectTransform mapRect, mapContent, taskRect;
     private float mapZoom, taskZoom, taskHeight = 145f;
     private Panel requested;
     private bool wasX, wasY;
+    private readonly Queue<(string text, bool complete, float delay, bool darkText)> notices = new Queue<(string, bool, float, bool)>();
+    private float noticeRemaining, noticeDelay;
 
     internal bool IsExpanded => requested != Panel.None || mapZoom > 0 || taskZoom > 0;
 
     internal CampusNavigationPanels(Transform head, TMP_FontAsset font, GameObject minimap)
     {
+        this.head = head;
         root = new GameObject("Campus map and task HUD");
         root.transform.SetParent(head, false);
 
@@ -50,8 +56,23 @@ internal sealed class CampusNavigationPanels
         taskGroup = CampusTutorialView.CanvasAt("Task details panel", root.transform, TaskCorner, .0017f);
         taskRect = CampusTutorialView.Picture(taskGroup.transform, Vector2.zero, new Vector2(205, 52), Ink).rectTransform;
         taskLabel = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(196, 48), 21, "Y   任务详情");
-        taskText = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(300, 124), 19, "");
+        taskText = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(TaskTextWidth, 124), 19, "");
         taskText.alignment = TextAlignmentOptions.Left;
+
+        noticeGroup = CampusTutorialView.CanvasAt("Exercise task notification", root.transform, new Vector3(0, .27f, 1.45f), .002f);
+        noticeBackground = CampusTutorialView.Picture(noticeGroup.transform, Vector2.zero, new Vector2(440, 82), Ink);
+        noticeText = CampusTutorialView.CreateLabel(font, noticeGroup.transform, Vector2.zero, new Vector2(416, 70), 23, "");
+        noticeGroup.gameObject.SetActive(false);
+
+        var hintObject = new GameObject("Nearby exercise operation hint", typeof(RectTransform));
+        hintObject.transform.SetParent(root.transform, false);
+        objectHint = hintObject.AddComponent<TextMeshPro>();
+        objectHint.font = font;
+        objectHint.fontSize = .28f;
+        objectHint.rectTransform.sizeDelta = new Vector2(.68f, .14f);
+        objectHint.alignment = TextAlignmentOptions.Center;
+        objectHint.color = new Color(.72f, 1f, .9f);
+        hintObject.SetActive(false);
         root.AddComponent<CampusUIForeground>().Configure(Shader.Find("Campus/Foreground UI"));
         Hide(false, false);
     }
@@ -81,6 +102,65 @@ internal sealed class CampusNavigationPanels
         wasY = y;
         SetTaskText(details);
         Animate(dt);
+        TickNotice(dt, IsExpanded || (CampusMessagePresenter.Instance?.HasPriorityWarning ?? false));
+    }
+
+    internal void QueueNotice(string text, bool complete = false, float delay = 0, bool darkText = false)
+    {
+        if (notices.Count == 0) noticeDelay = delay;
+        notices.Enqueue((text, complete, delay, darkText));
+    }
+
+    private void TickNotice(float dt, bool blocked)
+    {
+        taskLabel.text = IsExpanded && notices.Count > 0 ? "Y   新任务" : "Y   任务详情";
+        if (blocked || notices.Count == 0)
+        {
+            noticeGroup.gameObject.SetActive(false);
+            return;
+        }
+        if (noticeDelay > 0)
+        {
+            noticeDelay -= dt;
+            if (noticeDelay > 0) return;
+        }
+        var notice = notices.Peek();
+        if (noticeRemaining == 0)
+        {
+            noticeRemaining = notice.complete ? 2f : 6f;
+            noticeText.text = notice.text;
+            noticeText.color = notice.darkText ? Color.black : notice.complete ? new Color(.48f, .94f, .53f) : Color.white;
+            noticeBackground.color = notice.darkText ? new Color(.94f, .96f, .95f, .98f) : Ink;
+        }
+        else
+        {
+            noticeRemaining = Mathf.Max(0, noticeRemaining - dt);
+            if (noticeRemaining == 0)
+            {
+                notices.Dequeue();
+                noticeDelay = notices.Count > 0 ? notices.Peek().delay : 0;
+                noticeGroup.gameObject.SetActive(false);
+                return;
+            }
+        }
+        noticeGroup.gameObject.SetActive(true);
+    }
+
+    internal void ShowObjectHint(Transform target, string text)
+    {
+        bool visible = false;
+        if (target != null && !IsExpanded)
+        {
+            Vector3 position = target.position + Vector3.up * .24f;
+            Vector3 offset = position - head.position;
+            visible = offset.sqrMagnitude <= 1.6f * 1.6f && Vector3.Angle(head.forward, offset) < 35f;
+            if (visible)
+            {
+                objectHint.transform.SetPositionAndRotation(position, Quaternion.LookRotation(offset));
+                objectHint.text = text;
+            }
+        }
+        objectHint.gameObject.SetActive(visible);
     }
 
     internal void Hide(bool x, bool y, bool fold = false)
@@ -99,8 +179,8 @@ internal sealed class CampusNavigationPanels
     {
         if (taskText.text == text) return;
         taskText.text = text;
-        taskHeight = Mathf.Clamp(taskText.GetPreferredValues(text, 300, 0).y + 26f, 145f, 255f);
-        taskText.rectTransform.sizeDelta = new Vector2(300, taskHeight - 24f);
+        taskHeight = Mathf.Clamp(taskText.GetPreferredValues(text, TaskTextWidth, 0).y + 22f, 145f, 265f);
+        taskText.rectTransform.sizeDelta = new Vector2(TaskTextWidth, taskHeight - 20f);
     }
 
     private void Animate(float dt)
@@ -121,7 +201,7 @@ internal sealed class CampusNavigationPanels
         mapRect.anchoredPosition = mapLabel.rectTransform.anchoredPosition;
         taskGroup.transform.localPosition = Vector3.Lerp(TaskCorner, PanelCenter, taskScale);
         taskGroup.transform.localScale = Vector3.one * Mathf.Lerp(.0017f, .0033f, taskScale);
-        taskRect.sizeDelta = Vector2.Lerp(new Vector2(205, 52), new Vector2(324, taskHeight), taskScale);
+        taskRect.sizeDelta = Vector2.Lerp(new Vector2(205, 52), new Vector2(TaskTextWidth + 24f, taskHeight), taskScale);
         taskLabel.alpha = 1f - taskScale;
         taskText.alpha = taskScale;
     }

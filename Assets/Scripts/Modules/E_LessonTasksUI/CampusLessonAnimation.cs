@@ -23,7 +23,7 @@ public sealed class CampusLessonAnimation : MonoBehaviour
         headsetGroup.SetActive(current==CampusLessonDirector.Phase.Controls && page==0);
         controllerGroup.SetActive(current==CampusLessonDirector.Phase.Controls && page>0);
         towelGroup.SetActive(current==CampusLessonDirector.Phase.WetTowel || current==CampusLessonDirector.Phase.FindTowel);
-        smokeGroup.SetActive(current==CampusLessonDirector.Phase.SmokeLesson);
+        smokeGroup.SetActive(false);
     }
     public void ShowWindowDemo()
     {
@@ -85,7 +85,6 @@ public sealed class CampusLessonAnimation : MonoBehaviour
             cloth.localRotation=Quaternion.Euler(90,0,Mathf.Sin(time)*8);
             tapLever.localRotation=Quaternion.Euler(0,0,-30); water.gameObject.SetActive(true);
         }
-        if(smokeGroup.activeSelf) healthFill.localScale=new Vector3(Mathf.Lerp(1,.65f,wave),1,1);
     }
 
     private void ShowMenuDemo(bool visible,float press)

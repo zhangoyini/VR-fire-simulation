@@ -12,23 +12,48 @@ internal sealed class CampusExerciseTasks
     private static readonly Bounds EastStairEntrance = new Bounds(new Vector3(22.6f, 7.6f, .05f), new Vector3(5.2f, .8f, 2.5f));
     private readonly CampusHingeInteractable[] exitDoors;
     private readonly CampusRescueStudent student;
+    private readonly CampusNavigationPanels panels;
     private Status detour, rescue, exit, assembly;
     private int previousFloor = 4;
     private int revision, renderedRevision = -1;
     private CampusLessonDirector.Phase renderedPhase;
     private string details;
 
-    internal CampusExerciseTasks(Transform exitDoor, CampusRescueStudent student)
+    internal int Floor => previousFloor;
+    internal bool DetourActive => detour == Status.Active;
+    internal bool RescueActive => rescue == Status.Active;
+    internal bool ExitActive => exit == Status.Active;
+    internal bool AssemblyApproach => exit == Status.Complete && assembly == Status.Active;
+
+    internal CampusExerciseTasks(Transform exitDoor, CampusRescueStudent student, CampusNavigationPanels panels)
     {
         exitDoors = exitDoor != null ? exitDoor.GetComponentsInChildren<CampusHingeInteractable>() :
             System.Array.Empty<CampusHingeInteractable>();
         this.student = student;
+        this.panels = panels;
     }
 
     internal void Begin()
     {
         assembly = Status.Active;
-        Announce("主任务：疏散到一楼操场\nMain objective: Evacuate to the outdoor assembly area", "TASK_ASSEMBLY_STARTED");
+        Announce("主任务 · 疏散到一楼操场\n先推开 401 教室门，观察门外。", "TASK_ASSEMBLY_STARTED");
+    }
+
+    internal void TowelPhaseChanged(CampusLessonDirector.Phase phase)
+    {
+        switch (phase)
+        {
+            case CampusLessonDirector.Phase.FindTowel:
+                panels?.QueueNotice("任务 1 · 寻找毛巾\n前往 411 卫生间。");
+                break;
+            case CampusLessonDirector.Phase.WetTowel:
+                panels?.QueueNotice("任务 1 完成 · 已拿到毛巾", complete: true);
+                panels?.QueueNotice("任务 2 · 浸湿毛巾并撤离\n到洗手台打湿毛巾，再下到三楼。", darkText: true);
+                break;
+            case CampusLessonDirector.Phase.Complete:
+                panels?.QueueNotice("任务 2 完成 · 继续前往一楼操场", complete: true);
+                break;
+        }
     }
 
     internal void Tick(Vector3 feet)
@@ -37,26 +62,26 @@ internal sealed class CampusExerciseTasks
         {
             detour = Status.Active;
             JourneyDirector.Instance?.Request(JourneyState.Blocked);
-            Announce("任务 3：遇见障碍物，请从另一通道逃生\nTask 3: Route blocked. Use Stair B.", "ROUTE_BLOCKED_REROUTE");
+            Announce("任务 3 · 遇见障碍物\n请从东侧 B 楼梯撤离。", "ROUTE_BLOCKED_REROUTE");
         }
         else if (detour == Status.Active && EastStairEntrance.Contains(feet))
         {
             detour = Status.Complete;
-            Announce("任务 3 完成：已到达 B 楼梯口\nTask 3 complete: Reached Stair B", "TASK_DETOUR_COMPLETED");
+            Announce("任务 3 完成 · 已到达 B 楼梯口", "TASK_DETOUR_COMPLETED", complete: true);
         }
 
         int floor = Mathf.Clamp(Mathf.FloorToInt((feet.y + .15f) / 3.8f) + 1, 1, 4);
         if (floor == 2 && previousFloor == 3 && rescue == Status.Hidden && student != null)
         {
             rescue = Status.Active;
-            Announce("可选支线：轮椅救援\nOptional: Assist the student in the wheelchair", "TASK_RESCUE_STARTED");
+            Announce("可选支线 · 轮椅救援\n护送同学到避难区，再按呼叫铃。", "TASK_RESCUE_STARTED", delay: .5f);
         }
         previousFloor = floor;
 
         if (floor == 1 && exit == Status.Hidden)
         {
             exit = Status.Active;
-            Announce("任务 4：找到并打开通往操场的出口\nTask 4: Find and open the exit to the assembly area", "TASK_EXIT_STARTED");
+            Announce("任务 4 · 打开操场出口\n沿出口标识找到大厅双开门。", "TASK_EXIT_STARTED", delay: .5f);
         }
         if (exit == Status.Active && floor == 1)
         {
@@ -64,7 +89,7 @@ internal sealed class CampusExerciseTasks
             {
                 if (Mathf.Abs(door.Angle) < 30f) continue;
                 exit = Status.Complete;
-                Announce("任务 4 完成：出口门已打开\nTask 4 complete: Exit door opened", "TASK_EXIT_COMPLETED");
+                Announce("任务 4 完成 · 出口门已打开", "TASK_EXIT_COMPLETED", complete: true);
                 break;
             }
         }
@@ -87,7 +112,7 @@ internal sealed class CampusExerciseTasks
         rescue = Status.Complete;
         JourneyDirector.Instance?.Request(JourneyState.Refuge);
         SessionLogger.Write("RESCUE_COMPLETED");
-        Announce("轮椅救援完成，请继续前往一楼操场。\nRescue complete. Continue to the outdoor assembly area.", "REFUGE_INTERCOM_CONFIRMED");
+        Announce("轮椅救援完成 · 继续前往一楼操场", "REFUGE_INTERCOM_CONFIRMED", complete: true);
     }
 
     internal void CompleteAssembly()
@@ -130,6 +155,8 @@ internal sealed class CampusExerciseTasks
         AddRow(card, rescue, "可选支线 · 轮椅救援", rescueInstruction);
         AddRow(card, exit, "任务 4 · 打开通往操场的出口",
             current == Objective.Exit ? "沿一楼走廊找到大厅双开门，握住扳机推开任意一扇门。" : null);
+        if (phase >= CampusLessonDirector.Phase.FindTowel)
+            card.Append("\n<color=#ffc676>教学回顾 · 烟雾</color>\n暴露超过 3 秒扣血，传送也计时。湿毛巾减缓游戏扣血，不能过滤一氧化碳。");
         return details = card.ToString();
     }
 
@@ -150,13 +177,13 @@ internal sealed class CampusExerciseTasks
         card.Append(status == Status.Complete ? "\n<color=#81efa0>✓ 已完成</color>  " : "\n<color=#78d9ff>进行中</color>  ");
         card.Append(title);
         if (instruction != null && status == Status.Active)
-            card.Append("\n<color=#a7e9dd>").Append(instruction).Append("</color>\n");
+            card.Append("\n<color=#a7e9dd>").Append(instruction).Append("</color>");
     }
 
-    private void Announce(string message, string eventName)
+    private void Announce(string message, string eventName, bool complete = false, float delay = 0)
     {
         revision++;
-        CampusMessagePresenter.Instance?.Show(message);
+        panels?.QueueNotice(message, complete, delay);
         SessionLogger.Write(eventName);
     }
 }

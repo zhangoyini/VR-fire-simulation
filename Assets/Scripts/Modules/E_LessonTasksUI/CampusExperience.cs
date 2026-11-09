@@ -13,9 +13,13 @@ public sealed class CampusExperience : MonoBehaviour
     private float startTime;
     private int previousFloor;
     private bool finished;
+    private CampusSmokeExposure smokeExposure;
+    private HealthTimeBar healthBar;
     private void Start()
     {
         startTime = Time.time;
+        smokeExposure = FindObjectOfType<CampusSmokeExposure>();
+        healthBar = FindObjectOfType<HealthTimeBar>(true);
         JourneyDirector.Instance?.Request(JourneyState.Awareness);
         if (alarm != null && CampusLessonDirector.Instance==null) alarm.PlayDelayed(9f);
         var resolution = FindObjectOfType<ResolutionCoordinator>();
@@ -25,9 +29,17 @@ public sealed class CampusExperience : MonoBehaviour
     private void Update()
     {
         if (trackedHead == null || finished) return;
+        bool towelProtected = CampusTowelInteractable.HasProtection(trackedHead);
+        healthBar?.SetTowelProtection(towelProtected);
         int floor = Mathf.Clamp(Mathf.FloorToInt((trackedHead.position.y - 0.8f) / 3.8f) + 1, 1, 4);
         if (floorLabel != null) floorLabel.text = $"{floor}F   HP {Mathf.RoundToInt((HealthTimeController.Instance != null ? HealthTimeController.Instance.HealthPercent : 1) * 100)} / 血量";
-        if(floorLabel!=null && CampusTowelInteractable.HasProtection(trackedHead)) floorLabel.text+="\n湿毛巾遮挡 / Wet towel in position";
+        if (floorLabel != null)
+        {
+            if (smokeExposure != null && smokeExposure.InSmoke)
+                floorLabel.text += "\n<color=#ffc676>烟雾区 · 尽快离开 / Smoke · Move out</color>";
+            else if (towelProtected)
+                floorLabel.text += "\n湿毛巾遮挡 / Wet towel in position";
+        }
         if (floor != previousFloor)
         {
             previousFloor = floor;
