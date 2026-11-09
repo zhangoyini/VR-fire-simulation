@@ -133,7 +133,9 @@ public sealed partial class CampusRevisionDriver : MonoBehaviour
         hinge.SetAngle(0); var vertices=pane.GetComponent<MeshFilter>().sharedMesh.vertices; int farthest=Enumerable.Range(0,vertices.Length).OrderByDescending(i=>(vertices[i]-vertices[0]).sqrMagnitude).First();
         float width=Vector3.Distance(pane.TransformPoint(vertices[0]),pane.TransformPoint(vertices[farthest]));
         hand.position=hinge.transform.TransformPoint(new Vector3(.7f,0,.1f)); hinge.OnInteractStart(hand); Check(hinge.Angle==0,"Window press alone does not open it");
-        hand.position=hinge.transform.position+hinge.transform.rotation*new Vector3(.7f,0,-.7f); hinge.OnInteract(hand);
+        Check(hinge.TryGetWindowGrip(hand,out Vector3 windowGrip),"The room window captures the actual grip point");
+        Vector3 windowRadius=windowGrip-hinge.transform.position;
+        hand.position+=Quaternion.AngleAxis(60f,hinge.transform.up)*windowRadius-windowRadius; hinge.OnInteract(hand);
         Check(hinge.Angle>35 && hinge.Angle<=90,"Window outward push respects the angle limit");
         Check(width>.1f && Mathf.Abs(width-Vector3.Distance(pane.TransformPoint(vertices[0]),pane.TransformPoint(vertices[farthest])))<.001f,"Glass rotation is not sheared by non-uniform wall scale");
         hinge.OnInteractEnd(hand); hinge.OnInteractStart(hand); hinge.OnInteractEnd(hand);

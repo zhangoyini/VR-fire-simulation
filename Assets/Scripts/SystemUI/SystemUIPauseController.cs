@@ -21,6 +21,8 @@ public class SystemUIPauseController : MonoBehaviour
     private bool[] previousMenuInteractionStates;
     private bool menuInteractionsBlocked;
     private bool previousPauseInput,previousRightTrigger;
+    public event System.Action Opened;
+    public event System.Action ResumedFromMenu;
 
     private void Awake()
     {
@@ -54,9 +56,19 @@ public class SystemUIPauseController : MonoBehaviour
         BlockMenuInteractions();
         if (gameplayUI != null) gameplayUI.SetActive(false);
         pausePanel.SetActive(true);
+        Opened?.Invoke();
     }
-    public void ResumeGame() { EndPause(true); }
-    public void TogglePause() { if (paused) ResumeGame(); else ShowPause(); }
+    public void ResumeGame()
+    {
+        if (!paused) return;
+        EndPause(true);
+        ResumedFromMenu?.Invoke();
+    }
+    public void TogglePause()
+    {
+        if (!paused) ShowPause();
+        else if (!(CampusLessonDirector.Instance?.RequiresResumeButton ?? false)) EndPause(true);
+    }
     private void OnOutcome(ResolutionCoordinator.Outcome outcome)
     {
         EndPause(false);
@@ -112,17 +124,9 @@ public class SystemUIPauseController : MonoBehaviour
     {
         if (!paused && resolution != null && resolution.CurrentOutcome == ResolutionCoordinator.Outcome.None)
             RestoreMenuInteractions();
-        bool pauseInput=CampusControllerInput.Pause(), pauseDown=pauseInput && !previousPauseInput;
-        previousPauseInput=pauseInput;
         bool rightTrigger=CampusControllerInput.Trigger(SteamVR_Input_Sources.RightHand), rightDown=rightTrigger && !previousRightTrigger;
         previousRightTrigger=rightTrigger;
-        if (resolution != null
-            && resolution.CurrentOutcome == ResolutionCoordinator.Outcome.None
-            && pauseDown)
-        {
-            TogglePause();
-            return;
-        }
+        if (ProcessPauseInput(CampusControllerInput.Pause())) return;
         if (!paused || contactVolume == null || !rightDown) return;
         // FixedUpdate/trigger callbacks stop at timeScale=0. Recheck only our pause
         // buttons against Henry's existing contact box, using the same input/action.
@@ -140,5 +144,15 @@ public class SystemUIPauseController : MonoBehaviour
                 break;
             }
         }
+    }
+
+    internal bool ProcessPauseInput(bool stickButton)
+    {
+        bool pressed=stickButton && !previousPauseInput;
+        previousPauseInput=stickButton;
+        if (!pressed || resolution == null || resolution.CurrentOutcome != ResolutionCoordinator.Outcome.None ||
+            (paused && (CampusLessonDirector.Instance?.RequiresResumeButton ?? false))) return false;
+        TogglePause();
+        return true;
     }
 }

@@ -22,6 +22,8 @@ namespace Valve.VR
         private static SteamVR_Action_Vector2 p_default_Turn;
         
         private static SteamVR_Action_Boolean p_default_LessonConfirm;
+        private static SteamVR_Action_Boolean p_default_TutorialMap;
+        private static SteamVR_Action_Boolean p_default_TutorialTask;
         
         private static SteamVR_Action_Boolean p_default_Pause;
         
@@ -247,12 +249,17 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Boolean default_TutorialMap => p_default_TutorialMap.GetCopy<SteamVR_Action_Boolean>();
+        public static SteamVR_Action_Boolean default_TutorialTask => p_default_TutorialTask.GetCopy<SteamVR_Action_Boolean>();
+
         private static void InitializeActionArrays()
         {
             Valve.VR.SteamVR_Input.actions = new Valve.VR.SteamVR_Action[] {
                     SteamVR_Actions.default_Walk,
                     SteamVR_Actions.default_Turn,
                     SteamVR_Actions.default_LessonConfirm,
+                    SteamVR_Actions.default_TutorialMap,
+                    SteamVR_Actions.default_TutorialTask,
                     SteamVR_Actions.default_Pause,
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
@@ -277,6 +284,8 @@ namespace Valve.VR
                     SteamVR_Actions.default_Walk,
                     SteamVR_Actions.default_Turn,
                     SteamVR_Actions.default_LessonConfirm,
+                    SteamVR_Actions.default_TutorialMap,
+                    SteamVR_Actions.default_TutorialTask,
                     SteamVR_Actions.default_Pause,
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
@@ -305,6 +314,8 @@ namespace Valve.VR
                     SteamVR_Actions.mixedreality_ExternalCamera};
             Valve.VR.SteamVR_Input.actionsBoolean = new Valve.VR.SteamVR_Action_Boolean[] {
                     SteamVR_Actions.default_LessonConfirm,
+                    SteamVR_Actions.default_TutorialMap,
+                    SteamVR_Actions.default_TutorialTask,
                     SteamVR_Actions.default_Pause,
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
@@ -332,6 +343,8 @@ namespace Valve.VR
                     SteamVR_Actions.default_Walk,
                     SteamVR_Actions.default_Turn,
                     SteamVR_Actions.default_LessonConfirm,
+                    SteamVR_Actions.default_TutorialMap,
+                    SteamVR_Actions.default_TutorialTask,
                     SteamVR_Actions.default_Pause,
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
@@ -354,6 +367,8 @@ namespace Valve.VR
             SteamVR_Actions.p_default_Walk = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/default/in/Walk")));
             SteamVR_Actions.p_default_Turn = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/default/in/Turn")));
             SteamVR_Actions.p_default_LessonConfirm = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/LessonConfirm")));
+            SteamVR_Actions.p_default_TutorialMap = SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/TutorialMap");
+            SteamVR_Actions.p_default_TutorialTask = SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/TutorialTask");
             SteamVR_Actions.p_default_Pause = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/Pause")));
             SteamVR_Actions.p_default_InteractUI = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/InteractUI")));
             SteamVR_Actions.p_default_Teleport = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/Teleport")));

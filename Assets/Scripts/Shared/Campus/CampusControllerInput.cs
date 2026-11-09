@@ -32,6 +32,18 @@ public static class CampusControllerInput
         if(device.isValid && device.TryGetFeatureValue(CommonUsages.primary2DAxis,out Vector2 axis)) return axis;
         return SteamVR.active?SteamVR_Input.GetVector2Action("Walk").GetAxis(SteamVR_Input_Sources.LeftHand):Vector2.zero;
     }
+    public static bool TutorialButton(bool secondary)
+    {
+        if(SteamVR.active)
+        {
+            var action=SteamVR_Input.GetBooleanAction(secondary?"TutorialTask":"TutorialMap");
+            if(action!=null && action.GetActive(SteamVR_Input_Sources.LeftHand))
+                return action.GetState(SteamVR_Input_Sources.LeftHand);
+        }
+        var device=InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        var usage=secondary?CommonUsages.secondaryButton:CommonUsages.primaryButton;
+        return device.isValid && device.TryGetFeatureValue(usage,out bool pressed) && pressed;
+    }
     public static bool Pause()
     {
         var device=InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
@@ -47,11 +59,11 @@ public static class CampusControllerInput
         return SteamVR.active && SteamVR_Input.GetBooleanAction("Teleport").GetState(source);
     }
     public static bool HardwarePresent => TryPose(XRNode.Head,out _,out _) || SteamVR.active;
-    public static void Haptic(SteamVR_Input_Sources source,float amplitude)
+    public static void Haptic(SteamVR_Input_Sources source,float amplitude,float duration=.035f)
     {
         var device=InputDevices.GetDeviceAtXRNode(Node(source));
-        if(device.isValid && device.TryGetHapticCapabilities(out var capability) && capability.supportsImpulse)
-        { device.SendHapticImpulse(0,amplitude,.035f); return; }
-        if(SteamVR.active) SteamVR_Input.GetVibrationAction("Haptic").Execute(0,.035f,100,amplitude,source);
+        if(device.isValid && device.TryGetHapticCapabilities(out var capability) && capability.supportsImpulse &&
+            device.SendHapticImpulse(0,amplitude,duration)) return;
+        if(SteamVR.active) SteamVR_Input.GetVibrationAction("Haptic")?.Execute(0,duration,100,amplitude,source);
     }
 }

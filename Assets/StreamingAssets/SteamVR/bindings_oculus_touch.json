@@ -133,6 +133,16 @@
                "path": "/user/hand/right/input/a"
             },
             {
+               "inputs": { "click": { "output": "/actions/default/in/tutorialmap" } },
+               "mode": "button",
+               "path": "/user/hand/left/input/x"
+            },
+            {
+               "inputs": { "click": { "output": "/actions/default/in/tutorialtask" } },
+               "mode": "button",
+               "path": "/user/hand/left/input/y"
+            },
+            {
                "inputs": { "north": { "output": "/actions/default/in/teleport" } },
                "mode": "dpad",
                "parameters": { "deadzone_pct": "65", "overlap_pct": "0", "sub_mode": "touch" },

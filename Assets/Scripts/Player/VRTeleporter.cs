@@ -278,6 +278,9 @@ public class VRTeleporter : MonoBehaviour
         var body=playerRoot.GetComponent<CharacterController>();
         bool restoreBody=body!=null && body.enabled;
         if(restoreBody) body.enabled=false;
+        if(useCampusInput)
+            foreach(var hand in playerRoot.GetComponentsInChildren<CampusHandInteractor>())
+                hand.ReleaseWindowGrip();
         playerRoot.position=destination;
         if(trackedHands!=null) foreach(var hand in trackedHands)
             if(hand!=null && hand.TrackingSpace==playerRoot) hand.FollowRigTranslation(delta);
@@ -285,6 +288,7 @@ public class VRTeleporter : MonoBehaviour
         if(restoreBody) body.enabled=true;
         Physics.SyncTransforms();
         destinationMarker?.FinishTeleport();
+        if(useCampusInput) CampusLessonDirector.Instance?.RecordTutorialTeleport(teleportTarget);
     }
 
     public bool IsWithinRange(Vector3 point)
@@ -386,6 +390,8 @@ public class VRTeleporter : MonoBehaviour
 
     private bool CanLand(Vector3 point, TeleportArea area)
     {
+        var lesson = CampusLessonDirector.Instance;
+        if (useCampusInput && lesson != null && !lesson.AllowsTeleportLanding(point)) return false;
         return IsWithinRange(point) && HasStandingClearance(point) && HasClearTravelPath(point) &&
             CanPlaceFollowingChair(point) && (!useCampusInput || HasConnectedStairPath(point, area));
     }

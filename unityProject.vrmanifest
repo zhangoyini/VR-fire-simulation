@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.vrfiresimulation.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "C:\\Users\\user\\VR-fire-simulation\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "action_manifest_path": "F:\\unityproject\\VR-fire-simulation\\Assets\\StreamingAssets\\SteamVR\\actions.json",
       "strings": {
         "en_us": {
           "name": "VR-fire-simulation [Testing]"

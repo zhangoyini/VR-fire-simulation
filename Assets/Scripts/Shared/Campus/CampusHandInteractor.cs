@@ -27,7 +27,7 @@ public sealed class CampusHandInteractor : MonoBehaviour
     private void Update()
     {
         bool blocked = Time.timeScale == 0 || (resolution != null && resolution.CurrentOutcome != ResolutionCoordinator.Outcome.None);
-        RefreshContact(blocked || (CampusLessonDirector.Instance!=null && CampusLessonDirector.Instance.WorldInteractionLocked));
+        RefreshContact(blocked);
         bool grip=CampusControllerInput.Trigger(inputSource), down=grip && !previousGrip, up=!grip && previousGrip;
         previousGrip=grip;
         ProcessGrip(down, grip, up);
@@ -35,27 +35,42 @@ public sealed class CampusHandInteractor : MonoBehaviour
     public void ProcessGrip(bool down, bool grip, bool up)
     {
         bool blocked = Time.timeScale == 0 || (resolution != null && resolution.CurrentOutcome != ResolutionCoordinator.Outcome.None);
-        if ((blocked || (CampusLessonDirector.Instance!=null && CampusLessonDirector.Instance.WorldInteractionLocked)) && !(candidate is VRMenuButton))
+        var lesson=CampusLessonDirector.Instance;
+        if ((blocked || (lesson!=null && !lesson.AllowsHandTarget(held ?? candidate))) && !(candidate is VRMenuButton))
         {
-            var lesson=CampusLessonDirector.Instance;
             // Keep the just-collected towel held while task 2 unfolds. Releases still work.
             if(!blocked && lesson!=null && lesson.CurrentPhase==CampusLessonDirector.Phase.WetTowel && lesson.TaskAnnouncement && held==lesson.TargetTowel && grip && !up)
             { ((IInteractable)held).OnInteract(transform); return; }
-            Release(); return;
+            Release();
+            if (!blocked && lesson.IsPractice && grip && !up) UpdateGesture(true);
+            return;
         }
         if (down || !grip) usedThisGrip = false;
         // A held trigger may arrive at a door after the press; buttons still need an explicit press.
         if (!usedThisGrip && candidate != null && (down || (grip && (candidate is CampusHingeInteractable || candidate is CampusTowelInteractable || candidate is CampusPracticeBook)))) usedThisGrip = Begin(candidate);
         if (held != null && grip)
         {
-            ((IInteractable)held).OnInteract(transform);
             var hinge = held as CampusHingeInteractable;
-            if (hinge != null && Mathf.Abs(hinge.Angle - lastAngle) > 2 && Time.unscaledTime >= nextPulse)
-            { Pulse(.16f); lastAngle = hinge.Angle; nextPulse = Time.unscaledTime + .08f; }
+            float previousAngle = hinge != null ? hinge.Angle : 0f;
+            ((IInteractable)held).OnInteract(transform);
+            if (hinge != null && Time.unscaledTime >= nextPulse)
+            {
+                if (hinge.IsWindow && Mathf.Abs(hinge.Angle - previousAngle) > .01f)
+                {
+                    Pulse(.22f, .075f);
+                    nextPulse = Time.unscaledTime + .06f;
+                }
+                else if (!hinge.IsWindow && Mathf.Abs(hinge.Angle - lastAngle) > 2f)
+                { Pulse(.16f); lastAngle = hinge.Angle; nextPulse = Time.unscaledTime + .08f; }
+            }
         }
         if (up || !grip) Release(up);
-        GetComponent<DummyController>()?.SetContactGesture(grip, held is CampusHingeInteractable, held is CampusElevatorButton || held is CampusFaucet);
+        else UpdateGesture(true);
     }
+    private void UpdateGesture(bool gripping) =>
+        GetComponent<DummyController>()?.SetContactGesture(gripping,
+            held is CampusHingeInteractable && !(CampusLessonDirector.Instance?.IsPractice ?? false),
+            held is CampusElevatorButton || held is CampusFaucet);
     public void RefreshContact(bool menuOnly = false)
     {
         if (held != null) return;
@@ -72,19 +87,23 @@ public sealed class CampusHandInteractor : MonoBehaviour
             if (hits[i] == null || hits[i].transform.IsChildOf(transform)) continue;
             foreach (var component in hits[i].GetComponentsInParent<MonoBehaviour>())
             {
-                if (!(component is IInteractable) || !component.isActiveAndEnabled || !CampusTeamRuntime.TargetAvailable(component) || (menuOnly && !(component is VRMenuButton))) continue;
+                if (!(component is IInteractable) || !component.isActiveAndEnabled || !CampusTeamRuntime.TargetAvailable(component) ||
+                    (menuOnly && !(component is VRMenuButton)) ||
+                    (CampusLessonDirector.Instance!=null &&
+                        (!CampusLessonDirector.Instance.AllowsHandTarget(component) ||
+                         !CampusLessonDirector.Instance.AllowsTutorialContact(component, point)))) continue;
                 if (component is CampusHingeInteractable hinge && hinge.IsHeld && !hinge.IsHeldBy(transform)) continue;
                 if (component is CampusTowelInteractable towel && !towel.CanGrab(transform)) continue;
                 if (component is CampusPracticeBook book && !book.CanGrab(transform)) continue;
+                if (component is CampusTutorialButton button && button.IsHeld) continue;
                 if (component is CampusRescueStudent student && !student.CanPush(transform)) continue;
                 float d = Vector3.Distance(point, hits[i].ClosestPoint(point));
 
-                //if(d>(component is CampusTowelInteractable || component is CampusPracticeBook?pickupDistance:contactDistance)) continue;
                 float allowedDistance;
 
-                if (component is CampusHingeInteractable)
+                if (component is CampusHingeInteractable hinged)
                 {
-                    allowedDistance = doorContactDistance;
+                    allowedDistance = hinged.IsWindow ? contactDistance : doorContactDistance;
                 }
                 else if (component is CampusTowelInteractable ||
                          component is CampusPracticeBook)
@@ -110,7 +129,9 @@ public sealed class CampusHandInteractor : MonoBehaviour
                 out var chairHit, 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
         {
             var student = chairHit.collider.GetComponentInParent<CampusRescueStudent>();
-            if (student != null && student.isActiveAndEnabled && student.CanPush(transform))
+            var lesson = CampusLessonDirector.Instance;
+            if (student != null && student.isActiveAndEnabled && student.CanPush(transform) &&
+                (lesson == null || lesson.AllowsHandTarget(student)))
                 best = student;
         }
         if (best == candidate) return;
@@ -120,17 +141,23 @@ public sealed class CampusHandInteractor : MonoBehaviour
         if (candidate != null)
         {
             ((IInteractable)candidate).OnHoverEnter();
-            highlight = candidate.GetComponent<CampusContactHighlight>() ?? candidate.gameObject.AddComponent<CampusContactHighlight>();
-            highlight.SetHover(this, true);
+            if(CampusLessonDirector.Instance==null || !CampusLessonDirector.Instance.ShowsTutorialContactMarker(candidate))
+            {
+                highlight = candidate.GetComponent<CampusContactHighlight>() ?? candidate.gameObject.AddComponent<CampusContactHighlight>();
+                highlight.SetHover(this, true);
+            }
         }
     }
     public bool Begin(MonoBehaviour target)
     {
         if (target == null || held != null || !(target is IInteractable) || !CampusTeamRuntime.TargetAvailable(target)) return false;
-        if(CampusLessonDirector.Instance!=null && CampusLessonDirector.Instance.WorldInteractionLocked && !(target is VRMenuButton)) return false;
+        if(CampusLessonDirector.Instance!=null &&
+            (!CampusLessonDirector.Instance.AllowsHandTarget(target) ||
+             !CampusLessonDirector.Instance.AllowsTutorialContact(target,ContactPoint))) return false;
         if (target is CampusHingeInteractable hinge && hinge.IsHeld && !hinge.IsHeldBy(transform)) return false;
         if (target is CampusTowelInteractable towel && !towel.CanGrab(transform)) return false;
         if (target is CampusPracticeBook book && !book.CanGrab(transform)) return false;
+        if (target is CampusTutorialButton button && button.IsHeld) return false;
         if (target is CampusRescueStudent student && !student.CanPush(transform)) return false;
         // Wheelchair handles are click switches; release must not stop following.
         if (target is CampusRescueStudent)
@@ -140,6 +167,11 @@ public sealed class CampusHandInteractor : MonoBehaviour
             return true;
         }
         throwMotion?.ResetHistory(); held = target; ((IInteractable)held).OnInteractStart(transform);
+        if (target is CampusHingeInteractable window && window.IsWindow)
+        {
+            GetComponent<CampusHandVisual>()?.SetWindowGrip(window);
+            nextPulse = 0f;
+        }
         if((target is CampusTowelInteractable || target is CampusPracticeBook) && highlight!=null) highlight.SetHover(this,false);
         lastAngle = target is CampusHingeInteractable h ? h.Angle : 0; Pulse(.3f); return true;
     }
@@ -147,18 +179,26 @@ public sealed class CampusHandInteractor : MonoBehaviour
     {
         if (held != null)
         {
+            if (held is CampusHingeInteractable window && window.IsWindow)
+                GetComponent<CampusHandVisual>()?.SetWindowGrip(null);
             if(throwMotion!=null) throwMotion.ReleaseAllowed=allowThrow;
-            bool towel=held is CampusTowelInteractable || held is CampusPracticeBook;
+            bool pickup=held is CampusTowelInteractable || held is CampusPracticeBook;
             ((IInteractable)held).OnInteractEnd(transform);
-            if(towel)
+            if(pickup)
             {
                 Pulse(.22f); if(highlight!=null) highlight.SetHover(this,false);
                 candidate=null; highlight=null;
             }
         }
         held = null;
+        UpdateGesture(false);
         if(throwMotion!=null) throwMotion.ReleaseAllowed=false;
     }
-    private void Pulse(float amplitude) { HapticRequested?.Invoke(amplitude); CampusControllerInput.Haptic(inputSource,amplitude); }
+    public void ReleaseWindowGrip()
+    {
+        if (held is CampusHingeInteractable window && window.IsWindow) Release();
+    }
+    private void Pulse(float amplitude,float duration=.035f)
+    { HapticRequested?.Invoke(amplitude); CampusControllerInput.Haptic(inputSource,amplitude,duration); }
     private void OnDisable() { Release(); if (highlight != null) highlight.SetHover(this, false); candidate = null; highlight = null; }
 }

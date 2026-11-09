@@ -2,7 +2,7 @@ using UnityEngine;
 using Valve.VR;
 
 // Controller-driven fallback poses: no optical hand tracking or external downloads required.
-// Only finger bones animate; the tracked proxy/wrist and interaction distances never move.
+// The glove can follow a window grip without moving the tracked interaction proxy.
 public sealed class CampusHandVisual : MonoBehaviour
 {
     [SerializeField] private Transform[] bones;
@@ -13,14 +13,32 @@ public sealed class CampusHandVisual : MonoBehaviour
     private bool gripping, pushing, pointing;
     private bool presentationVisible=true,trackingVisible=true;
     private SkinnedMeshRenderer[] meshes;
+    private Transform glove;
+    private Vector3 gloveRest;
+    private CampusHingeInteractable windowGrip;
     public Transform[] Bones => bones;
     //public Vector3 ContactPoint => bones!=null && bones.Length>1 && bones[1]!=null?bones[1].position:transform.position;
-    public Vector3 ContactPoint =>
-    interactionPoint != null
-        ? interactionPoint.position
-        : bones != null && bones.Length > 1 && bones[1] != null
-            ? bones[1].position
-            : transform.position;
+    public Vector3 ContactPoint
+    {
+        get
+        {
+            Transform point = interactionPoint != null ? interactionPoint : bones != null && bones.Length > 1 ? bones[1] : null;
+            if (point == null) return transform.position;
+            return glove != null && point.IsChildOf(glove)
+                ? point.position - (glove.position - transform.TransformPoint(gloveRest))
+                : point.position;
+        }
+    }
+    private void Awake()
+    {
+        glove = transform.Find("Detailed tracked glove");
+        if (glove != null) gloveRest = glove.localPosition;
+    }
+    public void SetWindowGrip(CampusHingeInteractable window)
+    {
+        windowGrip = window;
+        if (window == null && glove != null) glove.localPosition = gloveRest;
+    }
 
     public void SetPresentationVisible(bool visible) { presentationVisible=visible; RefreshVisibility(); }
     public void SetTrackingVisible(bool visible) { trackingVisible=visible; RefreshVisibility(); }
@@ -36,7 +54,15 @@ public sealed class CampusHandVisual : MonoBehaviour
     { bones = rig; inputSource = source; relaxed = rest; fist = closed; point = finger; meshes=null; Tick(1); }
     public void SetGesture(bool grip, bool push, bool button)
     { gripping = grip; pushing = push; pointing = button; }
-    private void LateUpdate() { Tick(Time.unscaledDeltaTime); RefreshVisibility(); }
+    private void LateUpdate()
+    {
+        Tick(Time.unscaledDeltaTime);
+        RefreshVisibility();
+        if (glove == null) return;
+        glove.localPosition = gloveRest;
+        if (windowGrip != null && windowGrip.TryGetWindowGrip(transform, out var point))
+            glove.position += point - ContactPoint;
+    }
     public void Tick(float dt)
     {
         var pose = gripping && pointing ? point : gripping && !pushing ? fist : relaxed;
