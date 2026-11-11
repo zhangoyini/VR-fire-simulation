@@ -62,7 +62,7 @@ public sealed partial class CampusRevisionDriver : MonoBehaviour
         Check(FindObjectsOfType<Transform>().Count(t=>t.name=="Cardboard archive carton")==6 && !FindObjectsOfType<Transform>().Any(t=>t.name=="Debris physical blockage"),"The storage pile remains without the artificial route blocker");
         Check(FindObjectsOfType<MeshFilter>().All(m=>m.sharedMesh!=null),"All visible mesh filters have geometry");
         Check(FindObjectsOfType<Renderer>().All(r=>r.sharedMaterials.All(m=>m!=null && m.shader!=null && m.shader.name!="Hidden/InternalErrorShader")),"All visible renderers have supported materials");
-        health.ResetHealth(); yield return new WaitForSeconds(.2f); Check(health.HealthPercent>.999f,"Clear air causes no passive countdown damage");
+        Check(Mathf.Approximately(health.CurrentBaseDrainPerSecond,.1f),"Clear air uses a fixed passive loss rate of 0.1 HP/s");
         body.enabled=false; rig.SetPositionAndRotation(new Vector3(0,11.4f,0),Quaternion.identity); head.localPosition=new Vector3(0,1.65f,0); head.localRotation=Quaternion.identity; body.enabled=true; Physics.SyncTransforms();
         foreach(var input in new[]{Vector2.up,Vector2.down,Vector2.left,Vector2.right})
         {
@@ -151,8 +151,8 @@ public sealed partial class CampusRevisionDriver : MonoBehaviour
         spread.Advance(50); Check(spread.Stages.Where(s=>s.floor==4).All(s=>s.exposure.enabled) && spread.Stages.Where(s=>s.floor==1).All(s=>!s.exposure.enabled),"Fourth-floor smoke forms before first-floor exposure");
         Check(spread.Stages.All(s=>s.particles.collision.enabled && s.particles.main.maxParticles<=100),"All smoke uses bounded pools and physical collision");
         yield return EvacuationChecks();
-        var exposure=FindObjectOfType<CampusSmokeExposure>(); health.ResetHealth(); exposure.Tick(false,0); exposure.Tick(true,5.9f); Check(health.HealthPercent==1,"Brief smoke exposure retains its six-second grace period"); exposure.Tick(true,1.1f); Check(Mathf.Abs(health.HealthPercent-.98f)<.001f,"Prolonged exposure removes 2 HP per second");
-        exposure.Tick(false,0); exposure.Tick(true,2); Check(Mathf.Abs(health.HealthPercent-.98f)<.001f,"Leaving smoke resets exposure without extra damage");
+        var exposure=FindObjectOfType<CampusSmokeExposure>(); health.ResetHealth(); exposure.Tick(false,0); exposure.Tick(true,3); Check(health.HealthPercent==1,"Smoke exposure has a three-second grace period"); exposure.Tick(true,1); Check(Mathf.Abs(health.HealthPercent-.99f)<.001f,"Full-strength smoke removes 1 HP per second after the grace period");
+        exposure.Tick(false,0); exposure.Tick(true,2); Check(Mathf.Abs(health.HealthPercent-.99f)<.001f,"Leaving smoke resets exposure without extra damage");
         yield return TowelWaterChecks(hands,head,health,exposure);
         var pause=FindObjectOfType<SystemUIPauseController>(); pause.ShowPause(); Vector3 paused=rig.position; movement.Step(Vector2.up,1,.1f); Check(Time.timeScale==0 && rig.position==paused,"Pause blocks walking");
         float hp=health.HealthPercent, age=spread.RoomAge; exposure.Tick(true,10); spread.Advance(10); Check(health.HealthPercent==hp && spread.RoomAge==age,"Pause blocks damage and smoke progression"); pause.ResumeGame();

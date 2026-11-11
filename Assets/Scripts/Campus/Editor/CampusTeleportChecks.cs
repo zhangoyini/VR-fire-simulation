@@ -482,7 +482,7 @@ public static class CampusTeleportChecks
         for(int i=0;i<2;i++) exposure.RecordTeleport(new Vector3(0,1.65f,0),new Vector3(2,1.65f,0));
         Check(Mathf.Abs(exposure.Exposure-4/1.8f)<.001f && health.HealthPercent==1,"Two 2m teleports count 2.22s of smoke without premature damage");
         exposure.RecordTeleport(new Vector3(0,1.65f,0),new Vector3(2,1.65f,0));
-        Check(Mathf.Abs(exposure.Exposure-6/1.8f)<.001f && Mathf.Abs(health.HealthPercent-(1-(6/1.8f-3)*2/100))<.0001f,"Third teleport crosses the 3s threshold and applies proportional damage");
+        Check(Mathf.Abs(exposure.Exposure-6/1.8f)<.001f && Mathf.Abs(health.HealthPercent-(1-(6/1.8f-3)/100))<.0001f,"Third teleport crosses the 3s threshold and applies proportional damage");
         var grip=new GameObject("QA towel hand").transform; grip.SetParent(rig.transform,false);
         grip.position=head.transform.TransformPoint(new Vector3(0,-.1f,.065f));
         var cloth=new GameObject("QA towel"); cloth.AddComponent<Rigidbody>(); cloth.AddComponent<BoxCollider>().size=new Vector3(.2f,.15f,.02f);
@@ -490,7 +490,7 @@ public static class CampusTeleportChecks
         Set(towel,"<IsWet>k__BackingField",true); towel.OnInteractStart(grip); Physics.SyncTransforms();
         exposure.Tick(false,0); health.ResetHealth(); exposure.Tick(true,3);
         exposure.RecordTeleport(new Vector3(0,1.65f,0),new Vector3(2,1.65f,0));
-        Check(exposure.IsProtected && Mathf.Abs(health.HealthPercent-(1-2/1.8f*.1f/100))<.0001f,"A wet towel covering the face limits equivalent teleport damage to 0.1 HP/s");
+        Check(exposure.IsProtected && Mathf.Abs(health.HealthPercent-(1-2/1.8f*.5f/100))<.0001f,"A wet towel covering the face limits equivalent teleport damage to 0.5 HP/s");
         towel.OnInteractEnd(grip); CampusTowelInteractable.Active.Remove(towel); UnityEngine.Object.DestroyImmediate(cloth);
         exposure.Tick(false,0); health.ResetHealth();
         var overlapping=UnityEngine.Object.Instantiate(cloud); var overlappingSmoke=overlapping.GetComponent<CampusSmokeVolume>(); Call(overlappingSmoke,"OnEnable");

@@ -6,9 +6,9 @@ public sealed class CampusSmokeExposure : MonoBehaviour
 {
     [SerializeField] private Transform trackedHead;
     [SerializeField] private float graceSeconds = 3f;
-    [SerializeField] private float damagePerSecond = 2f;
+    [SerializeField] private float damagePerSecond = 1f;
     // Gameplay balance only: a cloth does not filter toxic fire gases.
-    [SerializeField,Range(.05f,1f)] private float coveredDamageMultiplier = .05f;
+    [SerializeField,Range(.05f,1f)] private float coveredDamageMultiplier = .5f;
     [SerializeField,Min(.1f)] private float equivalentWalkingSpeed = 1.8f;
     private float exposure;
     private bool wasInside;
@@ -17,6 +17,7 @@ public sealed class CampusSmokeExposure : MonoBehaviour
     public float GraceSeconds => graceSeconds;
     public float DamagePerSecond => damagePerSecond;
     public float CoveredDamageMultiplier => coveredDamageMultiplier;
+    internal bool HasTowelProtection => CampusTowelInteractable.HasProtection(trackedHead);
     public bool IsProtected { get; private set; }
     internal event System.Action<float, bool, bool> ExposureMeasured;
     private void Update()
@@ -64,7 +65,7 @@ public sealed class CampusSmokeExposure : MonoBehaviour
         wasInside=inside;
         if(!inside) { exposure=0; IsProtected=false; return; }
         if(CampusLessonDirector.Instance!=null && CampusLessonDirector.Instance.DamageSuppressed) return;
-        IsProtected=CampusTowelInteractable.HasProtection(trackedHead);
+        IsProtected=HasTowelProtection;
         if (seconds > 0) ExposureMeasured?.Invoke(seconds, IsProtected, teleport);
         float previous = exposure; exposure += Mathf.Max(0,seconds);
         // Keep the smoke clock while protected: repeatedly moving the towel away must

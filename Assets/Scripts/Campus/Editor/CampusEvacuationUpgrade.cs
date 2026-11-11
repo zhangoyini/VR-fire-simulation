@@ -201,7 +201,7 @@ public static partial class CampusSceneBuilder
         // Stair flight volumes follow their height, not the flat corridor floor.
         if (name.StartsWith("Descending")) centre = p-Vector3.up*.65f;
         bool corridor = name.Contains("corridor");
-        float strength = floor == 1 ? (corridor ? .25f : .5f) : floor == 2 ? (corridor ? .5f : .75f) : 1f;
+        float strength = floor * .25f;
         stages.Add(new CampusSmokeSpread.Stage { particles=particles,exposure=FlowVolume(root,name+" exposure",centre,volume),floor=floor,delay=delay,fillSeconds=fill,emissionRate=rate,minimumSize=dense?.95f:.8f,maximumSize=dense?1.8f:1.55f,settlingDepth=corridor?.55f:name.Contains("landing")?.35f:0,strength=strength });
         var velocity=particles.velocityOverLifetime;
         if(corridor)

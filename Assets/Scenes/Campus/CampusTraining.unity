@@ -400517,8 +400517,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   trackedHead: {fileID: 1363151216}
   graceSeconds: 3
-  damagePerSecond: 2
-  coveredDamageMultiplier: 0.05
+  damagePerSecond: 1
+  coveredDamageMultiplier: 0.5
   equivalentWalkingSpeed: 1.8
 --- !u!114 &1130435072
 MonoBehaviour:
@@ -408763,7 +408763,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  baseDrainPerSecond: 0.208333
+  baseDrainPerSecond: 0.1
+  campusSmokeExposure: {fileID: 1130435071}
   lowHealthThreshold: 0.25
   logEvents: 1
 --- !u!1 &1167086997
@@ -751652,7 +751653,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 55127520}
     exposure: {fileID: 239126883}
     roomClock: 0
@@ -751663,7 +751664,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 987548386}
     exposure: {fileID: 993356040}
     roomClock: 0
@@ -751674,7 +751675,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 1867274504}
     exposure: {fileID: 1728738395}
     roomClock: 0
@@ -751685,7 +751686,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 2077181158}
     exposure: {fileID: 111825132}
     roomClock: 0
@@ -751696,7 +751697,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 724860757}
     exposure: {fileID: 1521012263}
     roomClock: 0
@@ -751707,7 +751708,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 159288531}
     exposure: {fileID: 1622778185}
     roomClock: 0
@@ -751718,7 +751719,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 1175912312}
     exposure: {fileID: 1521563278}
     roomClock: 0
@@ -751729,7 +751730,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 1519806242}
     exposure: {fileID: 657471297}
     roomClock: 0
@@ -751740,7 +751741,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 376523097}
     exposure: {fileID: 1959693614}
     roomClock: 0
@@ -751751,7 +751752,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 2002868060}
     exposure: {fileID: 1062327341}
     roomClock: 0
@@ -751762,7 +751763,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 1466345319}
     exposure: {fileID: 2091905123}
     roomClock: 0
@@ -751773,7 +751774,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 379313255}
     exposure: {fileID: 271523351}
     roomClock: 0
@@ -751784,7 +751785,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 808679997}
     exposure: {fileID: 886821048}
     roomClock: 0
@@ -751795,7 +751796,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 270717465}
     exposure: {fileID: 1536128617}
     roomClock: 0
@@ -751806,7 +751807,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 2007918666}
     exposure: {fileID: 821204475}
     roomClock: 0
@@ -751817,7 +751818,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.55
-    strength: 1
+    strength: 0.75
   - particles: {fileID: 736887116}
     exposure: {fileID: 920870346}
     roomClock: 0
@@ -751828,7 +751829,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
-    strength: 0.75
+    strength: 0.5
   - particles: {fileID: 135913539}
     exposure: {fileID: 568810587}
     roomClock: 0
@@ -751839,7 +751840,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 0.75
+    strength: 0.5
   - particles: {fileID: 169009176}
     exposure: {fileID: 29880421}
     roomClock: 0
@@ -751850,7 +751851,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 0.75
+    strength: 0.5
   - particles: {fileID: 1688846285}
     exposure: {fileID: 595663871}
     roomClock: 0
@@ -751861,7 +751862,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
-    strength: 0.75
+    strength: 0.5
   - particles: {fileID: 1495948947}
     exposure: {fileID: 650672230}
     roomClock: 0
@@ -751872,7 +751873,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 0.75
+    strength: 0.5
   - particles: {fileID: 1603477403}
     exposure: {fileID: 661366617}
     roomClock: 0
@@ -751883,7 +751884,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 0.75
+    strength: 0.5
   - particles: {fileID: 1994469269}
     exposure: {fileID: 1532255954}
     roomClock: 0
@@ -752004,7 +752005,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
-    strength: 0.5
+    strength: 0.25
   - particles: {fileID: 353209094}
     exposure: {fileID: 131559673}
     roomClock: 0
@@ -752015,7 +752016,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 0.5
+    strength: 0.25
   - particles: {fileID: 514498533}
     exposure: {fileID: 283816640}
     roomClock: 0
@@ -752026,7 +752027,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 0.5
+    strength: 0.25
   - particles: {fileID: 1008061360}
     exposure: {fileID: 732321882}
     roomClock: 0
@@ -752037,7 +752038,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0.35
-    strength: 0.5
+    strength: 0.25
   - particles: {fileID: 298049955}
     exposure: {fileID: 2126138686}
     roomClock: 0
@@ -752048,7 +752049,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 0.5
+    strength: 0.25
   - particles: {fileID: 452045494}
     exposure: {fileID: 1819989174}
     roomClock: 0
@@ -752059,7 +752060,7 @@ MonoBehaviour:
     minimumSize: 0.95
     maximumSize: 1.8
     settlingDepth: 0
-    strength: 0.5
+    strength: 0.25
   - particles: {fileID: 565827057}
     exposure: {fileID: 1484229388}
     roomClock: 0

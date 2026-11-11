@@ -19,6 +19,8 @@ namespace Jiao.HealthTime
         [Tooltip("基础每秒掉血速度。100 / 480s ≈ 0.208，对应 8 分钟")]
         [SerializeField] private float baseDrainPerSecond = 0.208333f;
 
+        [SerializeField] private CampusSmokeExposure campusSmokeExposure;
+
         [Header("低血量阈值")]
         [Tooltip("血量百分比低于此值时触发一次 LowHealth 事件")]
         [SerializeField][Range(0f, 1f)] private float lowHealthThreshold = 0.25f;
@@ -43,6 +45,8 @@ namespace Jiao.HealthTime
         public bool IsDepleted => currentHealth <= 0f;
         public bool IsPaused => isPaused;
         public float DrainMultiplier => GetTotalMultiplier();
+        internal float CurrentBaseDrainPerSecond => campusSmokeExposure != null && campusSmokeExposure.HasTowelProtection
+            ? baseDrainPerSecond * campusSmokeExposure.CoveredDamageMultiplier : baseDrainPerSecond;
         private bool LessonDamageSuppressed => CampusLessonDirector.Instance != null &&
                                                CampusLessonDirector.Instance.DamageSuppressed;
 
@@ -88,7 +92,7 @@ namespace Jiao.HealthTime
 
             RemoveExpiredMultipliers();
 
-            float drain = baseDrainPerSecond * GetTotalMultiplier() * Time.deltaTime;
+            float drain = CurrentBaseDrainPerSecond * GetTotalMultiplier() * Time.deltaTime;
             ApplyLoss(drain, LossSource.Time, null);
 
             HealthChanged?.Invoke(HealthPercent);

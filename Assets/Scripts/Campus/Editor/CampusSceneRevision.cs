@@ -292,8 +292,11 @@ public static partial class CampusSceneBuilder
         var footAudio=rig.AddComponent<AudioSource>(); footAudio.playOnAwake=false; footAudio.spatialBlend=0; footAudio.volume=.5f; Set(locomotion,"footsteps",footAudio);
         SetArray(locomotion,"footstepClips",CreateFootsteps().Cast<UnityEngine.Object>().ToArray());
         var experience=systems.GetComponentInChildren<CampusExperience>(); var messages=experience.gameObject.AddComponent<CampusMessagePresenter>(); Set(messages,"font",font);
-        Set(experience.gameObject.AddComponent<CampusSmokeExposure>(),"trackedHead",head);
-        SetFloat(systems.GetComponentInChildren<HealthTimeController>(),"baseDrainPerSecond",0);
+        var exposure = experience.gameObject.AddComponent<CampusSmokeExposure>();
+        Set(exposure,"trackedHead",head);
+        var health = systems.GetComponentInChildren<HealthTimeController>();
+        Set(health,"campusSmokeExposure",exposure);
+        SetFloat(health,"baseDrainPerSecond",.1f);
         var ui=systems.GetComponentInChildren<SystemUIView>(); var gameplay=new SerializedObject(ui).FindProperty("gameplayUIRoot").objectReferenceValue as GameObject;
         var healthAnchor=gameplay.GetComponent<WorldSpaceUIAnchor>(); SetVector(healthAnchor,"headLocalOffset",new Vector3(0,.27f,1));
         var floorLabel=new SerializedObject(experience).FindProperty("floorLabel").objectReferenceValue as TMP_Text; floorLabel.text="4F  ·  HEALTH / 血量";
