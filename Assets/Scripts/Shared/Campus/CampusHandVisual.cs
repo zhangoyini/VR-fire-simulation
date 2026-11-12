@@ -9,6 +9,7 @@ public sealed class CampusHandVisual : MonoBehaviour
     [SerializeField] private SteamVR_Input_Sources inputSource;
     [SerializeField] private SteamVR_Skeleton_Pose relaxed, fist, point;
     [SerializeField] private Transform interactionPoint;
+    [SerializeField] private bool followTriggerInput;
 
     private bool gripping, pushing, pointing;
     private bool presentationVisible=true,trackingVisible=true;
@@ -56,6 +57,7 @@ public sealed class CampusHandVisual : MonoBehaviour
     { gripping = grip; pushing = push; pointing = button; }
     private void LateUpdate()
     {
+        if (followTriggerInput) SetGesture(CampusControllerInput.Trigger(inputSource), false, false);
         Tick(Time.unscaledDeltaTime);
         RefreshVisibility();
         if (glove == null) return;

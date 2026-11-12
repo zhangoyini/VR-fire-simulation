@@ -6,11 +6,12 @@ internal sealed class CampusClassroomTutorial
 {
     internal enum Step
     {
-        LookAround, LookDown, MoveHands, TeleportDemo, FirstLanding, Arrival,
+        Introduction, LookAround, LookDown, MoveHands, MenuPractice, MenuResume,
+        TeleportDemo, TeleportFeedback, FirstLanding, Arrival,
         ToWindow, WindowDemo, OpenWindow, WindowDone, ToButton, ButtonDemo, PressButton,
         ButtonDone, ToBook, GrabDemo, PickUp, InspectBook, ReleaseDemo, PutBack,
         FadePrompt, Health, MapDemo, MapOpen, MapClose, MapFolding, TaskDemo, TaskOpen, TaskClose, TaskFolding,
-        MenuPractice, MenuResume, ToDoor, Complete
+        ToDoor, Complete
     }
 
     internal static readonly Vector3 FirstSpot = new Vector3(-11.94f, 11.4f, 7.03f);
@@ -68,7 +69,7 @@ internal sealed class CampusClassroomTutorial
             if (hand.InputSource == SteamVR_Input_Sources.LeftHand) left = hand.GetComponent<CampusTrackedHandPose>();
             if (hand.InputSource == SteamVR_Input_Sources.RightHand) right = hand.GetComponent<CampusTrackedHandPose>();
         }
-        Enter(Step.LookAround, "看看四周，熟悉一下教室。\n<size=80%>Look around the classroom.</size>");
+        Enter(Step.Introduction, "本体验用于熟悉操作和模拟演练。\n不能替代官方消防培训，请遵循当地消防指引。\n<size=80%>This is a practice simulation, not official fire-safety training.\nFollow local fire-safety guidance.</size>");
     }
 
     internal static bool InRoom(Vector3 point) =>
@@ -104,7 +105,7 @@ internal sealed class CampusClassroomTutorial
     internal void OnMenuResumed()
     {
         if (!AwaitingMenuResume) return;
-        Enter(Step.ToDoor, "现在可以在教室内自由活动。\n到达门前高亮处，即可结束教学并开始演练。\n<size=80%>You can now move freely in the classroom.\nReach the marker by the door to start the drill.</size>", DoorSpot);
+        Enter(Step.TeleportDemo, "前推任一摇杆，瞄准落点。\n让摇杆回中，完成瞬移。\n<size=80%>Push either stick forward to aim.\nRelease it to teleport.</size>", demo: CampusTutorialView.Demo.Teleport, marker: FirstSpot);
     }
 
     internal bool Tick(float dt, bool x, bool y)
@@ -122,6 +123,10 @@ internal sealed class CampusClassroomTutorial
 
         switch (CurrentStep)
         {
+            case Step.Introduction:
+                if (age >= PromptSeconds)
+                    Enter(Step.LookAround, "看看四周，熟悉一下教室。\n<size=80%>Look around the classroom.</size>");
+                break;
             case Step.LookAround:
                 Vector3 heading = Vector3.ProjectOnPlane(head.forward, Vector3.up);
                 if (heading.sqrMagnitude > .15f)
@@ -149,22 +154,26 @@ internal sealed class CampusClassroomTutorial
                 leftRaised |= Raised(left, leftLow);
                 rightRaised |= Raised(right, rightLow);
                 if (age >= PromptSeconds && leftRaised && rightRaised)
-                    Enter(Step.TeleportDemo, "到前面的标记处\n<size=80%>Move to the marker ahead.</size>", demo: CampusTutorialView.Demo.Teleport, marker: FirstSpot);
+                    Enter(Step.MenuPractice, "想暂停或退出时，按下左摇杆打开菜单。\n现在试一次。用手柄射线指向「继续」，按下扳机确认返回练习。\n<size=80%>Click the left stick to open the pause menu. Try it now.\nAim the controller ray at Resume and press the trigger to confirm.</size>", demo: CampusTutorialView.Demo.Menu);
                 break;
             case Step.TeleportDemo:
-                if (age >= PromptSeconds) Enter(Step.FirstLanding, "到前面的标记处\n<size=80%>Move to the marker ahead.</size>", FirstSpot);
+                if (age >= PromptSeconds)
+                    Enter(Step.TeleportFeedback, "蓝色圆环表示可以到达，松开摇杆即可瞬移。\n红色叉号表示无法到达，请重新选择落点。\n<size=80%>Blue ring means you can teleport there.\nRed cross means choose another landing point.</size>", demo: CampusTutorialView.Demo.Feedback, marker: FirstSpot);
+                break;
+            case Step.TeleportFeedback:
+                if (age >= PromptSeconds) Enter(Step.FirstLanding, "寻找过道地面上的高亮点，尝试瞬移到那里。\n<size=80%>Find the highlighted spot on the aisle floor and teleport there.</size>", FirstSpot);
                 break;
             case Step.FirstLanding:
                 if (arrived) Enter(Step.Arrival, "已到达\n<size=80%>Marker reached.</size>", marker: FirstSpot, success: true);
                 break;
             case Step.Arrival:
-                if (age >= PromptSeconds) Enter(Step.ToWindow, "到窗边看看\n<size=80%>Move to the window.</size>", WindowSpot);
+                if (age >= PromptSeconds) Enter(Step.ToWindow, "寻找窗边地面上的高亮点，尝试前往那里。\n<size=80%>Find the highlighted spot on the floor by the window and teleport there.</size>", WindowSpot);
                 break;
             case Step.ToWindow:
-                if (arrived) Enter(Step.WindowDemo, "");
+                if (arrived) Enter(Step.WindowDemo, "将手靠近窗扇高亮处，持续按住扳机。\n握住后沿弧线向外推，松开扳机即可放手。\n<size=80%>Reach for the highlighted edge and hold the trigger.\nPush outward along the arc. Release the trigger to let go.</size>");
                 break;
             case Step.WindowDemo:
-                if (age >= PromptSeconds) Enter(Step.OpenWindow, "抓住远离转轴的高亮处，沿弧线向外推\n<size=80%>Grip the highlighted edge and swing it outward.</size>");
+                if (age >= PromptSeconds) Enter(Step.OpenWindow, "手靠近高亮处，按住扳机握住窗扇，再向外推。\n<size=80%>Reach for the highlight, hold the trigger and push the window outward.</size>");
                 break;
             case Step.OpenWindow:
                 if (window.Angle >= WindowMotionThreshold)
@@ -172,7 +181,7 @@ internal sealed class CampusClassroomTutorial
                 break;
             case Step.WindowDone:
                 if (age >= PromptSeconds && !window.IsHeld)
-                    Enter(Step.ToButton, "到教学按钮旁\n<size=80%>Move to the practice button.</size>", ButtonSpot);
+                    Enter(Step.ToButton, "寻找教学按钮旁地面上的高亮点，尝试前往那里。\n<size=80%>Find the highlighted floor spot beside the practice button and teleport there.</size>", ButtonSpot);
                 break;
             case Step.ToButton:
                 if (arrived) Enter(Step.ButtonDemo, "手靠近按钮，按住扳机，再松开\n<size=80%>Reach for the button. Press and release the trigger.</size>", demo: CampusTutorialView.Demo.Press);
@@ -185,7 +194,7 @@ internal sealed class CampusClassroomTutorial
                 break;
             case Step.ButtonDone:
                 if (age >= PromptSeconds && !view.Button.IsHeld)
-                    Enter(Step.ToBook, "到桌边，拿起这本书\n<size=80%>Go to the desk and pick up the book.</size>", BookSpot);
+                    Enter(Step.ToBook, "寻找书桌旁地面上的高亮点，前往那里拿起发光的书。\n<size=80%>Find the highlighted floor spot by the desk and go there to pick up the glowing book.</size>", BookSpot);
                 break;
             case Step.ToBook:
                 if (arrived) Enter(Step.GrabDemo, "靠近书本，持续按住扳机\n<size=80%>Reach for the book and hold the trigger.</size>", demo: CampusTutorialView.Demo.Grab);
@@ -200,7 +209,7 @@ internal sealed class CampusClassroomTutorial
                 break;
             case Step.InspectBook:
                 if (age >= PromptSeconds)
-                    Enter(Step.ReleaseDemo, "把书放回桌上\n<size=80%>Put the book back on the desk.</size>", demo: CampusTutorialView.Demo.Release);
+                    Enter(Step.ReleaseDemo, "把书移到桌面轮廓上方，松开扳机放下。\n<size=80%>Move the book over the desk outline and release the trigger.</size>", demo: CampusTutorialView.Demo.Release);
                 break;
             case Step.ReleaseDemo:
                 if (age >= PromptSeconds) Enter(Step.PutBack, "把书放回桌上\n<size=80%>Put the book back on the desk.</size>");
@@ -238,7 +247,7 @@ internal sealed class CampusClassroomTutorial
                 break;
             case Step.TaskFolding:
                 if (age >= CampusNavigationPanels.ZoomSeconds)
-                    Enter(Step.MenuPractice, "按下左摇杆打开菜单。\n用手柄射线选中「继续」，按扳机返回游戏。\n<size=80%>Click the left stick to pause.\nPoint at Resume and press the trigger.</size>", demo: CampusTutorialView.Demo.Menu);
+                    Enter(Step.ToDoor, "现在可以在教室内自由活动。\n寻找门前地面上的高亮点，到达后结束教学并开始演练。\n<size=80%>Explore the classroom freely. Find the highlighted floor spot\nby the door and reach it to finish training and start the drill.</size>", DoorSpot);
                 break;
             case Step.ToDoor:
                 if (arrived) Enter(Step.Complete, "操作练习完成\n<size=80%>Tutorial complete.</size>", marker: DoorSpot, success: true);

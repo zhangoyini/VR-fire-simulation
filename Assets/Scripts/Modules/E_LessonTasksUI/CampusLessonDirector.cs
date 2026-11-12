@@ -178,7 +178,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
             { BeginStory(); return; }
             if(!windowDemo && tutorial.ShowingWindowDemo)
             {
-                SetText("开窗演示 / Opening a window","抓住窗扇远离转轴的一端，沿弧线向外推。\nGrip the edge away from the hinge and swing it outward.","");
+                SetText("","","");
                 layout.Arrange(true);
                 demonstration.ShowWindowDemo();
             }

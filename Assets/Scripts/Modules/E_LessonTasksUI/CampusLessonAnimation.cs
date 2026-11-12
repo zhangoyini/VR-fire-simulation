@@ -19,6 +19,7 @@ public sealed class CampusLessonAnimation : MonoBehaviour
     public void Show(CampusLessonDirector.Phase current,int currentPage)
     {
         phase=current; page=currentPage; time=0; windowDemo=false;
+        if(actionLabel!=null) actionLabel.gameObject.SetActive(true);
         if(menuDemo!=null) menuDemo.SetActive(false);
         headsetGroup.SetActive(current==CampusLessonDirector.Phase.Controls && page==0);
         controllerGroup.SetActive(current==CampusLessonDirector.Phase.Controls && page>0);
@@ -29,6 +30,7 @@ public sealed class CampusLessonAnimation : MonoBehaviour
     {
         Show(CampusLessonDirector.Phase.Controls,2);
         windowDemo=true;
+        if(actionLabel!=null) actionLabel.gameObject.SetActive(false);
     }
     public void Tick(float dt)
     {
@@ -48,11 +50,6 @@ public sealed class CampusLessonAnimation : MonoBehaviour
             leftHand?.SetGrip(.45f);
             rightHand?.SetGrip(held?1f:.45f);
             trigger.localScale=new Vector3(.055f,.025f,held?.012f:.025f);
-            if(actionLabel!=null)
-            {
-                string text="按住扳机抓住窗扇，沿弧线向外推\nHold the trigger and swing the window outward.";
-                if(actionLabel.text!=text) actionLabel.text=text;
-            }
             return;
         }
         if(headsetGroup.activeSelf) { headset.localRotation=Quaternion.Euler(0,-18+Mathf.Sin(time)*20,0); headset.localPosition=new Vector3(0,0,-.025f+wave*.04f); }

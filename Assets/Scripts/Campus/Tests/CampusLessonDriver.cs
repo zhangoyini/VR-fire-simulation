@@ -107,6 +107,13 @@ public sealed class CampusLessonDriver : MonoBehaviour
             .OrderBy(t=>t).SequenceEqual(new[]{"A","B","X","Y"}),"The board shows only the two diagrams and their button labels during training");
         lesson.Confirm();
         lesson.Tick(2.2f);
+        Check(tutorial.CurrentStep==Step.Introduction &&
+            Field<TMPro.TMP_Text>(tutorialView,"prompt").text.Contains("不能替代官方消防培训"),
+            "The experience starts with a seven-second practice disclaimer");
+        CheckTutorialText(tutorialView);
+        lesson.Tick(4.9f);
+        Check(tutorial.CurrentStep==Step.LookAround,"The disclaimer precedes looking around");
+        lesson.Tick(.1f);
         Check(tutorial.CurrentStep==Step.LookAround && !owner.Begin(lesson.ClassroomDoor),"A cannot skip observation and the classroom door remains closed");
         lesson.Tick(7.2f);
         Check(tutorial.CurrentStep==Step.LookAround && prompt.alpha>.75f,
@@ -134,13 +141,49 @@ public sealed class CampusLessonDriver : MonoBehaviour
         owner.ProcessGrip(false,false,true);
         Check(!Field<bool>(handVisual,"gripping"),"Releasing the trigger opens the empty hand");
         lesson.Tick(7f);
-        Check(tutorial.CurrentStep==Step.TeleportDemo && lesson.MovementLocked,"Hand practice leads to the movement-locked 2D demo");
+        var pause=FindObjectOfType<SystemUIPauseController>();
+        Check(tutorial.CurrentStep==Step.MenuPractice,
+            "The pause exercise precedes the first teleport lesson");
+        CheckTutorialText(tutorialView);
+        Check(Field<TMPro.TMP_Text>(tutorialView,"prompt").text.Contains("左摇杆"),
+            "The menu lesson identifies the left thumbstick");
+        Check(pause.ProcessPauseInput(true) && Time.timeScale==0 && tutorial.CurrentStep==Step.MenuResume,
+            "Clicking the left thumbstick opens the actual pause panel");
+        Check(!Field<Transform>(tutorialView,"hud").gameObject.activeSelf,
+            "The tutorial HUD clears when the pause panel opens");
+        pause.ProcessPauseInput(false);
+        Check(!pause.ProcessPauseInput(true) && Time.timeScale==0 && tutorial.CurrentStep==Step.MenuResume,
+            "Clicking the stick again cannot skip the Resume exercise");
+        pause.ProcessPauseInput(false);
+        var tutorialResume=FindObjectsOfType<VRMenuButton>().First(b=>b.name=="ResumeButton");
+        foreach(var anchor in anchors) anchor.SendMessage("Place");
+        Physics.SyncTransforms();
+        Vector3 resumeCenter=tutorialResume.GetComponent<Collider>().bounds.center;
+        owner.transform.position=head.position+head.rotation*new Vector3(.22f,-.2f,.05f);
+        var tutorialRay=owner.GetComponent<VRMenuRayPointer>();
+        owner.transform.rotation=Quaternion.LookRotation(resumeCenter-owner.transform.position)*
+            Quaternion.Euler(-Field<float>(tutorialRay,"downwardPitchDegrees"),0,0);
+        tutorialRay.ProcessInput(false);
+        Check(tutorialRay.CurrentTarget==tutorialResume,"The regular menu ray selects the real Resume button");
+        tutorialRay.ProcessInput(true);
+        Check(Time.timeScale==1 && tutorial.CurrentStep==Step.TeleportDemo && lesson.ClassroomDoor.Angle==0,
+            "Clicking Resume restores gameplay and starts the teleport animation");
+        tutorialRay.ProcessInput(false);
+        Check(tutorial.CurrentStep==Step.TeleportDemo && lesson.MovementLocked,"The menu exercise leads to the movement-locked 2D demo");
         CheckTutorialText(tutorialView);
         head.localRotation=headRotation;
-        var pause=FindObjectOfType<SystemUIPauseController>(); float beforePause=lesson.PhaseAge;
+        float beforePause=lesson.PhaseAge;
         pause.ShowPause(); lesson.Tick(20); lesson.Confirm();
         Check(lesson.PhaseAge==beforePause && health.HealthPercent==1,"Pause freezes teaching, confirmations and health");
         pause.ResumeGame();
+        lesson.Tick(7.1f);
+        Check(tutorial.CurrentStep==Step.TeleportFeedback && lesson.MovementLocked,
+            "A separate blue-ring and red-cross explanation follows the movement animation");
+        CheckTutorialText(tutorialView);
+        var feedback=Field<CanvasGroup>(tutorialView,"feedbackGroup");
+        Check(feedback.gameObject.activeSelf && feedback.transform.Find("Valid blue landing")!=null &&
+            feedback.transform.Find("Invalid red cross")!=null,
+            "The feedback animation shows both actual landing symbols");
         lesson.Tick(7.1f);
         Check(tutorial.CurrentStep==Step.FirstLanding && !lesson.MovementLocked && !lesson.AllowsTeleportLanding(new Vector3(-12.2f,11.4f,0)),"Teleport unlocks inside the classroom after the demo");
         lesson.RecordTutorialTeleport(CampusClassroomTutorial.DoorSpot);
@@ -295,33 +338,6 @@ public sealed class CampusLessonDriver : MonoBehaviour
         CheckTutorialText(tutorialView);
         lesson.Tick(.1f,false,true); lesson.Tick(.55f);
         Check(taskPanel.localPosition==taskCorner,"The task card animates back to its original corner");
-        Check(tutorial.CurrentStep==Step.MenuPractice && !marker.gameObject.activeSelf,
-            "The menu exercise follows the task card before the doorway marker appears");
-        CheckTutorialText(tutorialView);
-        Check(Field<TMPro.TMP_Text>(tutorialView,"prompt").text.Contains("左摇杆"),
-            "The menu lesson identifies the left thumbstick");
-        Check(pause.ProcessPauseInput(true) && Time.timeScale==0 && tutorial.CurrentStep==Step.MenuResume,
-            "Clicking the left thumbstick opens the actual pause panel");
-        Check(!Field<Transform>(tutorialView,"hud").gameObject.activeSelf,
-            "The tutorial HUD clears when the pause panel opens");
-        pause.ProcessPauseInput(false);
-        Check(!pause.ProcessPauseInput(true) && Time.timeScale==0 && tutorial.CurrentStep==Step.MenuResume,
-            "Clicking the stick again cannot skip the Resume exercise");
-        pause.ProcessPauseInput(false);
-        var tutorialResume=FindObjectsOfType<VRMenuButton>().First(b=>b.name=="ResumeButton");
-        foreach(var anchor in anchors) anchor.SendMessage("Place");
-        Physics.SyncTransforms();
-        Vector3 resumeCenter=tutorialResume.GetComponent<Collider>().bounds.center;
-        owner.transform.position=head.position+head.rotation*new Vector3(.22f,-.2f,.05f);
-        var tutorialRay=owner.GetComponent<VRMenuRayPointer>();
-        owner.transform.rotation=Quaternion.LookRotation(resumeCenter-owner.transform.position)*
-            Quaternion.Euler(-Field<float>(tutorialRay,"downwardPitchDegrees"),0,0);
-        tutorialRay.ProcessInput(false);
-        Check(tutorialRay.CurrentTarget==tutorialResume,"The regular menu ray selects the real Resume button");
-        tutorialRay.ProcessInput(true);
-        Check(Time.timeScale==1 && tutorial.CurrentStep==Step.ToDoor && lesson.ClassroomDoor.Angle==0,
-            "Clicking Resume restores gameplay and advances to the doorway marker");
-        tutorialRay.ProcessInput(false);
         lesson.Tick(.25f);
         Check(Field<TMPro.TMP_Text>(tutorialView,"prompt").text.Contains("自由活动") &&
             Field<TMPro.TMP_Text>(tutorialView,"prompt").text.Contains("结束教学并开始演练"),

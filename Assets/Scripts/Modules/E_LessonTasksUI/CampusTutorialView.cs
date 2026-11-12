@@ -5,7 +5,7 @@ using Step = CampusClassroomTutorial.Step;
 
 internal sealed class CampusTutorialView
 {
-    internal enum Demo { None, Teleport, Grab, Release, Press, X, Y, Menu }
+    internal enum Demo { None, Teleport, Feedback, Grab, Release, Press, X, Y, Menu }
     private static readonly Color Ink = new Color(.025f, .07f, .085f, .96f);
     private static readonly Color Mint = new Color(.45f, .95f, .83f);
     private static readonly Color Green = new Color(.48f, .94f, .53f);
@@ -21,8 +21,9 @@ internal sealed class CampusTutorialView
     private readonly Material worldMaterial;
     private readonly Sprite disc;
     private readonly Texture2D discTexture;
-    private readonly CanvasGroup promptGroup, demoGroup, healthGroup;
-    private readonly TMP_Text prompt, demoCaption, hpNumber;
+    private readonly CanvasGroup promptGroup, demoGroup, feedbackGroup, healthGroup;
+    private readonly TMP_Text prompt, hpNumber;
+    private readonly RectTransform[] feedbackIcons = new RectTransform[2];
     private readonly RectTransform promptBackground;
     private readonly Image hpFill, hpLost, hpGlow;
     private readonly CampusNavigationPanels panels;
@@ -74,8 +75,36 @@ internal sealed class CampusTutorialView
             arc[i] = Picture(demoGroup.transform, Vector2.zero, Vector2.one * 7, Blue, disc);
         arcDot = Picture(demoGroup.transform, Vector2.zero, Vector2.one * 18, Green, disc);
         playerDot = Picture(demoGroup.transform, Vector2.zero, Vector2.one * 9, Color.white, disc);
-        demoCaption = Label(demoGroup.transform, new Vector2(95, 25), new Vector2(285, 126), 26, "");
         Label(demoGroup.transform, new Vector2(0, -101), new Vector2(480, 38), 18, "Quest 3  ·  左手柄 / Left controller");
+
+        feedbackGroup = CanvasAt("Teleport feedback animation", hud, new Vector3(0, -.07f, 1.38f), .00125f);
+        Picture(feedbackGroup.transform, Vector2.zero, new Vector2(560, 270), Ink);
+        for (int i = 0; i < feedbackIcons.Length; i++)
+        {
+            var icon = new GameObject(i == 0 ? "Valid blue landing" : "Invalid red cross", typeof(RectTransform));
+            icon.transform.SetParent(feedbackGroup.transform, false);
+            feedbackIcons[i] = icon.GetComponent<RectTransform>();
+            feedbackIcons[i].anchoredPosition = new Vector2(i == 0 ? -130 : 130, 0);
+            Color color = TeleportDestinationMarker.TargetColor(i == 0);
+            for (int segment = 0; segment < 48; segment++)
+            {
+                float angle = segment * 360f / 48;
+                Vector2 at = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)) * 62;
+                var stroke = Picture(icon.transform, at, new Vector2(10, 5), color);
+                stroke.rectTransform.localRotation = Quaternion.Euler(0, 0, angle + 90);
+            }
+            if (i == 0)
+            {
+                Picture(icon.transform, Vector2.zero, new Vector2(5, 60), Color.white);
+                for (int side = -1; side <= 1; side += 2)
+                    Picture(icon.transform, new Vector2(side * 10, 19), new Vector2(5, 30), Color.white)
+                        .rectTransform.localRotation = Quaternion.Euler(0, 0, side * 45);
+            }
+            else
+                for (int side = -1; side <= 1; side += 2)
+                    Picture(icon.transform, Vector2.zero, new Vector2(75, 7), color)
+                        .rectTransform.localRotation = Quaternion.Euler(0, 0, side * 45);
+        }
 
         healthGroup = CanvasAt("Teaching health", hud, new Vector3(0, .40f, 1.45f), .0015f);
         Picture(healthGroup.transform, Vector2.zero, new Vector2(370, 61), Ink);
@@ -118,12 +147,13 @@ internal sealed class CampusTutorialView
         if (step != Step.FadePrompt) UpdatePrompt(text);
         fadeFrom = promptGroup.alpha;
         promptAge = 0;
-        bool multiline = step == Step.Health || step == Step.ToDoor || step == Step.MenuPractice;
-        float width = demo != Demo.None || multiline ? 700 : 450;
-        float height = multiline ? 164 : 122;
+        bool multiline = text.Split('\n').Length > 2;
+        float width = 700;
+        float height = multiline ? 190 : 122;
         promptBackground.sizeDelta = new Vector2(width, height);
         prompt.rectTransform.sizeDelta = new Vector2(width - 50, height - 12);
-        demoGroup.gameObject.SetActive(demo != Demo.None);
+        demoGroup.gameObject.SetActive(demo != Demo.None && demo != Demo.Feedback);
+        feedbackGroup.gameObject.SetActive(demo == Demo.Feedback);
         promptGroup.gameObject.SetActive(step == Step.FadePrompt || !string.IsNullOrEmpty(text));
         healthGroup.gameObject.SetActive(step >= Step.Health);
         contact.gameObject.SetActive(step == Step.WindowDemo || step == Step.OpenWindow || step == Step.WindowDone);
@@ -150,7 +180,14 @@ internal sealed class CampusTutorialView
         float hintY = step == Step.MapClose || step == Step.TaskClose ? -.36f : .22f;
         promptGroup.transform.localPosition = new Vector3(0, hintY, 1.35f);
         demoGroup.alpha = Fade(age, .45f);
-        if (demo != Demo.None) AnimateDiagram(age);
+        feedbackGroup.alpha = Fade(age, .45f);
+        if (demo == Demo.Feedback)
+        {
+            float blend = .5f - .5f * Mathf.Cos(age * Mathf.PI * 2f / CampusClassroomTutorial.PromptSeconds);
+            feedbackIcons[0].localScale = Vector3.one * Mathf.Lerp(1.12f, .85f, blend);
+            feedbackIcons[1].localScale = Vector3.one * Mathf.Lerp(.85f, 1.12f, blend);
+        }
+        else if (demo != Demo.None) AnimateDiagram(age);
         if (step >= Step.Health) AnimateHealth(age);
         if (Button.Pressed) Tint(lamp, Button.GreenLight ? Green : Red);
         panels.ShowPractice(step, age, dt);
@@ -183,24 +220,6 @@ internal sealed class CampusTutorialView
         playerDot.gameObject.SetActive(demo == Demo.Teleport && age >= 4.5f);
         playerDot.rectTransform.anchoredPosition = Vector2.Lerp(new Vector2(-66, -8),
             arcDot.rectTransform.anchoredPosition, Fade(age - 4.5f, .45f));
-        string caption;
-        switch (demo)
-        {
-            case Demo.Teleport:
-                caption = "前推摇杆瞄准蓝色落点\n让摇杆回中，完成瞬移\n<size=80%>Push the stick to aim.\nRelease it to teleport.</size>";
-                demoCaption.rectTransform.anchoredPosition = new Vector2(95, -45);
-                break;
-            case Demo.Grab: caption = "用任一手柄\n持续按住扳机\n<size=80%>Hold the trigger on\neither controller.</size>"; break;
-            case Demo.Release: caption = "手移到桌面上方\n松开扳机\n<size=80%>Move over the desk.\nRelease the trigger.</size>"; break;
-            case Demo.Press:
-                caption = "手靠近按钮，按下扳机\n指示灯亮起后松开\n<size=80%>Press near the button.\nRelease when it lights up.</size>";
-                break;
-            case Demo.X: caption = "左手柄下方的 X 键\n按一次展开，再按一次收起\n<size=80%>Press X to open the map.\nPress again to close it.</size>"; break;
-            case Demo.Y: caption = "左手柄上方的 Y 键\n按一次查看，再按一次收起\n<size=80%>Press Y to view Tasks.\nPress again to close it.</size>"; break;
-            default: caption = "按下左摇杆打开菜单\n选中「继续」返回游戏\n<size=80%>Click the left stick to pause.\nSelect Resume to return.</size>"; break;
-        }
-        if (demo != Demo.Teleport) demoCaption.rectTransform.anchoredPosition = new Vector2(95, 25);
-        if (demoCaption.text != caption) demoCaption.text = caption;
     }
 
     private static Vector2 ArcPoint(float t, float age) =>

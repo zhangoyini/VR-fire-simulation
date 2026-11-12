@@ -686,6 +686,7 @@ public static partial class CampusSceneBuilder
     {
         var scene=EditorSceneManager.OpenScene("Assets/Scenes/MainMenu/MainMenu.unity");
         foreach(var nav in UnityEngine.Object.FindObjectsOfType<SystemUINavigation>(true)) SetString(nav,"gameplayEntrySceneName","CampusTraining");
+        ConfigureMainMenuHandsAndHint();
         EditorSceneManager.SaveScene(scene);
     }
 
