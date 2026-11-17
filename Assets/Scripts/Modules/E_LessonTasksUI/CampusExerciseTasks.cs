@@ -80,7 +80,7 @@ internal sealed class CampusExerciseTasks
         if (floor == 2 && previousFloor == 3 && rescue == Status.Hidden && student != null)
         {
             rescue = Status.Active;
-            Announce("可选支线 · 轮椅救援\n护送同学到避难区，再按呼叫铃。\n<size=83%>Optional · Escort the student to the refuge and press the call button.</size>", "TASK_RESCUE_STARTED", delay: .5f);
+            Announce("可选支线 · 轮椅救援\n与同学交谈，选择“跟我来”，带他到避难区。\n<size=83%>Optional · Talk to your classmate, choose “Follow me”, and lead him to the refuge.</size>", "TASK_RESCUE_STARTED", delay: .5f);
         }
         previousFloor = floor;
 
@@ -103,7 +103,8 @@ internal sealed class CampusExerciseTasks
 
     internal void StudentDelivered()
     {
-        if (rescue == Status.Active) revision++;
+        if (rescue != Status.Active) return;
+        CompleteRescue();
     }
 
     internal void ConfirmRescue()
@@ -111,14 +112,19 @@ internal sealed class CampusExerciseTasks
         if (rescue != Status.Active) return;
         if (student.Current != CampusRescueStudent.State.Delivered)
         {
-            CampusMessagePresenter.Instance?.Show("先将轮椅同学送进避难区，再按呼叫铃确认。\nBring the student into the refuge before pressing the call button.");
+            CampusMessagePresenter.Instance?.Show("先与同学交谈，再带他进入避难区。\nTalk to your classmate, then lead him into the refuge.");
             return;
         }
 
+        CompleteRescue();
+    }
+
+    private void CompleteRescue()
+    {
         rescue = Status.Complete;
         JourneyDirector.Instance?.Request(JourneyState.Refuge);
         SessionLogger.Write("RESCUE_COMPLETED");
-        Announce("轮椅救援完成 · 继续前往一楼操场\n<size=83%>Rescue complete · Continue to the schoolyard.</size>", "REFUGE_INTERCOM_CONFIRMED", complete: true);
+        Announce("轮椅救援完成 · 继续前往一楼操场\n<size=83%>Rescue complete · Continue to the schoolyard.</size>", "TASK_RESCUE_COMPLETED", complete: true);
     }
 
     internal void CompleteAssembly()
@@ -167,10 +173,10 @@ internal sealed class CampusExerciseTasks
         if (current == Objective.Rescue)
         {
             bool delivered = student.Current == CampusRescueStudent.State.Delivered;
-            rescueInstruction = delivered ? "同学已送达。按避难区的呼叫铃确认救援完成。" :
-                "双手靠近轮椅推把，各按一次扳机开始协助。把同学送到避难区，再按呼叫铃。";
-            rescueEnglish = delivered ? "Student delivered. Press the refuge call button to finish." :
-                "With both hands near the handles, press each trigger once. Escort the student to the refuge and press the call button.";
+            rescueInstruction = delivered ? "同学已安全到达避难区。" :
+                "走近同学并选择“跟我来”。每次传送后，同学会平滑跟上；带他进入避难区。";
+            rescueEnglish = delivered ? "Your classmate has reached the refuge safely." :
+                "Approach your classmate and choose “Follow me”. He will roll after you each time you teleport. Lead him into the refuge.";
         }
         AddRow(card, rescue, "可选支线 · 轮椅救援", "Optional · Rescue", rescueInstruction, rescueEnglish);
         AddRow(card, exit, "任务 4 · 打开通往操场的出口", "4 · Open the exit",

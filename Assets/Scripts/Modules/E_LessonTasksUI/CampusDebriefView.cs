@@ -115,19 +115,19 @@ internal sealed class CampusDebriefView
             case 1:
                 title.text = Bilingual("任务完成情况", "Task progress");
                 string rescue = report.rescue == Status.Hidden ? "未触发" : report.rescue == Status.Complete ? "救助成功" :
-                    report.rescueDelivered ? "未完成 · 已送达，待按铃" : report.rescueStarted ? "救助未完成" : "未参与";
+                    report.rescueDelivered ? "已送达" : report.rescueStarted ? "救助未完成" : "未参与";
                 string rescueEnglish = report.rescue == Status.Hidden ? "Not triggered" : report.rescue == Status.Complete ? "Rescued" :
-                    report.rescueDelivered ? "Delivered, call pending" : report.rescueStarted ? "Incomplete" : "Skipped";
+                    report.rescueDelivered ? "Delivered" : report.rescueStarted ? "Incomplete" : "Skipped";
                 body.text = $"1  寻找毛巾    {State(report.tasks[0])}\n2  浸湿毛巾并下到三楼    {State(report.tasks[1])}\n" +
                     $"3  遇阻后改走 B 楼梯    {State(report.tasks[2])}\n4  打开操场出口    {State(report.tasks[3])}\n" +
                     $"可选 · 轮椅救援    {rescue}\n" +
                     $"<size=82%>触发 {YesNo(report.rescue != Status.Hidden)}  ·  开始 {YesNo(report.rescueStarted)}\n" +
-                    $"送达 {YesNo(report.rescueDelivered)}  ·  按铃 {YesNo(report.rescue == Status.Complete)}</size>";
+                    $"送达 {YesNo(report.rescueDelivered)}  ·  完成 {YesNo(report.rescue == Status.Complete)}</size>";
                 englishBody.text = $"1  Find a towel · {State(report.tasks[0], true)}\n2  Wet towel, reach 3F · {State(report.tasks[1], true)}\n" +
                     $"3  Detour via Stair B · {State(report.tasks[2], true)}\n4  Open schoolyard exit · {State(report.tasks[3], true)}\n" +
                     $"Optional rescue · {rescueEnglish}\n" +
                     $"<size=82%>Triggered {YesNo(report.rescue != Status.Hidden, true)} · Started {YesNo(report.rescueStarted, true)}\n" +
-                    $"Delivered {YesNo(report.rescueDelivered, true)} · Call made {YesNo(report.rescue == Status.Complete, true)}</size>";
+                    $"Delivered {YesNo(report.rescueDelivered, true)} · Complete {YesNo(report.rescue == Status.Complete, true)}</size>";
                 break;
             case 2:
                 title.text = Bilingual("血量与受伤", "Health and damage");

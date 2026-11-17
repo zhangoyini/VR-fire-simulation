@@ -120,8 +120,7 @@ public sealed class CampusHandInteractor : MonoBehaviour
                 if (d < distance) { distance = d; best = component; } break;
             }
         }
-        // Assistance is a toggle, so the chair can be stopped without reaching
-        // across the viewing gap or dropping the towel held in the other hand.
+        // Either hand can start a nearby conversation without grabbing the handles.
         if (best == null && !menuOnly && Physics.Raycast(point, transform.forward,
                 out var chairHit, 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
         {
@@ -156,7 +155,7 @@ public sealed class CampusHandInteractor : MonoBehaviour
         if (target is CampusPracticeBook book && !book.CanGrab(transform)) return false;
         if (target is CampusTutorialButton button && button.IsHeld) return false;
         if (target is CampusRescueStudent student && !student.CanPush(transform)) return false;
-        // Wheelchair handles are click switches; release must not stop following.
+        // Talking is a click action; it never occupies the hand or toggles following.
         if (target is CampusRescueStudent)
         {
             ((IInteractable)target).OnInteractStart(transform);

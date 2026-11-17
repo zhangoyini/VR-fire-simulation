@@ -118,9 +118,9 @@ internal sealed class CampusObjectiveHighlights
                 break;
             case 2:
                 if (!tasks.RescueActive || student == null) break;
-                if (student.Current == CampusRescueStudent.State.Waiting) DrawPair(pushGrips, 5f);
+                if (student.Current == CampusRescueStudent.State.Waiting)
+                    Draw(primary, student.GetComponent<Collider>().bounds, 5f);
                 else if (student.Current == CampusRescueStudent.State.Following) DrawFlat(primary, refugeSign, 30f);
-                else Draw(primary, callButton, 8f);
                 break;
             case 1:
                 if (tasks.ExitActive)
