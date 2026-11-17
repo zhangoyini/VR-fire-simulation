@@ -6,12 +6,11 @@ using UnityEngine.Rendering;
 public sealed class CampusRescueAssistanceView : MonoBehaviour
 {
     private const string Reminder =
-        "对准轮椅，再按一次扳机退出协助\nPoint at wheelchair and press trigger again to stop";
+        "传送后，同学会沿路线跟上你\nYour classmate will follow after each teleport";
     private Transform head, panel, routeAnchor, routeRoot;
     private TextMeshPro status;
     private CampusLessonRoute route;
-    private LineRenderer footprint, wheelA, wheelB;
-    private bool visible, blockedAim;
+    private bool visible;
     private Vector3[] waypoints;
     private Material markerMaterial;
 
@@ -32,7 +31,7 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
         markerMaterial = Resources.Load<Material>("TeleportDestinationMarker");
         panel = new GameObject("Assisting classmate reminder", typeof(RectTransform)).transform;
         panel.SetParent(head, false);
-        panel.localPosition = new Vector3(0, .16f, 1.7f);
+        panel.localPosition = new Vector3(0, -.29f, 1.7f);
         status = panel.gameObject.AddComponent<TextMeshPro>();
         status.font = CampusMessagePresenter.Instance != null ?
             CampusMessagePresenter.Instance.DisplayFont : TMP_Settings.defaultFontAsset;
@@ -58,23 +57,6 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
             arrows[i] = line.transform;
         }
         route.Configure(arrows);
-        footprint = MakeLine("Wheelchair landing outline", routeRoot);
-        footprint.loop = true;
-        footprint.positionCount = 4;
-        footprint.SetPositions(new[] {
-            new Vector3(-.44f, 0, -.55f), new Vector3(-.44f, 0, .55f),
-            new Vector3(.44f, 0, .55f), new Vector3(.44f, 0, -.55f)
-        });
-        wheelA = MakeLine("Wheelchair preview left wheel", footprint.transform);
-        wheelB = MakeLine("Wheelchair preview right wheel", footprint.transform);
-        foreach (var wheel in new[] { wheelA, wheelB })
-        {
-            float x = wheel == wheelA ? -.3f : .3f;
-            wheel.positionCount = 2;
-            wheel.SetPositions(new[] { new Vector3(x, 0, -.25f), new Vector3(x, 0, .2f) });
-            wheel.startWidth = wheel.endWidth = .045f;
-        }
-        HidePreview();
     }
 
     private LineRenderer MakeLine(string label, Transform parent)
@@ -98,31 +80,8 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
         if (routeRoot != null) routeRoot.gameObject.SetActive(value);
     }
 
-    public void ShowPreview(Vector3 position, Quaternion rotation, bool allowed)
-    {
-        if (!visible || footprint == null) return;
-        blockedAim = !allowed;
-        footprint.transform.SetPositionAndRotation(position + Vector3.up * .04f, rotation);
-        Color color = TeleportDestinationMarker.TargetColor(allowed);
-        foreach (var line in new[] { footprint, wheelA, wheelB })
-        {
-            line.enabled = true;
-            line.startColor = line.endColor = color;
-        }
-        Refresh();
-    }
-
-    public void HidePreview()
-    {
-        blockedAim = false;
-        if (footprint == null) return;
-        footprint.enabled = wheelA.enabled = wheelB.enabled = false;
-        Refresh();
-    }
-
     public void Hide()
     {
-        HidePreview();
         SetVisible(false);
         route?.Hide();
     }
@@ -139,7 +98,7 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
     private void Refresh()
     {
         if (status == null || head == null) return;
-        string objective = "正在协助同学 · 前往二楼避难区\nHelping classmate · Go to the 2F refuge";
+        string objective = "同学正在跟随 · 前往二楼避难区\nClassmate following · Go to the 2F refuge";
         if (waypoints != null && waypoints.Length > 0)
         {
             Vector3 toRoute = waypoints[Mathf.Min(route.WaypointIndex, waypoints.Length - 1)] - head.position;
@@ -147,12 +106,10 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
             float turn = Vector3.SignedAngle(Vector3.ProjectOnPlane(head.forward, Vector3.up), toRoute, Vector3.up);
             if (Mathf.Abs(turn) >= 35)
                 objective = Mathf.Abs(turn) > 135 ?
-                    "正在协助同学 · 避难区在身后\nHelping classmate · Refuge behind you" : turn > 0 ?
-                    "正在协助同学 · 避难区在右侧\nHelping classmate · Refuge on your right" :
-                    "正在协助同学 · 避难区在左侧\nHelping classmate · Refuge on your left";
+                    "同学正在跟随 · 避难区在身后\nClassmate following · Refuge behind you" : turn > 0 ?
+                    "同学正在跟随 · 避难区在右侧\nClassmate following · Refuge on your right" :
+                    "同学正在跟随 · 避难区在左侧\nClassmate following · Refuge on your left";
         }
-        if (blockedAim)
-            objective = "请选择你和轮椅都能停留的空地\nChoose a clear spot for you and the wheelchair";
         Vector3 toChair = Vector3.ProjectOnPlane(transform.position - head.position, Vector3.up);
         float angle = Vector3.SignedAngle(Vector3.ProjectOnPlane(head.forward, Vector3.up), toChair, Vector3.up);
         string location = Mathf.Abs(angle) < 55 ? "" : Mathf.Abs(angle) > 135 ?

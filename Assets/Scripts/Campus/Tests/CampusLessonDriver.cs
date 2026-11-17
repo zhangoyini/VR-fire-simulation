@@ -672,9 +672,11 @@ public sealed class CampusLessonDriver : MonoBehaviour
             "Descending from 3F offers the rescue and ringing early cannot end the exercise");
         var student=FindObjectOfType<CampusRescueStudent>();
         MoveHead(movement,head,student.transform.position+Vector3.up*1.7f+Vector3.forward); lesson.Tick(.1f);
-        var grips=Field<Renderer[]>(highlights,"pushGrips");
-        Check(grips.Length==2 && Outlines(primaryOutline,grips[0].bounds.center) && Outlines(secondOutline,grips[1].bounds.center),
-            "The optional rescue highlights both wheelchair grips");
+        var classmateBounds = student.GetComponent<Collider>().bounds;
+        Check(primaryOutline.enabled && !secondOutline.enabled && Vector3.Distance(
+            (primaryOutline.GetPosition(0) + primaryOutline.GetPosition(2)) * .5f, classmateBounds.center) <
+            classmateBounds.extents.magnitude + .1f,
+            "The optional rescue highlights the classmate rather than the handles");
         MoveHead(movement,head,Field<Collider>(call,"refugeVolume").bounds.center);
         typeof(CampusRescueStudent).GetProperty(nameof(CampusRescueStudent.Current)).SetValue(student,CampusRescueStudent.State.Following);
         lesson.Tick(.1f);
@@ -682,12 +684,11 @@ public sealed class CampusLessonDriver : MonoBehaviour
             "Starting assistance moves the highlight to the refuge sign");
         typeof(CampusRescueStudent).GetMethod("Deliver",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(student,null);
         lesson.Tick(.1f);
-        Check(taskDetails.text.Contains("同学已送达") && taskDetails.text.Contains("进行中</color>  可选支线"),"Delivery asks for call-button confirmation");
-        Check(Outlines(primaryOutline,Field<Renderer>(highlights,"callButton").bounds.center),"Delivery moves the highlight to the call button");
-        call.OnInteractStart(head); lesson.Tick(.1f);
         Check(taskDetails.text.Contains("已完成</color>  可选支线") && resolution.CurrentOutcome==ResolutionCoordinator.Outcome.None && Time.timeScale==1,
-            "Ringing after delivery completes only the optional rescue");
-        Check(!primaryOutline.enabled,"The bell highlight clears after confirming the rescue");
+            "Classmate arrival completes only the optional rescue without ringing the bell");
+        Check(!primaryOutline.enabled,"The rescue highlight clears on arrival");
+        call.OnInteractStart(head); lesson.Tick(.1f);
+        Check(taskDetails.text.Contains("已完成</color>  可选支线"), "Ringing later does not restart the completed rescue");
         for(int i=0;i<5;i++) lesson.Tick(6.1f);
         MoveHead(movement,head,new Vector3(0,1.7f,-8.5f)); lesson.Tick(.51f);
         Check(taskDetails.text.Contains("进行中</color>  任务 4"),"Arriving on 1F publishes the exit task");

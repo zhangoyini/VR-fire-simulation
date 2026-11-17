@@ -110,7 +110,6 @@ public class VRTeleporter : MonoBehaviour
     {
         if(lineRenderer!=null) lineRenderer.enabled=false;
         destinationMarker?.HideAim();
-        rescueStudent?.HideTeleportPreview();
         isValidLocationFound=isAimingTeleport=false;
         if(aimingHand==this) aimingHand=null;
     }
@@ -200,13 +199,6 @@ public class VRTeleporter : MonoBehaviour
                 isValidLocationFound, stairTread);
         }
         else destinationMarker?.Hide();
-        if (hasSurfaceHit && rescueStudent != null && rescueStudent.IsFollowing)
-        {
-            Vector3 feet = vrCamera != null ? vrCamera.position : playerRoot.position;
-            feet.y = playerRoot.position.y;
-            rescueStudent.ShowTeleportPreview(feet, arcPoints[arcPoints.Count - 1], isValidLocationFound);
-        }
-        else rescueStudent?.HideTeleportPreview();
     }
 
     private Vector3 GetLaunchVelocity()
@@ -284,6 +276,7 @@ public class VRTeleporter : MonoBehaviour
         playerRoot.position=destination;
         if(trackedHands!=null) foreach(var hand in trackedHands)
             if(hand!=null && hand.TrackingSpace==playerRoot) hand.FollowRigTranslation(delta);
+        // The classmate starts rolling after the player lands and remains visible behind them.
         if(moveChair) rescueStudent.FollowTeleport(chairPosition,chairRotation);
         if(restoreBody) body.enabled=true;
         Physics.SyncTransforms();

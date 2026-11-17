@@ -1,8 +1,8 @@
 using Harbourview.Journey;
 using UnityEngine;
-using Valve.VR;
+using System.Collections.Generic;
 
-// One click per hand at the handles starts assistance; a fresh click on the chair stops it.
+// Talk first, then roll along the player's committed teleport route.
 [DefaultExecutionOrder(31), RequireComponent(typeof(BoxCollider))]
 public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
 {
@@ -12,19 +12,11 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
     [SerializeField] private Transform followTarget;
     [SerializeField] private Collider refugeVolume;
     [SerializeField, Min(.5f)] private float followSpeed = 2.2f;
-    [SerializeField, Range(.3f, .6f)] private float followOffset = .5f;
-    [SerializeField, Range(.65f, .8f)] private float sideOffset = .7f;
-    [Header("Assisting Doorway Clearance / 协助模式门口容差")]
-    [Tooltip("Forgiveness per side in metres while assisting. 0 restores strict checks; 0.05 allows 5 cm. 协助时每侧的容差（米），0 为严格检查，0.05 为 5 厘米。")]
-    [InspectorName("Doorway Tolerance / 门口容差")]
+    [SerializeField, Range(.8f, 1.5f)] private float stoppingDistance = 1.1f;
+    [Header("Following Doorway Clearance / 跟随模式门口容差")]
+    [Tooltip("Clearance forgiveness per side in metres. 0.05 allows 5 cm.")]
     [SerializeField, Range(0f, .1f)] private float doorwayTolerance = .05f;
     [SerializeField, Min(.2f)] private float dwellSeconds = 1f;
-    [SerializeField] private string pushHint =
-        "双手放在左右推把上，各按一次扳机开始协助\nPlace both hands on the handles and press each trigger once to help";
-    [SerializeField] private string stopText =
-        "已退出协助，双手回到推把各按一次扳机可继续\nAssistance stopped. Press both triggers once at the handles to resume.";
-    [SerializeField] private string doneText =
-        "同学已安全送达避难区\nStudent delivered to the 2F refuge";
 
     public State Current { get; private set; } = State.Waiting;
     internal bool AssistanceStarted => started;
@@ -33,16 +25,11 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
 
     private ResolutionCoordinator resolution;
     private BoxCollider bodyCollider;
-    private float lastToggleAt = float.NegativeInfinity;
-    private Transform pendingHand;
-    private float pendingAt;
-    private Vector3 travelForward;
-    private Vector3 lastPlayerFeet;
-    private Vector3 entrySideStep;
-    private bool aligningAlongside;
-    private bool hasTravelled;
+    private CampusRescueDialogue dialogue;
     private CharacterController assistingBody;
     private float originalBodyRadius;
+    private readonly List<Vector3> destinations = new List<Vector3>();
+    public bool DialogueVisible => dialogue?.Visible ?? false;
     private CampusRescueAssistanceView assistanceView;
     [SerializeField] private Vector3[] assistanceRoute = {
         new Vector3(-2.2f, 3.8f, 0),
@@ -77,147 +64,93 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
         bodyCollider.isTrigger = false;
         if (bodyCollider.size == Vector3.one) bodyCollider.size = new Vector3(.88f, 1.4f, 1.16f);
         if (bodyCollider.center == Vector3.zero) bodyCollider.center = new Vector3(0f, .67f, 0f);
-        travelForward = transform.forward;
     }
 
     private bool Blocked => Time.timeScale == 0f ||
         (resolution != null && resolution.CurrentOutcome != ResolutionCoordinator.Outcome.None) ||
         (CampusLessonDirector.Instance != null && !CampusLessonDirector.Instance.ExerciseStarted);
 
-    public void OnHoverEnter()
+    private bool InTalkingRange => followTarget != null &&
+        Mathf.Abs(followTarget.position.y - spawnY - 1.3f) < 1.3f &&
+        Vector3.ProjectOnPlane(followTarget.position - transform.position, Vector3.up).sqrMagnitude < 2.5f * 2.5f;
+
+    private bool CanSeeClassmate()
     {
-        if (!Blocked && Current == State.Waiting)
-            CampusMessagePresenter.Instance?.Show(pushHint);
+        if (!InTalkingRange) return false;
+        Vector3 offset = transform.position + Vector3.up * 1.2f - followTarget.position;
+        if (Vector3.Angle(followTarget.forward, offset) > 60f) return false;
+        return !Physics.Raycast(followTarget.position, offset.normalized, out var hit,
+            offset.magnitude, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) ||
+            hit.transform == transform || hit.transform.IsChildOf(transform);
     }
+
+    public void OnHoverEnter() { if (!Blocked && CanSeeClassmate()) OpenDialogue(); }
     public void OnHoverExit() { }
-
-    public bool CanPush(Transform hand)
-    {
-        if (Current == State.Delivered || Blocked || hand == null) return false;
-        var interactor = hand.GetComponent<CampusHandInteractor>();
-        if (interactor == null) return false;
-        float side = interactor.InputSource == SteamVR_Input_Sources.LeftHand ? -1f :
-            interactor.InputSource == SteamVR_Input_Sources.RightHand ? 1f : 0f;
-        if (side == 0f) return false;
-        Vector3 local = transform.InverseTransformPoint(interactor.ContactPoint);
-        bool atHandle = local.x * side > .04f &&
-            Vector3.Distance(local, new Vector3(side * .22f, .96f, -.30f)) <= .32f;
-        if (Current == State.Following)
-            atHandle |= Vector3.Distance(local, new Vector3(-side * .22f, .96f, -.30f)) <= .32f;
-        return atHandle || (Current == State.Following && PointsAtChair(hand));
-    }
-
-    public bool PointsAtChair(Transform hand)
-    {
-        if (!IsFollowing || hand == null) return false;
-        Vector3 origin = hand.GetComponent<CampusHandInteractor>()?.ContactPoint ?? hand.position;
-        return Physics.Raycast(origin, hand.forward, out var hit, 3f,
-            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) &&
-            (hit.transform == transform || hit.transform.IsChildOf(transform));
-    }
-
-    public void OnInteractStart(Transform hand)
-    {
-        if (!CanPush(hand) || Time.unscaledTime - lastToggleAt < .35f) return;
-        if (Current == State.Waiting)
-        {
-            bool bothReady = pendingHand != null && pendingHand != hand &&
-                Time.unscaledTime - pendingAt <= 1.5f && CanPush(pendingHand) &&
-                pendingHand.GetComponent<CampusHandInteractor>().InputSource !=
-                    hand.GetComponent<CampusHandInteractor>().InputSource;
-            if (!bothReady)
-            {
-                pendingHand = hand;
-                pendingAt = Time.unscaledTime;
-                return;
-            }
-        }
-        pendingHand = null;
-        lastToggleAt = Time.unscaledTime;
-        dwell = 0f;
-        if (Current == State.Waiting)
-        {
-            Current = State.Following;
-            ApplyPlayerClearance();
-            travelForward = transform.forward;
-            // Bring the chair alongside the player while keeping its handles reachable.
-            hasTravelled = true;
-            lastPlayerFeet = followTarget != null ? followTarget.position : transform.position;
-            lastPlayerFeet.y = spawnY;
-            Vector3 right = Vector3.Cross(Vector3.up, travelForward);
-            float currentSide = Vector3.Dot(transform.position - lastPlayerFeet, right);
-            entrySideStep = transform.position + right * (Mathf.Clamp(sideOffset, .65f, .8f) - currentSide);
-            aligningAlongside = true;
-            if (!started) { started = true; SessionLogger.Write("RESCUE_STARTED"); }
-            if (CampusMessagePresenter.Instance != null &&
-                (CampusMessagePresenter.Instance.CurrentMessage == pushHint ||
-                 CampusMessagePresenter.Instance.CurrentMessage == stopText))
-                CampusMessagePresenter.Instance.Hide();
-            if (assistanceView == null)
-                assistanceView = gameObject.AddComponent<CampusRescueAssistanceView>();
-            assistanceView.Begin(followTarget, assistanceRoute);
-        }
-        else
-        {
-            Current = State.Waiting;
-            RestorePlayerClearance();
-            assistanceView?.Hide();
-            CampusMessagePresenter.Instance?.Show(stopText);
-        }
-    }
+    // Shared hand interaction uses this entry point; handles no longer gate the task.
+    public bool CanPush(Transform hand) => hand != null && !Blocked && Current == State.Waiting && InTalkingRange;
+    public void OnInteractStart(Transform hand) { if (CanPush(hand)) OpenDialogue(); }
     public void OnInteract(Transform hand) { }
     public void OnInteractEnd(Transform hand) { }
 
+    private void OpenDialogue()
+    {
+        if (Current != State.Waiting || Blocked || followTarget == null) return;
+        if (dialogue == null) dialogue = new CampusRescueDialogue(followTarget, ReplyFollowMe);
+        dialogue.Show(true);
+    }
+
+    public void ReplyFollowMe()
+    {
+        if (Blocked || Current != State.Waiting || !DialogueVisible || !InTalkingRange) return;
+        Current = State.Following;
+        ApplyPlayerClearance();
+        dialogue.Show(false);
+        destinations.Clear();
+        dwell = 0;
+        started = true;
+        SessionLogger.Write("RESCUE_STARTED");
+        if (assistanceView == null)
+            assistanceView = gameObject.AddComponent<CampusRescueAssistanceView>();
+        assistanceView.Begin(followTarget, assistanceRoute);
+    }
+
     public bool TryGetFollowPosition(Vector3 fromFeet, Vector3 toFeet, out Vector3 position, out Quaternion rotation)
     {
-        position = transform.position;
+        position = toFeet;
+        position.y = spawnY;
         rotation = transform.rotation;
         if (!IsFollowing || followTarget == null || Mathf.Abs(fromFeet.y - spawnY) > .2f ||
             Mathf.Abs(toFeet.y - spawnY) > .2f) return false;
-        Vector3 movement = Vector3.ProjectOnPlane(toFeet - fromFeet, Vector3.up);
-        Vector3 forward = movement.sqrMagnitude > .01f ? movement.normalized : travelForward;
-        position = AssistancePosition(toFeet, forward);
-        position.y = spawnY;
-        rotation = Quaternion.LookRotation(forward, Vector3.up);
-        return CanPlace(position, rotation);
+        // Validate from the last queued corner so rapid teleports cannot cut across walls.
+        Vector3 from = destinations.Count > 0 ? destinations[destinations.Count - 1] : transform.position;
+        Vector3 travel = Vector3.ProjectOnPlane(position - from, Vector3.up);
+        if (travel.sqrMagnitude > .001f) rotation = Quaternion.LookRotation(travel, Vector3.up);
+        return CanTravel(from, position, rotation);
     }
 
-    private Vector3 AssistancePosition(Vector3 feet, Vector3 forward)
+    private bool HasFloor(Vector3 position)
     {
-        // Clamp earlier saved forward offsets too, so existing scene instances get the reach fix.
-        return feet + forward * Mathf.Clamp(followOffset, .3f, .6f) +
-            Vector3.Cross(Vector3.up, forward) * Mathf.Clamp(sideOffset, .65f, .8f);
-    }
-
-    private bool CanPlace(Vector3 position, Quaternion rotation)
-    {
-        bool floor = false;
         int count = Physics.RaycastNonAlloc(position + Vector3.up * .25f, Vector3.down,
             rayHits, .5f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
         for (int i = 0; i < count; i++)
-            if (rayHits[i].collider.GetComponentInParent<TeleportArea>() is TeleportArea area && area.isActiveAndEnabled &&
-                Mathf.Abs(rayHits[i].point.y - spawnY) <= .12f) { floor = true; break; }
-        if (!floor) return false;
+            if (rayHits[i].collider.GetComponentInParent<TeleportArea>() is TeleportArea area &&
+                area.isActiveAndEnabled && Mathf.Abs(rayHits[i].point.y - spawnY) <= .12f) return true;
+        return false;
+    }
 
-        Vector3 half = WheelchairClearanceHalfSize;
-        Vector3 travel = position - transform.position;
+    private bool CanTravel(Vector3 from, Vector3 to, Quaternion rotation)
+    {
+        Vector3 travel = to - from;
         float length = travel.magnitude;
-        // Check intermediate orientations as well as the final pose at a corner.
-        int turns = Mathf.Max(1, Mathf.CeilToInt(Quaternion.Angle(transform.rotation, rotation) / 15f));
-        for (int step = 0; step <= turns; step++)
-        {
-            Quaternion facing = Quaternion.Slerp(transform.rotation, rotation, (float)step / turns);
-            if (!HasClearBody(transform.position, facing) || !HasClearBody(position, facing)) return false;
-            if (length > .001f)
-            {
-                count = Physics.BoxCastNonAlloc(transform.position + Vector3.up * .69f, half,
-                    travel / length, rayHits, facing, length,
-                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-                if (count == rayHits.Length) return false;
-                for (int i = 0; i < count; i++)
-                    if (!IgnoreCollision(rayHits[i].collider)) return false;
-            }
-        }
+        int steps = Mathf.Max(1, Mathf.CeilToInt(length / .2f));
+        for (int i = 0; i <= steps; i++)
+            if (!HasFloor(Vector3.Lerp(from, to, (float)i / steps))) return false;
+        if (!HasClearBody(from, rotation) || !HasClearBody(to, rotation)) return false;
+        if (length < .001f) return true;
+        int count = Physics.BoxCastNonAlloc(from + Vector3.up * .69f, WheelchairClearanceHalfSize,
+            travel / length, rayHits, rotation, length, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        if (count == rayHits.Length) return false;
+        for (int i = 0; i < count; i++) if (!IgnoreCollision(rayHits[i].collider)) return false;
         return true;
     }
 
@@ -248,8 +181,7 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
             assistingBody = followTarget.GetComponentInParent<CharacterController>();
             if (assistingBody != null) originalBodyRadius = assistingBody.radius;
         }
-        if (assistingBody != null)
-            assistingBody.radius = Mathf.Min(originalBodyRadius, PlayerClearanceRadius);
+        if (assistingBody != null) assistingBody.radius = Mathf.Min(originalBodyRadius, PlayerClearanceRadius);
     }
 
     private void RestorePlayerClearance()
@@ -266,91 +198,90 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
             hit.GetComponentInParent<CampusPracticeBook>()?.IsHeld == true;
     }
 
+    // Called after a successful player teleport. Never relocates the chair instantly.
     public void FollowTeleport(Vector3 position, Quaternion rotation)
     {
         if (!IsFollowing) return;
-        transform.SetPositionAndRotation(position, rotation);
-        travelForward = rotation * Vector3.forward;
-        aligningAlongside = false;
-        hasTravelled = true;
-        if (followTarget != null)
-        {
-            lastPlayerFeet = followTarget.position;
-            lastPlayerFeet.y = spawnY;
-        }
-        Physics.SyncTransforms();
+        position.y = spawnY;
+        if (destinations.Count == 0 || Vector3.Distance(destinations[destinations.Count - 1], position) > .05f)
+            destinations.Add(position);
     }
 
     private void Update()
     {
-        if (Blocked) pendingHand = null;
+        if (Current == State.Waiting)
+        {
+            if (!Blocked && CanSeeClassmate()) OpenDialogue();
+            else dialogue?.Show(false);
+        }
         if (!IsFollowing || followTarget == null) { assistanceView?.SetVisible(false); return; }
         ApplyPlayerClearance();
         assistanceView?.SetVisible(true);
-        // Anchor between teleports so leaning toward a handle or door cannot move it away.
-        // Move sideways first on entry, keeping the chair out of the player's body.
-        if (aligningAlongside && Vector3.Distance(transform.position, entrySideStep) < .02f)
-            aligningAlongside = false;
-        Vector3 desired = aligningAlongside ? entrySideStep : AssistancePosition(lastPlayerFeet, travelForward);
-        desired.y = spawnY;
-        Vector3 next = Vector3.MoveTowards(transform.position, desired, followSpeed * Time.deltaTime);
-        Quaternion facing = Quaternion.RotateTowards(transform.rotation,
-            Quaternion.LookRotation(travelForward, Vector3.up), 180f * Time.deltaTime);
-        if (hasTravelled && ((next - transform.position).sqrMagnitude > .000025f ||
-             Quaternion.Angle(transform.rotation, facing) > .5f) && CanPlace(next, facing))
-        {
-            transform.SetPositionAndRotation(next, facing);
-            Physics.SyncTransforms();
-        }
+        TickFollowing(Time.deltaTime);
+    }
 
+    // Deterministic time step for hardware-free movement checks.
+    public void TickFollowing(float dt)
+    {
+        if (!IsFollowing || followTarget == null || dt <= 0) return;
+        if (destinations.Count > 0)
+        {
+            Vector3 desired = destinations[0];
+            Vector3 travel = desired - transform.position;
+            float distance = travel.magnitude;
+            float gap = destinations.Count == 1 ? stoppingDistance : 0f;
+            if (distance > gap + .01f)
+            {
+                Quaternion facing = Quaternion.RotateTowards(transform.rotation,
+                    Quaternion.LookRotation(travel, Vector3.up), 180f * dt);
+                bool canTurn = true;
+                int turns = Mathf.Max(1, Mathf.CeilToInt(Quaternion.Angle(transform.rotation, facing) / 5f));
+                for (int i = 1; i <= turns; i++)
+                    canTurn &= HasClearBody(transform.position, Quaternion.Slerp(transform.rotation, facing, (float)i / turns));
+                Vector3 next = Vector3.MoveTowards(transform.position, desired,
+                    Mathf.Min(followSpeed * dt, distance - gap));
+                if (canTurn && CanTravel(transform.position, next, facing))
+                {
+                    transform.SetPositionAndRotation(next, facing);
+                    Physics.SyncTransforms();
+                }
+            }
+            if (destinations.Count > 1 && Vector3.Distance(transform.position, desired) < .02f)
+                destinations.RemoveAt(0);
+        }
         if (refugeVolume != null && refugeVolume.bounds.Contains(transform.position + Vector3.up * .7f))
         {
-            dwell += Time.deltaTime;
+            dwell += dt;
             if (dwell >= dwellSeconds) Deliver();
         }
-        else dwell = 0f;
+        else dwell = 0;
     }
 
     private void Deliver()
     {
         Current = State.Delivered;
         RestorePlayerClearance();
+        destinations.Clear();
         assistanceView?.Hide();
         Rescued = true;
-        dwell = 0f;
+        dwell = 0;
         SessionLogger.Write("RESCUE_DELIVERED");
-        var lesson = CampusLessonDirector.Instance;
-        lesson?.StudentDelivered();
-        CampusMessagePresenter.Instance?.Show(lesson == null ? doneText :
-            doneText + "\n请按呼叫铃确认 / Press the call button to confirm");
+        CampusLessonDirector.Instance?.StudentDelivered();
+        CampusMessagePresenter.Instance?.Show("同学已安全到达避难区，救援完成。\nClassmate reached the refuge safely. Rescue complete.");
     }
 
     public void ResetQuest()
     {
         Current = State.Waiting;
         RestorePlayerClearance();
-        pendingHand = null;
         Rescued = false;
+        dialogue?.Show(false);
         assistanceView?.Hide();
-        lastToggleAt = float.NegativeInfinity;
+        destinations.Clear();
         started = false;
-        hasTravelled = false;
-        aligningAlongside = false;
-        dwell = 0f;
+        dwell = 0;
     }
 
-    public void ShowTeleportPreview(Vector3 fromFeet, Vector3 toFeet, bool playerAllowed)
-    {
-        if (!IsFollowing || assistanceView == null) return;
-        bool chairAllowed = TryGetFollowPosition(fromFeet, toFeet, out var position, out var rotation);
-        assistanceView.ShowPreview(position, rotation, playerAllowed && chairAllowed);
-    }
-
-    public void HideTeleportPreview() => assistanceView?.HidePreview();
-    private void OnDisable()
-    {
-        pendingHand = null;
-        RestorePlayerClearance();
-        assistanceView?.Hide();
-    }
+    private void OnDisable() { RestorePlayerClearance(); dialogue?.Show(false); assistanceView?.Hide(); }
+    private void OnDestroy() => dialogue?.Dispose();
 }
