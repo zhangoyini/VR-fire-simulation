@@ -48,6 +48,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
     private Vector3 bookStart, bookEnd;
     private Quaternion bookRotation;
     private bool fireStarted, finishing, bypassed, loggingReady, storyPrepared;
+    private bool showedDoorwaySmokeRules;
     private Vector3 cinematicPosition;
     private Quaternion cinematicRotation;
     private float standingGroundY;
@@ -190,14 +191,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if(fireStarted && CurrentPhase>=Phase.OpenDoor && CurrentPhase<Phase.Complete) UpdateDoorwaySmoke();
         if(CurrentPhase==Phase.Classroom) TickStory();
         else if(CurrentPhase==Phase.Alarm) TickAlarm();
-        else if(CurrentPhase==Phase.OpenDoor)
-        {
-            if(Mathf.Abs(classroomDoor.Angle)>=15)
-            {
-                CampusMessagePresenter.Instance?.Show(CampusMessagePresenter.SmokeRules);
-                ChangePhase(Phase.FindTowel);
-            }
-        }
+        else if(CurrentPhase==Phase.OpenDoor && panels==null) BeginTowelTask();
         else if(CurrentPhase==Phase.FindTowel)
         {
             if(restroom.bounds.Contains(trackedHead.position) && targetTowel.IsHeld) ChangePhase(Phase.WetTowel);
@@ -345,6 +339,11 @@ public sealed class CampusLessonDirector : MonoBehaviour
     private void UpdateDoorwaySmoke()
     {
         bool on=Mathf.Abs(classroomDoor.Angle)>=15;
+        if (on && !showedDoorwaySmokeRules)
+        {
+            showedDoorwaySmokeRules = true;
+            CampusMessagePresenter.Instance?.Show(CampusMessagePresenter.SmokeRules);
+        }
         if(doorwayPlume.activeSelf!=on)
         {
             doorwayPlume.SetActive(on);
@@ -353,6 +352,12 @@ public sealed class CampusLessonDirector : MonoBehaviour
         }
         doorwayExposure.enabled=on;
     }
+
+    private void BeginTowelTask()
+    {
+        if (CurrentPhase == Phase.OpenDoor) ChangePhase(Phase.FindTowel);
+    }
+
     private void ChangePhase(Phase phase)
     {
         CurrentPhase=phase; age=coverage=0;
@@ -360,7 +365,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if(phase==Phase.OpenDoor)
         {
             foreach(var endpoint in FindObjectsOfType<SafeZoneEndpoint>()) endpoint.ResetZone();
-            tasks?.Begin();
+            tasks?.Begin(BeginTowelTask);
         }
         if(CinematicLocked && phase!=Phase.Classroom)
         { cinematicPosition=locomotion.transform.position; cinematicRotation=locomotion.transform.rotation; }

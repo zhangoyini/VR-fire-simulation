@@ -473,14 +473,21 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Capture("Lesson_14_HandsRestored",head);
         Check(Mathf.Abs(movement.transform.position.y-rigPosition.y)<.01f && head.localPosition==originalHead && head.localRotation==headRotation,"The cinematic restores standing height and retains natural HMD pose");
         lesson.ClassroomDoor.SetAngle(0); lesson.Tick(.1f);
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.OpenDoor,"A closed classroom door keeps the exit objective active");
+        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.OpenDoor,"The main notice is still playing before task 1 starts");
         lesson.ClassroomDoor.SetAngle(15); lesson.Tick(.1f);
         var messages=CampusMessagePresenter.Instance;
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel && !lesson.MovementLocked && !lesson.WorldInteractionLocked,
-            "Pushing the door starts task 1 immediately without locking the player again");
+        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.OpenDoor,"Opening the door does not advance the pending main notice");
         Check(messages.HasPriorityWarning && messages.CurrentMessage==CampusMessagePresenter.SmokeRules &&
-            !noticeGroup.gameObject.activeSelf,"The brief smoke rule takes priority over the queued task notice");
+            !noticeGroup.gameObject.activeSelf,"The brief smoke rule takes priority over the main notice");
         Check(Field<GameObject>(lesson,"doorwayPlume").GetComponentInChildren<ParticleSystem>().particleCount>0,"Opening the door also shows visible smoke");
+        lesson.ClassroomDoor.SetAngle(0);
+        lesson.Tick(6.1f);
+        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.OpenDoor,"A hidden main notice has not finished displaying");
+        messages.Hide();
+        lesson.Tick(6.1f); lesson.Tick(.1f);
+        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel && !lesson.MovementLocked && !lesson.WorldInteractionLocked,
+            "Task 1 starts after the main notice finishes even when the classroom door is closed");
+        Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("任务 1"),"Task 1 displays after the main notice");
         Check(exposure.GraceSeconds==3 && exposure.DamagePerSecond==1f && exposure.CoveredDamageMultiplier==.5f,
             "Saved smoke parameters use a three-second grace period, 1 HP/s at full strength and half damage under a wet towel");
         Check(spread.Stages.All(stage=>stage.Strength==stage.floor*.25f),"All smoke volumes use their floor's smoke strength");
@@ -490,9 +497,6 @@ public sealed class CampusLessonDriver : MonoBehaviour
         float hp=health.HealthPercent;
         health.TakeDamage(1);
         Check(!lesson.DamageSuppressed && !lesson.SmokeFrozen && health.HealthPercent<hp,"Exercise notices leave damage and smoke progression live");
-        messages.Hide();
-        lesson.Tick(6.1f); lesson.Tick(.1f);
-        Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("任务 1"),"Task 1 displays once the warning and earlier notice have cleared");
         lesson.Tick(2f);
         messages.Show(CampusMessagePresenter.WindowWarning);
         lesson.Tick(8f);

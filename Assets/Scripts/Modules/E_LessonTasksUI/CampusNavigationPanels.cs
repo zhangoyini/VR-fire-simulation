@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Action = System.Action;
 using Step = CampusClassroomTutorial.Step;
 
 internal sealed class CampusNavigationPanels
@@ -26,7 +27,8 @@ internal sealed class CampusNavigationPanels
     private float mapZoom, taskZoom, taskHeight = 145f;
     private Panel requested;
     private bool wasX, wasY;
-    private readonly Queue<(string text, bool complete, float delay)> notices = new Queue<(string, bool, float)>();
+    private readonly Queue<(string text, bool complete, float delay, Action onFinished)> notices =
+        new Queue<(string, bool, float, Action)>();
     private float noticeRemaining, noticeDelay;
 
     internal bool IsExpanded => requested != Panel.None || mapZoom > 0 || taskZoom > 0;
@@ -103,10 +105,10 @@ internal sealed class CampusNavigationPanels
         Animate(dt);
     }
 
-    internal void QueueNotice(string text, bool complete = false, float delay = 0)
+    internal void QueueNotice(string text, bool complete = false, float delay = 0, Action onFinished = null)
     {
         if (notices.Count == 0) noticeDelay = delay;
-        notices.Enqueue((text, complete, delay));
+        notices.Enqueue((text, complete, delay, onFinished));
     }
 
     internal void TickNotice(float dt)
@@ -141,6 +143,7 @@ internal sealed class CampusNavigationPanels
                 notices.Dequeue();
                 noticeDelay = notices.Count > 0 ? notices.Peek().delay : 0;
                 noticeGroup.gameObject.SetActive(false);
+                notice.onFinished?.Invoke();
                 return;
             }
         }

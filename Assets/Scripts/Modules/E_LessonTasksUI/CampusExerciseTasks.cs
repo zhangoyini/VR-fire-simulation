@@ -37,10 +37,11 @@ internal sealed class CampusExerciseTasks
         this.panels = panels;
     }
 
-    internal void Begin()
+    internal void Begin(System.Action onMainNoticeFinished)
     {
         assembly = Status.Active;
-        Announce("主任务 · 疏散到一楼操场\n先推开 401 教室门，观察门外。\n<size=83%>Reach the schoolyard. First check outside room 401.</size>", "TASK_ASSEMBLY_STARTED");
+        Announce("主任务 · 疏散到一楼操场\n先推开 401 教室门，观察门外。\n<size=83%>Reach the schoolyard. First check outside room 401.</size>",
+            "TASK_ASSEMBLY_STARTED", onFinished: onMainNoticeFinished);
     }
 
     internal void TowelPhaseChanged(CampusLessonDirector.Phase phase)
@@ -224,10 +225,10 @@ internal sealed class CampusExerciseTasks
                 .Append("\n<size=83%>").Append(englishInstruction).Append("</size></color>");
     }
 
-    private void Announce(string message, string eventName, bool complete = false, float delay = 0)
+    private void Announce(string message, string eventName, bool complete = false, float delay = 0, System.Action onFinished = null)
     {
         revision++;
-        panels?.QueueNotice(message, complete, delay);
+        panels?.QueueNotice(message, complete, delay, onFinished);
         SessionLogger.Write(eventName);
     }
 }
