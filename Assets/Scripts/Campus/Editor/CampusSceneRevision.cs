@@ -296,7 +296,7 @@ public static partial class CampusSceneBuilder
         Set(exposure,"trackedHead",head);
         var health = systems.GetComponentInChildren<HealthTimeController>();
         Set(health,"campusSmokeExposure",exposure);
-        SetFloat(health,"baseDrainPerSecond",.1f);
+        SetFloat(health,"baseDrainPerSecond",.1f); SetFloat(health,"idleDrainPerSecond",.02f);
         var ui=systems.GetComponentInChildren<SystemUIView>(); var gameplay=new SerializedObject(ui).FindProperty("gameplayUIRoot").objectReferenceValue as GameObject;
         var healthAnchor=gameplay.GetComponent<WorldSpaceUIAnchor>(); SetVector(healthAnchor,"headLocalOffset",new Vector3(0,.27f,1));
         var floorLabel=new SerializedObject(experience).FindProperty("floorLabel").objectReferenceValue as TMP_Text; floorLabel.text="4F  ·  HEALTH / 血量";

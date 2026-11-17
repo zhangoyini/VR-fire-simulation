@@ -30,6 +30,8 @@ public sealed class CampusExperience : MonoBehaviour
         student = FindObjectOfType<CampusRescueStudent>();
         if (health != null) health.HealthLost += RecordLoss;
         if (smokeExposure != null) smokeExposure.ExposureMeasured += RecordExposure;
+        if (smokeExposure != null) smokeExposure.ProtectionChanged += OnProtectionChanged;
+        BuildProtectionCues();
         JourneyDirector.Instance?.Request(JourneyState.Awareness);
         if (alarm != null && CampusLessonDirector.Instance==null) alarm.PlayDelayed(9f);
         resolution = FindObjectOfType<ResolutionCoordinator>();
@@ -66,10 +68,10 @@ public sealed class CampusExperience : MonoBehaviour
         if (floorLabel != null) floorLabel.text = $"{floor}F   HP {Mathf.RoundToInt((HealthTimeController.Instance != null ? HealthTimeController.Instance.HealthPercent : 1) * 100)} / 血量";
         if (floorLabel != null)
         {
-            if (smokeExposure != null && smokeExposure.InSmoke)
-                floorLabel.text += "\n<color=#ffc676>烟雾区 · 尽快离开 / Smoke · Move out</color>";
-            else if (towelProtected)
-                floorLabel.text += "\n湿毛巾遮挡 / Wet towel in position";
+            string status = StatusLine(smokeExposure != null && smokeExposure.InSmoke,
+                                       smokeExposure != null && smokeExposure.IsProtected,
+                                       towelProtected);
+            if (status.Length > 0) floorLabel.text += "\n" + status;
         }
         if (floor != previousFloor)
         {
@@ -78,6 +80,18 @@ public sealed class CampusExperience : MonoBehaviour
             if (floor < 4) JourneyDirector.Instance?.Request(JourneyState.Descending);
         }
     }
+    /// <summary>HUD 第二行状态文案：烟中已防护 / 烟中未防护 / 烟外毛巾就位 / 无提示。</summary>
+    internal static string StatusLine(bool inSmoke, bool isProtected, bool towelReady)
+    {
+        if (inSmoke)
+            return isProtected
+                ? "<color=#69d2ff>防护生效 · 掉血减缓 / Protected · damage reduced</color>"
+                : "<color=#ffc676>烟雾区 · 尽快离开 / Smoke · Move out</color>";
+        if (towelReady)
+            return "<color=#69d2ff>湿毛巾已就位 / Wet towel ready</color>";
+        return string.Empty;
+    }
+
     private void OnOutcome(ResolutionCoordinator.Outcome outcome)
     {
         finished = true;
@@ -126,5 +140,46 @@ public sealed class CampusExperience : MonoBehaviour
         if (resolution != null) resolution.OutcomeClaimed -= OnOutcome;
         if (health != null) health.HealthLost -= RecordLoss;
         if (smokeExposure != null) smokeExposure.ExposureMeasured -= RecordExposure;
+        if (smokeExposure != null) smokeExposure.ProtectionChanged -= OnProtectionChanged;
+    }
+
+    // ===== 湿毛巾防护：文字与音效反馈 =====
+    private AudioClip protectionOnCue, protectionOffCue;
+
+    private void BuildProtectionCues()
+    {
+        protectionOnCue = MakeTone(new[] { 660f, 990f }, .16f, .35f);
+        protectionOffCue = MakeTone(new[] { 520f }, .14f, .25f);
+    }
+
+    private void OnProtectionChanged(bool active)
+    {
+        AudioClip clip = active ? protectionOnCue : protectionOffCue;
+        if (clip == null) return;
+        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(clip);
+    }
+
+    /// <summary>合成一段短提示音，避免依赖外部音频资源。</summary>
+    internal static AudioClip MakeTone(float[] frequencies, float stepSeconds, float volume)
+    {
+        const int sampleRate = 44100;
+        int perStep = Mathf.Max(1, Mathf.RoundToInt(stepSeconds * sampleRate));
+        int total = perStep * frequencies.Length;
+        var data = new float[total];
+        for (int s = 0; s < frequencies.Length; s++)
+        {
+            float f = frequencies[s];
+            for (int i = 0; i < perStep; i++)
+            {
+                int index = s * perStep + i;
+                float t = i / (float)sampleRate;
+                // 两端各 8ms 淡入淡出，避免爆音
+                float fade = Mathf.Min(1f, Mathf.Min(i, perStep - 1 - i) / (sampleRate * .008f));
+                data[index] = Mathf.Sin(2f * Mathf.PI * f * t) * volume * Mathf.Clamp01(fade);
+            }
+        }
+        var clip = AudioClip.Create("towel_protection", total, 1, sampleRate, false);
+        clip.SetData(data, 0);
+        return clip;
     }
 }

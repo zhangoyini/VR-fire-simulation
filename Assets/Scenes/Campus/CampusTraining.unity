@@ -400518,7 +400518,8 @@ MonoBehaviour:
   trackedHead: {fileID: 1363151216}
   graceSeconds: 3
   damagePerSecond: 1
-  coveredDamageMultiplier: 0.5
+  coveredDamageMultiplier: 0.2
+  protectionSettleSeconds: 0.25
   equivalentWalkingSpeed: 1.8
 --- !u!114 &1130435072
 MonoBehaviour:
@@ -408764,6 +408765,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   baseDrainPerSecond: 0.1
+  idleDrainPerSecond: 0.02
+  drainOnlyInSmoke: 1
   campusSmokeExposure: {fileID: 1130435071}
   lowHealthThreshold: 0.25
   logEvents: 1
@@ -476741,6 +476744,7 @@ MonoBehaviour:
   fist: {fileID: 11400000, guid: 45a635d0e1a43f14da0eb032aeb8dbcd, type: 2}
   point: {fileID: 11400000, guid: 416ca9f76f309e5478daf527e55b0c80, type: 2}
   interactionPoint: {fileID: 182509269}
+  followTriggerInput: 0
 --- !u!114 &1373125589
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -738647,6 +738651,7 @@ MonoBehaviour:
   fist: {fileID: 11400000, guid: 45a635d0e1a43f14da0eb032aeb8dbcd, type: 2}
   point: {fileID: 11400000, guid: 416ca9f76f309e5478daf527e55b0c80, type: 2}
   interactionPoint: {fileID: 1699754435}
+  followTriggerInput: 0
 --- !u!114 &2074638414
 MonoBehaviour:
   m_ObjectHideFlags: 0

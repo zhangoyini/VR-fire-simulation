@@ -16,8 +16,14 @@ namespace Jiao.HealthTime
         [Tooltip("满血值，默认 100")]
         [SerializeField] private float maxHealth = 100f;
 
-        [Tooltip("基础每秒掉血速度。100 / 480s ≈ 0.208，对应 8 分钟")]
+        [Tooltip("有烟雾时的基础每秒掉血。100 / 480s ≈ 0.208，对应 8 分钟（烟雾伤害另计）")]
         [SerializeField] private float baseDrainPerSecond = 0.208333f;
+
+        [Tooltip("无烟雾时的每秒掉血。默认 0.02，相当于 100 点可撑 83 分钟，画面上几乎不动")]
+        [SerializeField] private float idleDrainPerSecond = 0.02f;
+
+        [Tooltip("勾选后，只有身处烟雾时才按基础速度掉血；离开烟雾只剩极慢的自然消耗")]
+        [SerializeField] private bool drainOnlyInSmoke = true;
 
         [SerializeField] private CampusSmokeExposure campusSmokeExposure;
 
@@ -47,6 +53,13 @@ namespace Jiao.HealthTime
         public float DrainMultiplier => GetTotalMultiplier();
         internal float CurrentBaseDrainPerSecond => campusSmokeExposure != null && campusSmokeExposure.HasTowelProtection
             ? baseDrainPerSecond * campusSmokeExposure.CoveredDamageMultiplier : baseDrainPerSecond;
+
+        /// <summary>当前这一帧实际使用的掉血速度：无烟时只用极慢的自然消耗。</summary>
+        internal float CurrentDrainPerSecond => drainOnlyInSmoke && !InSmoke
+            ? idleDrainPerSecond
+            : CurrentBaseDrainPerSecond;
+        /// <summary>当前是否身处烟雾（供 HUD 与调试判断）。</summary>
+        public bool InSmoke => campusSmokeExposure != null && campusSmokeExposure.InSmoke;
         private bool LessonDamageSuppressed => CampusLessonDirector.Instance != null &&
                                                CampusLessonDirector.Instance.DamageSuppressed;
 
@@ -92,7 +105,7 @@ namespace Jiao.HealthTime
 
             RemoveExpiredMultipliers();
 
-            float drain = CurrentBaseDrainPerSecond * GetTotalMultiplier() * Time.deltaTime;
+            float drain = CurrentDrainPerSecond * GetTotalMultiplier() * Time.deltaTime;
             ApplyLoss(drain, LossSource.Time, null);
 
             HealthChanged?.Invoke(HealthPercent);
