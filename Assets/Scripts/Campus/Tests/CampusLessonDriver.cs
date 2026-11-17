@@ -488,8 +488,8 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel && !lesson.MovementLocked && !lesson.WorldInteractionLocked,
             "Task 1 starts after the main notice finishes even when the classroom door is closed");
         Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("任务 1"),"Task 1 displays after the main notice");
-        Check(exposure.GraceSeconds==3 && exposure.DamagePerSecond==1f && exposure.CoveredDamageMultiplier==.5f,
-            "Saved smoke parameters use a three-second grace period, 1 HP/s at full strength and half damage under a wet towel");
+        Check(exposure.GraceSeconds==3 && exposure.DamagePerSecond==1f && exposure.CoveredDamageMultiplier==.2f,
+            "Saved smoke parameters use a three-second grace period, 1 HP/s at full strength and one fifth of the damage under a wet towel");
         Check(spread.Stages.All(stage=>stage.Strength==stage.floor*.25f),"All smoke volumes use their floor's smoke strength");
         Check(taskDetails.text.Contains("教学回顾") && taskDetails.text.Contains("一氧化碳"),"Y retains the smoke and health explanation");
         Check(Field<CampusDestinationHighlight>(lesson,"destination").Highlighted,"Task 1 lights up only the 411 restroom door sign");
@@ -564,12 +564,12 @@ public sealed class CampusLessonDriver : MonoBehaviour
         Capture("Lesson_20_RestroomObjective",head);
         PutAtFace(owner.transform,towel,head); lesson.Tick(1.6f);
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Descend && Field<CampusLessonRoute>(lesson,"route").Visible && noticeGroup.gameObject.activeSelf,"Face coverage advances to staircase guidance while the task 2 notice is visible");
-        Check(Mathf.Approximately(health.CurrentBaseDrainPerSecond,.05f),"Wet-towel coverage halves the passive loss rate even before the smoke grace period");
+        Check(Mathf.Approximately(health.CurrentBaseDrainPerSecond,.02f),"Wet-towel coverage cuts the passive loss rate to one fifth even before the smoke grace period");
         float hpBeforeProtectedSmoke=health.HealthPercent;
         exposure.Tick(false,0);
         exposure.Tick(true,exposure.GraceSeconds+10f);
-        Check(exposure.IsProtected && Mathf.Abs((hpBeforeProtectedSmoke-health.HealthPercent)*100f-5f)<.001f,
-            "Ten seconds of smoke after the grace period cost five health points with wet-towel protection");
+        Check(exposure.IsProtected && Mathf.Abs((hpBeforeProtectedSmoke-health.HealthPercent)*100f-2f)<.001f,
+            "Ten seconds of smoke after the grace period cost two health points with wet-towel protection");
         CheckLowerFloorSmoke(spread,exposure,health,true);
         owner.Release(); lesson.Tick(.2f); Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Descend,"Dropping the towel cannot complete the descent");
         Check(Mathf.Approximately(health.CurrentBaseDrainPerSecond,.1f),"Releasing the towel restores the passive loss rate to 0.1 HP/s");
@@ -782,7 +782,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
             Vector3 center=stage.exposure.GetComponent<BoxCollider>().bounds.center;
             float before=health.HealthPercent;
             exposure.RecordTeleport(center-Vector3.right*.9f,center+Vector3.right*.9f);
-            float expected=floor*.25f*(covered ? .5f : 1f);
+            float expected=floor*.25f*(covered ? .2f : 1f);
             Check(Mathf.Abs((before-health.HealthPercent)*100f-expected)<.001f,
                 $"Floor {floor} corridor uses {expected} HP/s across a one-second teleport path (covered={covered})");
             stage.exposure.enabled=enabled;
