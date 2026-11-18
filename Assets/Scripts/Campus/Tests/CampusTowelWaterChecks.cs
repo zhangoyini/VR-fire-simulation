@@ -77,14 +77,14 @@ public sealed partial class CampusRevisionDriver
             PositionCloth(owner,towel,head.TransformPoint(new Vector3(0,-.1f,.7f))); exposure.Tick(true,1);
             Check(Mathf.Abs(health.HealthPercent-(protectedHealth-.01f))<.0001f,"Moving the wet towel away restores damage without a fresh grace exploit");
             PositionCloth(owner,towel,head.TransformPoint(new Vector3(0,-.10f,.13f))); exposure.Tick(true,1);
-            Check(Mathf.Abs(health.HealthPercent-(protectedHealth-.01f-.2f/100f))<.0001f,"Bringing the still-held wet towel back slows damage again");
+            Check(Mathf.Abs(health.HealthPercent-(protectedHealth-.01f-.4f/100f))<.0001f,"Returning the towel waits 0.25 real seconds before reducing smoke damage again");
             float beforeDrop=towel.transform.position.y;
             owner.ProcessGrip(false,false,true);
             Check(!towel.IsHeld && !towel.Body.isKinematic && towel.Body.useGravity && towel.gameObject.activeSelf,"Trigger release drops a real, reusable towel rather than hiding it");
             Check(pulses.Count==2 && Mathf.Approximately(pulses[1],.22f),"Release routes one vibration request to the same controller: "+owner.InputSource);
             owner.HapticRequested-=record;
             exposure.Tick(true,1);
-            Check(!exposure.IsProtected && Mathf.Abs(health.HealthPercent-(protectedHealth-.02f-.2f/100f))<.0001f,"Dropped wet cloth immediately loses smoke protection, even beside the face");
+            Check(!exposure.IsProtected && Mathf.Abs(health.HealthPercent-(protectedHealth-.02f-.4f/100f))<.0001f,"Dropped wet cloth immediately loses smoke protection, even beside the face");
             owner.transform.position=Vector3.one*100; free.transform.position=Vector3.one*100;
             yield return new WaitForSeconds(.4f);
             Check(towel.transform.position.y<beforeDrop-.25f && towel.IsWet,"Released wet towel falls under gravity and keeps its wet state");

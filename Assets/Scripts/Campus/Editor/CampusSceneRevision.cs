@@ -296,13 +296,38 @@ public static partial class CampusSceneBuilder
         Set(exposure,"trackedHead",head);
         var health = systems.GetComponentInChildren<HealthTimeController>();
         Set(health,"campusSmokeExposure",exposure);
-        SetFloat(health,"baseDrainPerSecond",.1f); SetFloat(health,"idleDrainPerSecond",.02f);
+        ConfigureHealthSmokeSettings(health,exposure);
         var ui=systems.GetComponentInChildren<SystemUIView>(); var gameplay=new SerializedObject(ui).FindProperty("gameplayUIRoot").objectReferenceValue as GameObject;
         var healthAnchor=gameplay.GetComponent<WorldSpaceUIAnchor>(); SetVector(healthAnchor,"headLocalOffset",new Vector3(0,.27f,1));
         var floorLabel=new SerializedObject(experience).FindProperty("floorLabel").objectReferenceValue as TMP_Text; floorLabel.text="4F  ·  HEALTH / 血量";
         CreateMinimap(gameplay.transform);
         foreach(var script in systems.GetComponentsInChildren<MonoBehaviour>(true).Where(s=>s!=null && s.GetType().Name.Contains("SnapTurn")).ToArray()) UnityEngine.Object.DestroyImmediate(script);
     }
+    [MenuItem("Tools/Campus/Sync Health and Smoke Settings")]
+    public static void SyncHealthSmokeSettings()
+    {
+        if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(ScenePath);
+        ConfigureHealthSmokeSettings(UnityEngine.Object.FindObjectOfType<HealthTimeController>(true),
+            UnityEngine.Object.FindObjectOfType<CampusSmokeExposure>(true));
+        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
+        if (!UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene)) throw new IOException("Cannot save health/smoke settings.");
+    }
+
+    private static void ConfigureHealthSmokeSettings(HealthTimeController health, CampusSmokeExposure exposure)
+    {
+        if (health == null || exposure == null) throw new InvalidOperationException("Health and smoke components are required.");
+        Set(health,"campusSmokeExposure",exposure);
+        SetFloat(health,"maxHealth",CampusHealthSmokeSettings.MaxHealth);
+        SetFloat(health,"baseDrainPerSecond",CampusHealthSmokeSettings.SmokeBaseDrain);
+        SetFloat(health,"idleDrainPerSecond",CampusHealthSmokeSettings.IdleDrain);
+        SetBool(health,"drainOnlyInSmoke",true);
+        SetFloat(exposure,"graceSeconds",CampusHealthSmokeSettings.GraceSeconds);
+        SetFloat(exposure,"damagePerSecond",CampusHealthSmokeSettings.SmokeDamage);
+        SetFloat(exposure,"coveredDamageMultiplier",CampusHealthSmokeSettings.CoveredMultiplier);
+        SetFloat(exposure,"protectionSettleSeconds",CampusHealthSmokeSettings.ProtectionSettleSeconds);
+    }
+
     private static AudioClip[] CreateFootsteps()
     {
         Folder("Assets/Audio/Campus"); var clips=new AudioClip[3];

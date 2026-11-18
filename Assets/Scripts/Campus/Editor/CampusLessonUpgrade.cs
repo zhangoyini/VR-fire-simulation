@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using Jiao.HealthTime;
 
 public static partial class CampusSceneBuilder
 {
@@ -33,7 +34,7 @@ public static partial class CampusSceneBuilder
         foreach(var hand in player.GetComponentsInChildren<CampusHandInteractor>(true)) SetFloat(hand,"pickupDistance",.20f);
         ConfigureTrackingHeight(movement);
         var damage=player.GetComponentInChildren<CampusSmokeExposure>(true);
-        SetFloat(damage,"graceSeconds",3); SetFloat(damage,"damagePerSecond",2f); SetFloat(damage,"coveredDamageMultiplier",.05f);
+        ConfigureHealthSmokeSettings(player.GetComponentInChildren<HealthTimeController>(true),damage);
         foreach(var oldFade in head.GetComponentsInChildren<Canvas>(true).Where(c=>c.name=="Seating fade").ToArray()) UnityEngine.Object.DestroyImmediate(oldFade.gameObject);
         var oldConfirm=head.Find("Lesson contact confirmation"); if(oldConfirm!=null) UnityEngine.Object.DestroyImmediate(oldConfirm.gameObject);
         var root=new GameObject("07 Guided Classroom Lesson"); var lesson=root.AddComponent<CampusLessonDirector>();

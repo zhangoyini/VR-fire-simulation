@@ -295,6 +295,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if (age < AlarmSeconds) return;
 
         SetHandsVisible(true);
+        smokeSpread.BeginExerciseSpread();
         FindObjectOfType<CampusExperience>()?.BeginTimedExercise();
         ChangePhase(Phase.OpenDoor);
     }
@@ -333,8 +334,8 @@ public sealed class CampusLessonDirector : MonoBehaviour
     private void StartFire()
     {
         fireStarted=true; fireOrigin.SetActive(true); alarm?.Play();
-        smokeSpread.ResetSpread(); smokeSpread.Advance(110);
-        foreach(var stage in smokeSpread.Stages) if(stage.particles!=null) stage.particles.Simulate(5,true,false,true);
+        smokeSpread.PrepareOpening();
+        foreach(var stage in smokeSpread.Stages) if(stage.floor==4 && stage.particles!=null) stage.particles.Simulate(5,true,false,true);
     }
     private void UpdateDoorwaySmoke()
     {

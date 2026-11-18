@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEngine;
 using Step = CampusClassroomTutorial.Step;
 
-public sealed class CampusLessonDriver : MonoBehaviour
+public sealed partial class CampusLessonDriver : MonoBehaviour
 {
     private readonly List<string> report=new List<string>(); private float deadline;
     private void Start() { deadline=Time.realtimeSinceStartup+150; StartCoroutine(Guard(Checks())); }
@@ -439,6 +439,8 @@ public sealed class CampusLessonDriver : MonoBehaviour
         lesson.Tick(.31f);
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Alarm && Field<AudioSource>(lesson,"alarm").isPlaying,"The alarm plays after the 6.5-second reading beat");
         Check(spread.RoomAge>=85 && spread.Stages.Any(s=>s.floor==4 && !s.roomClock && s.exposure.enabled),"The alarm starts with visible corridor smoke already prepared");
+        Check(spread.LowerFloorAge==0 && spread.Stages.Where(s=>s.floor<4).All(s=>!s.exposure.enabled),
+            "Opening prewarm leaves lower floors clear and their propagation clock at zero");
         lesson.Tick(2.60f);
         Check(movement.transform.position.y<seatAnchor.position.y,"The player remains seated at the start of the alarm");
         lesson.Tick(.16f);
@@ -556,13 +558,14 @@ public sealed class CampusLessonDriver : MonoBehaviour
         towel.OnInteract(owner.transform); Physics.SyncTransforms(); towel.TickWetting(1.6f);
         Check(towel.IsWet,"Task 2 uses the existing actual running-water wetting interaction");
         lesson.Tick(.1f); Check(!primaryOutline.enabled,"Wetting the towel clears the faucet highlight");
-        spread.Advance(50);
+        spread.Advance(180);
         var flight=spread.Stages.First(s=>s.floor==3 && s.particles.name.StartsWith("Descending"));
         var corridor3=spread.Stages.First(s=>s.floor==3 && s.particles.name=="3F corridor x=-18");
         flight.particles.Simulate(5,true,false,true); corridor3.particles.Simulate(5,true,false,true);
         Check(flight.particles.particleCount>0 && corridor3.particles.particleCount>0 && corridor3.exposure.enabled,"By restroom departure, 4F-to-3F stairs and the 3F corridor contain actual advancing smoke");
         Capture("Lesson_20_RestroomObjective",head);
         PutAtFace(owner.transform,towel,head); lesson.Tick(1.6f);
+        exposure.Tick(false,.25f);
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Descend && Field<CampusLessonRoute>(lesson,"route").Visible && noticeGroup.gameObject.activeSelf,"Face coverage advances to staircase guidance while the task 2 notice is visible");
         Check(Mathf.Approximately(health.CurrentBaseDrainPerSecond,.02f),"Wet-towel coverage cuts the passive loss rate to one fifth even before the smoke grace period");
         float hpBeforeProtectedSmoke=health.HealthPercent;
@@ -581,6 +584,8 @@ public sealed class CampusLessonDriver : MonoBehaviour
         exposure.Tick(false,0);
         owner.Begin(towel); MoveHead(movement,head,new Vector3(-23,9.3f,0)); PutAtFace(owner.transform,towel,head); lesson.Tick(1.6f);
         Check(lesson.CurrentPhase==CampusLessonDirector.Phase.Complete && !lesson.MovementLocked && !lesson.DamageSuppressed,"Only arriving on 3F with the held wet towel at the face completes the chapter");
+        CheckSmokeHealthIntegration(health,exposure,towel,owner,head,spread);
+        yield return CheckSmokeHealthRuntime(health,exposure,towel,owner,head);
         Check(FindObjectOfType<ResolutionCoordinator>().CurrentOutcome==ResolutionCoordinator.Outcome.None,"Chapter completion cannot bypass whole-building evacuation");
         Check(!panel.gameObject.activeSelf && !Field<CampusLessonRoute>(lesson,"route").Visible,"Completed tasks remove their card and route");
         owner.Release();
@@ -778,6 +783,9 @@ public sealed class CampusLessonDriver : MonoBehaviour
         {
             var stage=spread.Stages.First(s=>s.particles.name==floor+"F corridor x=10");
             bool enabled=stage.exposure.enabled;
+            float strength=stage.exposure.Strength;
+            // Probe this floor at its fully developed cap; growing smoke is checked separately.
+            stage.exposure.Strength=stage.Strength;
             stage.exposure.enabled=true;
             Vector3 center=stage.exposure.GetComponent<BoxCollider>().bounds.center;
             float before=health.HealthPercent;
@@ -786,6 +794,7 @@ public sealed class CampusLessonDriver : MonoBehaviour
             Check(Mathf.Abs((before-health.HealthPercent)*100f-expected)<.001f,
                 $"Floor {floor} corridor uses {expected} HP/s across a one-second teleport path (covered={covered})");
             stage.exposure.enabled=enabled;
+            stage.exposure.Strength=strength;
         }
     }
     private void EnvironmentCapture(string name,Vector3 position,Vector3 look,CampusLessonDirector lesson,CampusLocomotion movement,Transform head)

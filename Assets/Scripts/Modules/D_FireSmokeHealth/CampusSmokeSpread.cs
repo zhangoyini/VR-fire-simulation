@@ -4,6 +4,7 @@ using UnityEngine;
 
 // Staged emitters approximate room -> corridor -> stairwell -> lower-floor smoke flow.
 // This is a training visual, not a fluid/fire-safety simulation.
+[DefaultExecutionOrder(45)]
 public sealed class CampusSmokeSpread : MonoBehaviour
 {
     [Serializable]
@@ -18,6 +19,7 @@ public sealed class CampusSmokeSpread : MonoBehaviour
         public float settlingDepth;
         [Range(.25f, 1f)] public float strength = 1f;
         internal float Strength => strength > 0f ? strength : 1f;
+        internal float Density { get; set; }
     }
     [SerializeField] private CampusHingeInteractable roomDoor;
     [SerializeField] private ParticleSystem doorwaySmoke;
@@ -26,9 +28,11 @@ public sealed class CampusSmokeSpread : MonoBehaviour
     private Vector3 doorwayClosedPosition;
     private bool doorwayPositionCached;
     private ResolutionCoordinator resolution;
+    private bool lowerFloorClockRunning = true;
     private readonly Dictionary<ParticleSystem,Vector3> sourcePositions=new Dictionary<ParticleSystem,Vector3>();
     public float RoomAge { get; private set; }
     public float CorridorAge { get; private set; }
+    public float LowerFloorAge { get; private set; }
     public CampusHingeInteractable RoomDoor => roomDoor;
     public Stage[] Stages => stages;
     public void Configure(CampusHingeInteractable door, ParticleSystem portal, Stage[] progression)
@@ -40,13 +44,15 @@ public sealed class CampusSmokeSpread : MonoBehaviour
     { resolution = FindObjectOfType<ResolutionCoordinator>(); ResetSpread(); }
     public void ResetSpread()
     {
-        RoomAge = CorridorAge = 0;
+        RoomAge = CorridorAge = LowerFloorAge = 0;
+        lowerFloorClockRunning = true;
         if (doorwaySmoke != null && !doorwayPositionCached) { doorwayClosedPosition = doorwaySmoke.transform.position; doorwayPositionCached = true; }
         foreach (var stage in stages)
         {
+            stage.Density = 0f;
             if (stage.exposure != null)
             {
-                stage.exposure.Strength = stage.Strength;
+                stage.exposure.Strength = 0f;
                 stage.exposure.enabled = false;
             }
             if (stage.particles == null) continue;
@@ -58,6 +64,17 @@ public sealed class CampusSmokeSpread : MonoBehaviour
             if (Application.isPlaying) stage.particles.Play();
         }
     }
+    public void PrepareOpening()
+    {
+        ResetSpread();
+        lowerFloorClockRunning = false;
+        Advance(110f); // Prepare only the fire floor, never the lower-floor clock.
+    }
+    public void BeginExerciseSpread()
+    {
+        LowerFloorAge = 0f;
+        lowerFloorClockRunning = true;
+    }
     private void Update() { if(CampusLessonDirector.Instance==null || !CampusLessonDirector.Instance.SmokeFrozen) Advance(Time.deltaTime); }
     public void Advance(float dt)
     {
@@ -67,12 +84,15 @@ public sealed class CampusSmokeSpread : MonoBehaviour
         float readyTime = Mathf.Max(0, RoomAge - escapeDelay) - previouslyReady;
         float openness = roomDoor != null ? Mathf.Clamp01(Mathf.Abs(roomDoor.Angle) / 60f) : 1;
         // Closed doors leak slowly at the bottom; an opened doorway feeds the ceiling plume faster.
-        CorridorAge += readyTime * Mathf.Lerp(.35f, 1f, openness);
+        float flowTime = readyTime * Mathf.Lerp(.35f, 1f, openness);
+        CorridorAge += flowTime;
+        if (lowerFloorClockRunning) LowerFloorAge += flowTime;
         if (doorwaySmoke != null) doorwaySmoke.transform.position = doorwayClosedPosition + Vector3.up * (openness * 1.8f);
         foreach (var stage in stages)
         {
-            float age = stage.roomClock ? RoomAge : CorridorAge;
+            float age = stage.floor < 4 ? LowerFloorAge : stage.roomClock ? RoomAge : CorridorAge;
             float density = Mathf.Clamp01((age - stage.delay) / Mathf.Max(.1f, stage.fillSeconds));
+            stage.Density = density;
             if (stage.particles != null)
             {
                 var emission = stage.particles.emission; emission.rateOverTime = stage.emissionRate * density * stage.Strength;
@@ -83,7 +103,11 @@ public sealed class CampusSmokeSpread : MonoBehaviour
                     stage.particles.transform.position=ceilingPosition-Vector3.up*(stage.settlingDepth*Mathf.SmoothStep(0,1,density));
             }
             // No invisible corridor damage ahead of the visible plume.
-            if (stage.exposure != null) stage.exposure.enabled = density >= .35f;
+            if (stage.exposure != null)
+            {
+                stage.exposure.Strength = density >= .35f ? stage.Strength * density : 0f;
+                stage.exposure.enabled = stage.exposure.Strength > 0f;
+            }
         }
     }
 }
