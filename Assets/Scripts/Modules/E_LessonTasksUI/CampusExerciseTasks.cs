@@ -135,13 +135,13 @@ internal sealed class CampusExerciseTasks
 
         var card = new StringBuilder("<b>任务详情 / Tasks</b>");
         Objective current = CurrentObjective(phase);
-        string assemblyInstruction = AssemblyApproach ? "进入操场上高亮的集合区并停留。" : "沿疏散标识前往一楼室外操场的集合区。";
-        string assemblyEnglish = AssemblyApproach ? "Enter the highlighted assembly area and stay there." :
-            "Follow the evacuation signs to the schoolyard assembly point.";
+        string assemblyInstruction = AssemblyApproach ? "进入操场高亮集合区并停留。" : "沿疏散标识前往一楼操场集合区。";
+        string assemblyEnglish = AssemblyApproach ? "Enter the highlighted assembly area and stay." :
+            "Follow exit signs to the 1F schoolyard assembly area.";
         if (phase == CampusLessonDirector.Phase.OpenDoor)
         {
-            assemblyInstruction = "走近 401 教室门，握住扳机推开门，观察门外。";
-            assemblyEnglish = "Hold the trigger to push open room 401's door. Check outside.";
+            assemblyInstruction = "握住扳机推开 401 教室门，观察门外。";
+            assemblyEnglish = "Hold the trigger to open the classroom door. Check outside.";
         }
         AddRow(card, assembly, "主任务 · 疏散到一楼操场", "Main · Schoolyard",
             current == Objective.Assembly ? assemblyInstruction : null, assemblyEnglish);
@@ -156,13 +156,13 @@ internal sealed class CampusExerciseTasks
         {
             bool done = phase == CampusLessonDirector.Phase.Complete;
             AddRow(card, done ? Status.Complete : Status.Active, "任务 2 · 浸湿毛巾并下到三楼", "2 · Wet towel, reach 3F",
-                current == Objective.WetTowel ? "用空闲手打开水龙头，将毛巾在流水中浸湿，握持并遮住口鼻，再沿楼梯下到三楼。" : null,
-                "Turn on the tap with your free hand and wet the towel. Cover your nose and mouth, then take the stairs to 3F.");
+                current == Objective.WetTowel ? "用空闲手开水龙头并浸湿毛巾。捂住口鼻，沿楼梯下到三楼。" : null,
+                "Use your free hand to wet the towel. Cover your nose and mouth, then take the stairs to 3F.");
         }
 
         AddRow(card, detour, "任务 3 · 改走另一通道", "3 · Detour via Stair B",
-            current == Objective.Detour ? "遇见障碍物，请从另一通道逃生。返回三楼走廊，前往东侧 B 楼梯口。" : null,
-            "Route blocked. Go back along the 3F corridor to Stair B on the east side.");
+            current == Objective.Detour ? "路线受阻。沿三楼走廊返回，前往东侧 B 楼梯。" : null,
+            "Route blocked. Return along the 3F corridor to Stair B on the east side.");
         string rescueInstruction = null, rescueEnglish = null;
         if (current == Objective.Rescue)
         {
@@ -174,11 +174,11 @@ internal sealed class CampusExerciseTasks
         }
         AddRow(card, rescue, "可选支线 · 轮椅救援", "Optional · Rescue", rescueInstruction, rescueEnglish);
         AddRow(card, exit, "任务 4 · 打开通往操场的出口", "4 · Open the exit",
-            current == Objective.Exit ? "沿一楼走廊找到大厅双开门，握住扳机推开任意一扇门。" : null,
-            "Follow the 1F corridor to the double doors. Hold the trigger to push either door open.");
+            current == Objective.Exit ? "沿一楼走廊到大厅双开门，握住扳机推开任意一扇。" : null,
+            "Follow the 1F corridor to the double doors. Hold the trigger to open either door.");
         if (phase >= CampusLessonDirector.Phase.FindTowel)
-            card.Append("\n<color=#ffc676>教学回顾 · 烟雾 / Smoke recap</color>\n暴露超过 3 秒扣血，传送也计时。湿毛巾减缓游戏扣血，不能过滤一氧化碳。")
-                .Append("\n<size=83%>Smoke costs HP after 3 s, including during teleport. A wet towel reduces in-game damage but cannot filter carbon monoxide.</size>");
+            card.Append("\n<color=#ffc676>安全提示 · Safety</color>  烟雾暴露 3 秒后扣血，传送也计时；湿毛巾只能减缓扣血，不能过滤一氧化碳。")
+                .Append("\n<size=83%>Smoke costs HP after 3 s, including during teleport. A wet towel slows HP loss but cannot filter carbon monoxide.</size>");
         return details = card.ToString();
     }
 
@@ -217,11 +217,17 @@ internal sealed class CampusExerciseTasks
         string instruction, string englishInstruction)
     {
         if (status == Status.Hidden) return;
-        card.Append(status == Status.Complete ? "\n<color=#81efa0>✓ 已完成</color>  " : "\n<color=#78d9ff>进行中</color>  ");
-        card.Append(title).Append("  <size=80%>").Append(englishTitle)
+        bool hasInstruction = instruction != null && status == Status.Active;
+        bool mainlineTask = title.StartsWith("主任务") || title.StartsWith("任务 ");
+        bool highlightCurrent = hasInstruction && mainlineTask;
+        card.Append(status == Status.Complete ? "\n<color=#81efa0>✓ 已完成</color>  " :
+            highlightCurrent ? "\n<color=#ffd166><b>当前目标</b></color>  " :
+            mainlineTask ? "\n<color=#78d9ff>待处理</color>  " : "\n<color=#78d9ff>进行中</color>  ");
+        card.Append(highlightCurrent ? "<b>" : "").Append(title).Append(highlightCurrent ? "</b>" : "")
+            .Append("  <size=80%>").Append(englishTitle)
             .Append(status == Status.Complete ? " · Done</size>" : " · Active</size>");
         if (instruction != null && status == Status.Active)
-            card.Append("\n<color=#a7e9dd>").Append(instruction)
+            card.Append(highlightCurrent ? "\n<color=#d7fff5>" : "\n<color=#a7e9dd>").Append(instruction)
                 .Append("\n<size=83%>").Append(englishInstruction).Append("</size></color>");
     }
 

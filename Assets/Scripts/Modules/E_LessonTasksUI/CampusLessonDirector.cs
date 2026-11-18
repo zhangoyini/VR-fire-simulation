@@ -98,7 +98,8 @@ public sealed class CampusLessonDirector : MonoBehaviour
         Instance=this; resolution=FindObjectOfType<ResolutionCoordinator>(); layout=GetComponent<CampusLessonLayout>();
         if(fireOrigin!=null) fireOrigin.SetActive(false);
         if(doorwayPlume!=null) doorwayPlume.SetActive(false);
-        alarm?.Stop(); ChangePhase(Phase.Controls);
+        alarm?.Stop();
+        ChangePhase(SystemUINavigation.ConsumeRestartTutorialSkip() ? Phase.Ready : Phase.Controls);
     }
     private void Start()
     {

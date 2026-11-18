@@ -60,7 +60,7 @@ internal sealed class CampusNavigationPanels
         taskGroup = CampusTutorialView.CanvasAt("Task details panel", root.transform, TaskCorner, .0017f);
         taskRect = CampusTutorialView.Picture(taskGroup.transform, Vector2.zero, new Vector2(205, 52), Ink).rectTransform;
         taskLabel = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(196, 48), 21, "Y  任务详情 / Tasks");
-        taskText = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(TaskTextWidth, 124), 18, "");
+        taskText = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(TaskTextWidth, 124), 20, "");
         taskText.alignment = TextAlignmentOptions.Left;
 
         noticeGroup = CampusTutorialView.CanvasAt("Exercise task notification", root.transform, new Vector3(0, .09f, 1.45f), .002f);
@@ -131,7 +131,7 @@ internal sealed class CampusNavigationPanels
         var notice = notices.Peek();
         if (noticeRemaining == 0)
         {
-            noticeRemaining = notice.complete ? 2f : 6f;
+            noticeRemaining = NoticeReadingSeconds(notice.text, notice.complete);
             noticeText.text = notice.text;
             noticeText.color = notice.complete ? new Color(.48f, .94f, .53f) : Color.white;
         }
@@ -188,6 +188,26 @@ internal sealed class CampusNavigationPanels
         taskText.text = text;
         taskHeight = Mathf.Clamp(taskText.GetPreferredValues(text, TaskTextWidth, 0).y + 34f, 145f, 318f);
         taskText.rectTransform.sizeDelta = new Vector2(TaskTextWidth, taskHeight - 20f);
+    }
+
+    private static float NoticeReadingSeconds(string text, bool complete)
+    {
+        // Count bilingual copy conservatively; tags and punctuation do not add
+        // much reading time. Keep completion acknowledgements brief.
+        int han = 0;
+        foreach (char character in text)
+            if (character >= '\u3400' && character <= '\u9fff') han++;
+        int words = 0;
+        bool inWord = false;
+        foreach (char character in text)
+        {
+            bool wordCharacter = (character >= 'A' && character <= 'Z') ||
+                (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9');
+            if (wordCharacter && !inWord) words++;
+            inWord = wordCharacter;
+        }
+        float estimate = 2f + han / 4.5f + words / 2.8f;
+        return complete ? Mathf.Clamp(estimate, 3f, 5f) : Mathf.Clamp(estimate, 7f, 16f);
     }
 
     private void Animate(float dt)

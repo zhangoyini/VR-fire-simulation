@@ -12,6 +12,7 @@ public sealed class CampusLessonLayout : MonoBehaviour
     private Renderer[] demoRenderers;
     private Color[] demoColours;
     private MaterialPropertyBlock demoBlock;
+    private int[] demoColourProperties;
     private bool full=true;
     private float progress=1;
     private Vector3 fromPosition, fromScale, targetPosition, targetScale;
@@ -51,15 +52,30 @@ public sealed class CampusLessonLayout : MonoBehaviour
         if(textGroup!=null) textGroup.alpha=alpha;
         // Native graphics resources are created in play-time, not during serialization.
         if(demoBlock==null) demoBlock=new MaterialPropertyBlock();
-        if(demoRenderers==null)
+        if(demoRenderers==null) demoRenderers=demo.GetComponentsInChildren<Renderer>(true);
+        if(demoColours==null || demoColours.Length!=demoRenderers.Length ||
+            demoColourProperties==null || demoColourProperties.Length!=demoRenderers.Length)
         {
-            demoRenderers=demo.GetComponentsInChildren<Renderer>(true); demoColours=new Color[demoRenderers.Length];
-            for(int i=0;i<demoRenderers.Length;i++) demoColours[i]=demoRenderers[i].sharedMaterial.GetColor("_BaseColor");
+            demoColours=new Color[demoRenderers.Length];
+            demoColourProperties=new int[demoRenderers.Length];
+            for(int i=0;i<demoRenderers.Length;i++)
+            {
+                var renderer=demoRenderers[i];
+                if(renderer==null)
+                { demoColourProperties[i]=-1; demoColours[i]=Color.white; continue; }
+                var material=renderer.sharedMaterial;
+                string colourProperty=material==null?null:material.HasProperty("_BaseColor")?"_BaseColor":material.HasProperty("_Color")?"_Color":null;
+                demoColourProperties[i]=string.IsNullOrEmpty(colourProperty)?-1:Shader.PropertyToID(colourProperty);
+                demoColours[i]=demoColourProperties[i]>=0?material.GetColor(demoColourProperties[i]):Color.white;
+            }
         }
         for(int i=0;i<demoRenderers.Length;i++)
         {
+            if(demoRenderers[i]==null) continue;
             var colour=demoColours[i]; colour.a*=alpha;
-            demoBlock.Clear(); demoBlock.SetColor("_BaseColor",colour); demoRenderers[i].SetPropertyBlock(demoBlock);
+            demoBlock.Clear();
+            if(demoColourProperties[i]>=0) demoBlock.SetColor(demoColourProperties[i],colour);
+            demoRenderers[i].SetPropertyBlock(demoBlock);
         }
         demo.localScale=Vector3.one*Mathf.Lerp(.7f,1,eased); Place();
     }
