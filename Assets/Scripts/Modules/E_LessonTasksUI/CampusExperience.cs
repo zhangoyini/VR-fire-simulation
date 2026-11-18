@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 
 // Coordinates the integrated scene without replacing the team's health, menu or journey systems.
+[DefaultExecutionOrder(70)]
 public sealed class CampusExperience : MonoBehaviour
 {
     [SerializeField] private Transform trackedHead;
@@ -61,7 +62,7 @@ public sealed class CampusExperience : MonoBehaviour
     private void Update()
     {
         if (trackedHead == null || finished) return;
-        bool towelProtected = CampusTowelInteractable.HasProtection(trackedHead);
+        bool towelProtected = smokeExposure != null && smokeExposure.IsProtected;
         healthBar?.SetTowelProtection(towelProtected);
         int floor = Mathf.Clamp(Mathf.FloorToInt((trackedHead.position.y - 0.8f) / 3.8f) + 1, 1, 4);
         report?.Observe(ExerciseFloor(floor), CampusLessonDirector.Instance?.TargetTowel, towelProtected, Time.time - startTime);
@@ -70,7 +71,7 @@ public sealed class CampusExperience : MonoBehaviour
         {
             string status = StatusLine(smokeExposure != null && smokeExposure.InSmoke,
                                        smokeExposure != null && smokeExposure.IsProtected,
-                                       towelProtected);
+                                       smokeExposure != null && smokeExposure.TowelReady);
             if (status.Length > 0) floorLabel.text += "\n" + status;
         }
         if (floor != previousFloor)
@@ -121,7 +122,7 @@ public sealed class CampusExperience : MonoBehaviour
             endFloor > 0 ? endFloor + " 楼" : "未记录位置";
         report.endLocationEnglish = report.success ? "Schoolyard assembly point (1F)" : inRestroom ? "Restroom 411 (4F)" :
             endFloor > 0 ? $"Floor {endFloor}" : "Location unavailable";
-        report.Observe(endFloor, lesson.TargetTowel, trackedHead != null && CampusTowelInteractable.HasProtection(trackedHead), report.duration);
+        report.Observe(endFloor, lesson.TargetTowel, smokeExposure != null && smokeExposure.IsProtected, report.duration);
         report.Finish(lesson, student);
         SessionLogger.Write("DEBRIEF_SUMMARY", JsonUtility.ToJson(report));
         SessionLogger.Instance?.Flush();

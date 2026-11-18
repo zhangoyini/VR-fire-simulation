@@ -10,6 +10,17 @@ public static class CampusLessonChecks
         EditorApplication.playModeStateChanged+=state=>
         { if(state==PlayModeStateChange.EnteredPlayMode && SessionState.GetBool("Campus.LessonQA",false)) new GameObject("Lesson QA (temporary)").AddComponent<CampusLessonDriver>(); };
     }
+    public static void SyncSettingsAndRun()
+    {
+        CampusSceneBuilder.SyncHealthSmokeSettings();
+        Debug.Log("CAMPUS_HEALTH_SMOKE_SETTINGS_SYNCED");
+        Run();
+    }
+    public static void RunTeleportChecks()
+    {
+        try { CampusTeleportChecks.Run(); EditorApplication.Exit(0); }
+        catch (System.Exception exception) { Debug.LogException(exception); EditorApplication.Exit(1); }
+    }
     public static void Run()
     {
         EditorSceneManager.OpenScene(CampusSceneBuilder.ScenePath);

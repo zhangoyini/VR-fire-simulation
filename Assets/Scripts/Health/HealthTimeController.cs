@@ -8,19 +8,20 @@ namespace Jiao.HealthTime
     /// 血条/时间控制器：把剩余时间表现为一个持续减少的血量条。
     /// 支持烟雾区加速扣血、毛巾回血/减速，并在血量归零时触发失败事件。
     /// </summary>
+    [DefaultExecutionOrder(60)]
     public class HealthTimeController : MonoBehaviour
     {
         public static HealthTimeController Instance { get; private set; }
 
         [Header("基础数值")]
         [Tooltip("满血值，默认 100")]
-        [SerializeField] private float maxHealth = 100f;
+        [SerializeField] private float maxHealth = CampusHealthSmokeSettings.MaxHealth;
 
-        [Tooltip("有烟雾时的基础每秒掉血。100 / 480s ≈ 0.208，对应 8 分钟（烟雾伤害另计）")]
-        [SerializeField] private float baseDrainPerSecond = 0.208333f;
+        [Tooltip("有烟雾时基础消耗 0.1 HP/秒，额外烟伤另计；稳定的湿毛巾防护同时减缓两者")]
+        [SerializeField] private float baseDrainPerSecond = CampusHealthSmokeSettings.SmokeBaseDrain;
 
         [Tooltip("无烟雾时的每秒掉血。默认 0.02，相当于 100 点可撑 83 分钟，画面上几乎不动")]
-        [SerializeField] private float idleDrainPerSecond = 0.02f;
+        [SerializeField] private float idleDrainPerSecond = CampusHealthSmokeSettings.IdleDrain;
 
         [Tooltip("勾选后，只有身处烟雾时才按基础速度掉血；离开烟雾只剩极慢的自然消耗")]
         [SerializeField] private bool drainOnlyInSmoke = true;
@@ -51,7 +52,7 @@ namespace Jiao.HealthTime
         public bool IsDepleted => currentHealth <= 0f;
         public bool IsPaused => isPaused;
         public float DrainMultiplier => GetTotalMultiplier();
-        internal float CurrentBaseDrainPerSecond => campusSmokeExposure != null && campusSmokeExposure.HasTowelProtection
+        internal float CurrentBaseDrainPerSecond => campusSmokeExposure != null && campusSmokeExposure.ProtectionStable
             ? baseDrainPerSecond * campusSmokeExposure.CoveredDamageMultiplier : baseDrainPerSecond;
 
         /// <summary>当前这一帧实际使用的掉血速度：无烟时只用极慢的自然消耗。</summary>
@@ -98,14 +99,19 @@ namespace Jiao.HealthTime
             ResetHealth();
         }
 
-        private void Update()
+        private void Update() => Tick(Time.deltaTime);
+
+        internal void Tick(float seconds)
         {
-            if (isPaused || LessonDamageSuppressed || IsDepleted)
+            if (Time.timeScale == 0f || seconds <= 0f || isPaused || LessonDamageSuppressed || IsDepleted)
                 return;
 
             RemoveExpiredMultipliers();
 
-            float drain = CurrentDrainPerSecond * GetTotalMultiplier() * Time.deltaTime;
+            // Exposure samples first. Integrate the same settle boundary as smoke damage.
+            float rate = drainOnlyInSmoke && !InSmoke ? idleDrainPerSecond :
+                baseDrainPerSecond * (campusSmokeExposure != null ? campusSmokeExposure.BaseProtectionMultiplier : 1f);
+            float drain = rate * GetTotalMultiplier() * seconds;
             ApplyLoss(drain, LossSource.Time, null);
 
             HealthChanged?.Invoke(HealthPercent);
