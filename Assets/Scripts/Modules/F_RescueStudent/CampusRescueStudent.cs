@@ -39,6 +39,9 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
     private float dwell;
     private float spawnY;
     private bool started;
+    private float blockedSeconds;
+    private bool recoveryAttempted, reversing;
+    private Vector3 reverseTarget;
     private readonly RaycastHit[] rayHits = new RaycastHit[64];
     private readonly Collider[] overlaps = new Collider[64];
 
@@ -106,6 +109,7 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
         ApplyPlayerClearance();
         dialogue.Show(false);
         destinations.Clear();
+        ClearRecovery();
         dwell = 0;
         started = true;
         SessionLogger.Write("RESCUE_STARTED");
@@ -123,9 +127,76 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
             Mathf.Abs(toFeet.y - spawnY) > .2f) return false;
         // Validate from the last queued corner so rapid teleports cannot cut across walls.
         Vector3 from = destinations.Count > 0 ? destinations[destinations.Count - 1] : transform.position;
-        Vector3 travel = Vector3.ProjectOnPlane(position - from, Vector3.up);
-        if (travel.sqrMagnitude > .001f) rotation = Quaternion.LookRotation(travel, Vector3.up);
-        return CanTravel(from, position, rotation);
+        // A player who backtracks can lead a blocked chair out of its old route.
+        if ((reversing || recoveryAttempted || blockedSeconds > 0) &&
+            TryPlanTravel(transform.position, position, transform.rotation, out rotation)) return true;
+        return TryPlanTravel(from, position, transform.rotation, out rotation);
+    }
+
+    private Quaternion TravelFacing(Vector3 travel, Quaternion current)
+    {
+        if (travel.sqrMagnitude < .0001f) return current;
+        // Normal following always faces the destination. Only blocked recovery may reverse.
+        return Quaternion.LookRotation(travel, Vector3.up);
+    }
+
+    private bool TryPlanTravel(Vector3 from, Vector3 to, Quaternion current, out Quaternion facing)
+    {
+        facing = TravelFacing(to - from, current);
+        return CanTravel(from, to, facing);
+    }
+
+    private bool CanTurnAt(Vector3 position, Quaternion from, Quaternion to)
+    {
+        int turns = Mathf.Max(1, Mathf.CeilToInt(Quaternion.Angle(from, to) / 5f));
+        for (int i = 0; i <= turns; i++)
+            if (!HasClearBody(position, Quaternion.Slerp(from, to, (float)i / turns))) return false;
+        return true;
+    }
+
+    private bool TryPlanLeg(Vector3 from, Vector3 to, Quaternion current, out Quaternion facing) =>
+        TryPlanTravel(from, to, current, out facing) && CanTurnAt(from, current, facing);
+
+    private void ClearRecovery()
+    {
+        blockedSeconds = 0;
+        recoveryAttempted = reversing = false;
+    }
+
+    private void BeginReverseRecovery(Vector3 desired)
+    {
+        recoveryAttempted = true;
+        Vector3 forward = transform.forward;
+        Vector3 right = transform.right;
+        Vector3 fallback = transform.position;
+        // Search only a small local manoeuvre. Every leg and turn must clear solid geometry.
+        foreach (float back in new[] { .6f, 1f })
+        {
+            Vector3 behind = transform.position - forward * back;
+            if (!CanTravel(transform.position, behind, transform.rotation)) continue;
+            if (fallback == transform.position) fallback = behind;
+            foreach (float width in new[] { .8f, 1.15f, 1.5f })
+            foreach (float side in new[] { -1f, 1f })
+            {
+                Vector3 beside = behind + right * width * side;
+                Vector3 past = desired + right * width * side;
+                if (!TryPlanLeg(behind, beside, transform.rotation, out var first) ||
+                    !TryPlanLeg(beside, past, first, out var second) ||
+                    !TryPlanLeg(past, desired, second, out _)) continue;
+                destinations.Insert(0, past);
+                destinations.Insert(0, beside);
+                reverseTarget = behind;
+                reversing = true;
+                return;
+            }
+        }
+        // If no detour fits, back into clear space once and let the player choose another route.
+        // Do not oscillate endlessly against the same obstacle.
+        if (fallback != transform.position)
+        {
+            reverseTarget = fallback;
+            reversing = true;
+        }
     }
 
     private bool HasFloor(Vector3 position)
@@ -203,6 +274,13 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
     {
         if (!IsFollowing) return;
         position.y = spawnY;
+        if ((reversing || recoveryAttempted || blockedSeconds > 0) &&
+            TryPlanTravel(transform.position, position, transform.rotation, out _))
+        {
+            destinations.Clear();
+            ClearRecovery();
+        }
+        recoveryAttempted = false;
         if (destinations.Count == 0 || Vector3.Distance(destinations[destinations.Count - 1], position) > .05f)
             destinations.Add(position);
     }
@@ -224,6 +302,19 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
     public void TickFollowing(float dt)
     {
         if (!IsFollowing || followTarget == null || dt <= 0) return;
+        if (reversing)
+        {
+            Vector3 next = Vector3.MoveTowards(transform.position, reverseTarget, Mathf.Min(followSpeed, 1f) * dt);
+            if (CanTravel(transform.position, next, transform.rotation))
+            {
+                transform.position = next;
+                Physics.SyncTransforms();
+            }
+            else reversing = false;
+            if (Vector3.Distance(transform.position, reverseTarget) < .02f) reversing = false;
+            blockedSeconds = 0;
+            return;
+        }
         if (destinations.Count > 0)
         {
             Vector3 desired = destinations[0];
@@ -232,18 +323,30 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
             float gap = destinations.Count == 1 ? stoppingDistance : 0f;
             if (distance > gap + .01f)
             {
-                Quaternion facing = Quaternion.RotateTowards(transform.rotation,
-                    Quaternion.LookRotation(travel, Vector3.up), 180f * dt);
-                bool canTurn = true;
-                int turns = Mathf.Max(1, Mathf.CeilToInt(Quaternion.Angle(transform.rotation, facing) / 5f));
-                for (int i = 1; i <= turns; i++)
-                    canTurn &= HasClearBody(transform.position, Quaternion.Slerp(transform.rotation, facing, (float)i / turns));
+                Quaternion targetFacing = TravelFacing(travel, transform.rotation);
+                Quaternion facing = Quaternion.RotateTowards(transform.rotation, targetFacing, 180f * dt);
+                bool canTurn = CanTurnAt(transform.position, transform.rotation, facing);
+                bool turning = Quaternion.Angle(transform.rotation, facing) > .01f;
+                if (canTurn && turning)
+                {
+                    transform.rotation = facing;
+                    Physics.SyncTransforms();
+                    blockedSeconds = 0;
+                }
                 Vector3 next = Vector3.MoveTowards(transform.position, desired,
                     Mathf.Min(followSpeed * dt, distance - gap));
-                if (canTurn && CanTravel(transform.position, next, facing))
+                // Turn toward the player before rolling, so a destination behind the chair
+                // cannot cause ordinary following to look like backwards driving.
+                if (canTurn && Quaternion.Angle(facing, targetFacing) < 5f && CanTravel(transform.position, next, facing))
                 {
                     transform.SetPositionAndRotation(next, facing);
                     Physics.SyncTransforms();
+                    blockedSeconds = 0;
+                }
+                else if (!canTurn || !turning)
+                {
+                    blockedSeconds += dt;
+                    if (blockedSeconds >= .35f && !recoveryAttempted) BeginReverseRecovery(desired);
                 }
             }
             if (destinations.Count > 1 && Vector3.Distance(transform.position, desired) < .02f)
@@ -260,6 +363,7 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
     private void Deliver()
     {
         Current = State.Delivered;
+        ClearRecovery();
         RestorePlayerClearance();
         destinations.Clear();
         assistanceView?.Hide();
@@ -273,6 +377,7 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
     public void ResetQuest()
     {
         Current = State.Waiting;
+        ClearRecovery();
         RestorePlayerClearance();
         Rescued = false;
         dialogue?.Show(false);

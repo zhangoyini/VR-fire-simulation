@@ -332,6 +332,16 @@ public class VRTeleporter : MonoBehaviour
         Vector3 requested=originalHit.point;
         landing=requested;
         var area = originalHit.collider.GetComponentInParent<TeleportArea>();
+        // Explain the escort restriction even when a stair riser fails ordinary landing checks.
+        // A landing on the current floor remains usable on the way to the refuge.
+        if (useCampusInput && rescueStudent != null && rescueStudent.IsFollowing &&
+            area != null && area.isActiveAndEnabled &&
+            (area.Stair == TeleportArea.StairPart.UpFlight || area.Stair == TeleportArea.StairPart.ReturnFlight ||
+             Mathf.Abs(requested.y - playerRoot.position.y) > .2f))
+        {
+            CampusMessagePresenter.Instance?.Show(CampusMessagePresenter.RescueStairWarning);
+            return false;
+        }
         if (useCampusInput && area != null && area.Stair != TeleportArea.StairPart.None)
             return TryResolveStairHit(originalHit, area, out landing);
 

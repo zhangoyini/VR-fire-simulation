@@ -2,13 +2,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// Assistance feedback stays out of the centre of the view and has no colliders.
+// A centred mission-style card stays readable over the world and other HUD panels.
 public sealed class CampusRescueAssistanceView : MonoBehaviour
 {
     private const string Reminder =
         "传送后，同学会沿路线跟上你\nYour classmate will follow after each teleport";
     private Transform head, panel, routeAnchor, routeRoot;
-    private TextMeshPro status;
+    private TMP_Text status;
+    private CampusRescueNoticeCard noticeCard;
     private CampusLessonRoute route;
     private bool visible;
     private Vector3[] waypoints;
@@ -29,18 +30,11 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
     {
         if (panel != null) return;
         markerMaterial = Resources.Load<Material>("TeleportDestinationMarker");
-        panel = new GameObject("Assisting classmate reminder", typeof(RectTransform)).transform;
-        panel.SetParent(head, false);
-        panel.localPosition = new Vector3(0, -.29f, 1.7f);
-        status = panel.gameObject.AddComponent<TextMeshPro>();
-        status.font = CampusMessagePresenter.Instance != null ?
+        var font = CampusMessagePresenter.Instance != null ?
             CampusMessagePresenter.Instance.DisplayFont : TMP_Settings.defaultFontAsset;
-        status.fontSize = .42f;
-        status.rectTransform.sizeDelta = new Vector2(1.7f, .3f);
-        status.alignment = TextAlignmentOptions.Center;
-        status.color = new Color(.85f, .97f, 1f);
-        status.enableWordWrapping = true;
-        panel.gameObject.AddComponent<CampusUIForeground>().Configure(null);
+        noticeCard = CampusRescueNoticeCard.Create(head, font, "Assisting classmate reminder");
+        panel = noticeCard.transform;
+        status = noticeCard.Label;
 
         // World-space roots must not translate or rotate with the moving chair.
         routeRoot = new GameObject("Wheelchair refuge route").transform;
@@ -76,7 +70,7 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
     public void SetVisible(bool value)
     {
         visible = value;
-        if (panel != null) panel.gameObject.SetActive(value);
+        Refresh();
         if (routeRoot != null) routeRoot.gameObject.SetActive(value);
     }
 
@@ -116,7 +110,11 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
             "\n同学在身后 / Classmate behind you" : angle > 0 ?
             "\n同学在右侧 / Classmate on your right" : "\n同学在左侧 / Classmate on your left";
         string message = objective + "\n" + Reminder + location;
-        if (status.text != message) status.text = message;
+        var messages = CampusMessagePresenter.Instance;
+        bool warning = messages != null && (messages.HasPriorityWarning ||
+            (messages.IsVisible && messages.CurrentMessage == CampusMessagePresenter.RescueStairWarning));
+        if (visible && !warning) noticeCard.Show(message, new Color(.85f, .97f, 1f));
+        else panel.gameObject.SetActive(false);
     }
 
     private void OnDestroy()

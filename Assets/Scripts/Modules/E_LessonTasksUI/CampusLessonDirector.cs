@@ -65,6 +65,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
     public CampusSmokeVolume DoorwayExposure => doorwayExposure;
     public bool IsPractice => !bypassed && CurrentPhase<=Phase.Ready;
     public bool ExerciseStarted => bypassed || CurrentPhase>=Phase.OpenDoor;
+    public bool NavigationPanelOpen => panels != null && panels.IsExpanded;
     internal bool RequiresResumeButton => tutorial?.AwaitingMenuResume ?? false;
     public bool GuidedTowelTask => !bypassed && CurrentPhase>=Phase.FindTowel && CurrentPhase<=Phase.Descend;
     private bool CinematicLocked => CurrentPhase==Phase.Classroom || CurrentPhase==Phase.Alarm;
