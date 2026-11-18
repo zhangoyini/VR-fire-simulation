@@ -20688,6 +20688,7 @@ GameObject:
   - component: {fileID: 88668037}
   - component: {fileID: 88668036}
   - component: {fileID: 88668035}
+  - component: {fileID: 901500011}
   m_Layer: 0
   m_Name: Broken shelf timber
   m_TagString: Untagged
@@ -118243,6 +118244,7 @@ GameObject:
   - component: {fileID: 367268557}
   - component: {fileID: 367268556}
   - component: {fileID: 367268555}
+  - component: {fileID: 901500001}
   m_Layer: 0
   m_Name: Toppled storage cabinet
   m_TagString: Untagged
@@ -140732,6 +140734,7 @@ GameObject:
   - component: {fileID: 414029243}
   - component: {fileID: 414029242}
   - component: {fileID: 414029241}
+  - component: {fileID: 901500009}
   m_Layer: 0
   m_Name: Broken shelf timber
   m_TagString: Untagged
@@ -277551,6 +277554,7 @@ GameObject:
   - component: {fileID: 786331459}
   - component: {fileID: 786331458}
   - component: {fileID: 786331457}
+  - component: {fileID: 901500008}
   m_Layer: 0
   m_Name: Broken shelf timber
   m_TagString: Untagged
@@ -308107,6 +308111,7 @@ GameObject:
   - component: {fileID: 845081972}
   - component: {fileID: 845081971}
   - component: {fileID: 845081970}
+  - component: {fileID: 901500005}
   m_Layer: 0
   m_Name: Cardboard archive carton
   m_TagString: Untagged
@@ -390199,6 +390204,7 @@ GameObject:
   - component: {fileID: 1081054024}
   - component: {fileID: 1081054023}
   - component: {fileID: 1081054022}
+  - component: {fileID: 901500003}
   m_Layer: 0
   m_Name: Cardboard archive carton
   m_TagString: Untagged
@@ -421153,6 +421159,7 @@ GameObject:
   - component: {fileID: 1177208883}
   - component: {fileID: 1177208882}
   - component: {fileID: 1177208881}
+  - component: {fileID: 901500006}
   m_Layer: 0
   m_Name: Cardboard archive carton
   m_TagString: Untagged
@@ -471998,6 +472005,7 @@ GameObject:
   - component: {fileID: 1343504602}
   - component: {fileID: 1343504601}
   - component: {fileID: 1343504600}
+  - component: {fileID: 901500002}
   m_Layer: 0
   m_Name: Cardboard archive carton
   m_TagString: Untagged
@@ -504814,6 +504822,7 @@ GameObject:
   - component: {fileID: 1464837360}
   - component: {fileID: 1464837359}
   - component: {fileID: 1464837358}
+  - component: {fileID: 901500010}
   m_Layer: 0
   m_Name: Broken shelf timber
   m_TagString: Untagged
@@ -545122,6 +545131,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1523819430}
+  - component: {fileID: 901500000}
   m_Layer: 0
   m_Name: 3F Stair A collapsed storage pile
   m_TagString: Untagged
@@ -657178,6 +657188,7 @@ GameObject:
   - component: {fileID: 1827174814}
   - component: {fileID: 1827174813}
   - component: {fileID: 1827174812}
+  - component: {fileID: 901500007}
   m_Layer: 0
   m_Name: Cardboard archive carton
   m_TagString: Untagged
@@ -671774,6 +671785,7 @@ GameObject:
   - component: {fileID: 1877214095}
   - component: {fileID: 1877214094}
   - component: {fileID: 1877214093}
+  - component: {fileID: 901500004}
   m_Layer: 0
   m_Name: Cardboard archive carton
   m_TagString: Untagged
@@ -758617,3 +758629,172 @@ SceneRoots:
   - {fileID: 1195179160}
   - {fileID: 450432880}
   - {fileID: 1608048604}
+--- !u!114 &901500000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1523819429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99744d0e0d1b48dc96c4fd10a6c684f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  leftHand: {fileID: 2074638411}
+  rightHand: {fileID: 1373125586}
+  resolution: {fileID: 261571736}
+--- !u!114 &901500001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 367268553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 367268556}
+--- !u!114 &901500002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1343504598}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 1343504601}
+--- !u!114 &901500003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1081054020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 1081054023}
+--- !u!114 &901500004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1877214091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 1877214094}
+--- !u!114 &901500005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 845081968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 845081971}
+--- !u!114 &901500006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1177208879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 1177208882}
+--- !u!114 &901500007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1827174810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 1827174813}
+--- !u!114 &901500008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 786331455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 786331458}
+--- !u!114 &901500009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414029239}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 414029242}
+--- !u!114 &901500010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464837356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 1464837359}
+--- !u!114 &901500011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 88668033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cbf2f2a0f940258ea7738fcdfd1fcf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  prompt: {fileID: 901500000}
+  debrisCollider: {fileID: 88668036}
