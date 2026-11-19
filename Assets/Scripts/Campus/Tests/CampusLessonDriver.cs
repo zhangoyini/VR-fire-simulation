@@ -684,6 +684,39 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
             "The optional rescue highlights the classmate rather than the handles");
         MoveHead(movement,head,Field<Collider>(call,"refugeVolume").bounds.center);
         typeof(CampusRescueStudent).GetProperty(nameof(CampusRescueStudent.Current)).SetValue(student,CampusRescueStudent.State.Following);
+        messages.Show(CampusMessagePresenter.RescueStairWarning);
+        Check(messages.HasPriorityWarning && messages.CurrentMessage.Contains("二楼避难区") &&
+            messages.CurrentMessage.Contains("2F refuge"), "Stair escort warning uses the bilingual priority safety presentation");
+        messages.Show("Ordinary task hint");
+        Check(messages.CurrentMessage == CampusMessagePresenter.RescueStairWarning,
+            "Ordinary hints cannot replace the refuge-first stair warning");
+        var warningCard = FindObjectsOfType<CampusRescueNoticeCard>(true).First(c => c.name == "Refuge stair warning");
+        var guidanceCard = CampusRescueNoticeCard.Create(head, messages.DisplayFont, "QA refuge guidance");
+        guidanceCard.Show("前往二楼避难区 / Go to the 2F refuge", Color.white);
+        foreach (bool testingMapPanel in new[] { true, false })
+        {
+            navigation.ShowExercise(false, false, .6f, "Map and task visibility check");
+            navigation.ShowExercise(testingMapPanel, !testingMapPanel, .6f, "Map and task visibility check");
+            warningCard.SendMessage("LateUpdate");
+            guidanceCard.SendMessage("LateUpdate");
+            Check(lesson.NavigationPanelOpen && !warningCard.GetComponent<Canvas>().enabled &&
+                !guidanceCard.GetComponent<Canvas>().enabled,
+                (testingMapPanel ? "Map" : "Mission details") + " hides both rescue cards");
+            float expires = Field<float>(messages, "hideAt");
+            messages.SendMessage("Update");
+            Check(Field<float>(messages, "hideAt") >= expires && messages.IsVisible,
+                "Reading navigation preserves the pending stair warning");
+            navigation.ShowExercise(false, false, .6f, "Map and task visibility check");
+            navigation.ShowExercise(testingMapPanel, !testingMapPanel, .6f, "Map and task visibility check");
+            navigation.ShowExercise(false, false, .6f, "Map and task visibility check");
+            warningCard.SendMessage("LateUpdate");
+            guidanceCard.SendMessage("LateUpdate");
+            Check(!lesson.NavigationPanelOpen && warningCard.GetComponent<Canvas>().enabled &&
+                guidanceCard.GetComponent<Canvas>().enabled,
+                "Closing navigation restores the rescue cards");
+        }
+        Destroy(guidanceCard.gameObject);
+        messages.Hide();
         lesson.Tick(.1f);
         Check(Outlines(primaryOutline,Field<Renderer>(highlights,"refugeSign").bounds.center) && !secondOutline.enabled,
             "Starting assistance moves the highlight to the refuge sign");

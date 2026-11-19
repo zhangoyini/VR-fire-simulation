@@ -86,11 +86,54 @@ public static class CampusRescueChecks
             Canvas.ForceUpdateCanvases();
             foreach (var label in labels) label.ForceMeshUpdate();
             Capture(camera);
+            var resolve = typeof(VRTeleporter).GetMethod("TryResolveLanding", BindingFlags.NonPublic | BindingFlags.Instance);
+            Check(Physics.Raycast(new Vector3(21.55f, 4.05f, 1.24f), Vector3.down, out var stairHit, .2f),
+                "Saved 2F stairs provide a real warning target");
+            presenter.Hide();
+            resolve.Invoke(teleport, new object[] { stairHit, Vector3.zero });
+            Check(!presenter.IsVisible, "Stair rescue warning stays off before escort starts");
             student.OnInteractStart(hand.transform);
             Check(!student.IsFollowing, "Clicking the classmate does not bypass the reply");
             var reply = conversation.GetComponentInChildren<VRMenuButton>();
             reply.OnInteractStart(hand.transform);
             Check(student.IsFollowing && !student.DialogueVisible, "Selecting Follow me starts escort and closes dialogue");
+            var guidance = head.Find("Assisting classmate reminder").GetComponent<CampusRescueNoticeCard>();
+            Check(guidance.transform.localPosition == new Vector3(0, 0, 1.3f) &&
+                guidance.GetComponentInChildren<UnityEngine.UI.Image>().color.a >= .95f,
+                "Refuge guidance is centred on an opaque mission-style card");
+            Canvas.ForceUpdateCanvases();
+            guidance.Label.ForceMeshUpdate();
+            Check(!guidance.Label.isTextOverflowing, "Bilingual guidance fits inside its mission card");
+            Capture(camera, "Logs/refuge-guidance-card.png");
+            Check(!(bool)resolve.Invoke(teleport, new object[] { stairHit, Vector3.zero }) &&
+                presenter.IsVisible && presenter.CurrentMessage == CampusMessagePresenter.RescueStairWarning,
+                "Aiming at stairs during escort blocks landing and explains the 2F refuge objective in both languages");
+            student.GetComponent<CampusRescueAssistanceView>().SetVisible(true);
+            var warning = head.Find("Refuge stair warning").GetComponent<CampusRescueNoticeCard>();
+            Check(warning.gameObject.activeSelf && !guidance.gameObject.activeSelf &&
+                warning.transform.localPosition == guidance.transform.localPosition,
+                "Stair warning replaces guidance in the same centred card position");
+            warning.GetComponent<CampusUIForeground>().Refresh();
+            Call(warning, "LateUpdate");
+            Check(warning.GetComponent<Canvas>().sortingOrder > 30000,
+                "Warning remains in front of the task/map HUD after a foreground refresh");
+            Canvas.ForceUpdateCanvases();
+            warning.Label.ForceMeshUpdate();
+            Check(!warning.Label.isTextOverflowing, "Bilingual stair warning fits inside its mission card");
+            Capture(camera, "Logs/refuge-stair-warning-card.png");
+            Time.timeScale = 0;
+            Call(warning, "LateUpdate");
+            Check(!warning.GetComponent<Canvas>().enabled, "Centred warning leaves the pause menu unobstructed");
+            Time.timeScale = 1;
+            Call(warning, "LateUpdate");
+            Check(warning.GetComponent<Canvas>().enabled, "Warning card returns when gameplay resumes");
+            presenter.Hide();
+            student.GetComponent<CampusRescueAssistanceView>().SetVisible(true);
+            Check(guidance.gameObject.activeSelf && !warning.gameObject.activeSelf,
+                "Guidance returns after the stair warning is dismissed");
+            Check(Physics.Raycast(new Vector3(-1.5f, 3.9f, 0), Vector3.down, out var corridorHit, .2f) &&
+                (bool)resolve.Invoke(teleport, new object[] { corridorHit, Vector3.zero }) && !presenter.IsVisible,
+                "Same-floor corridor teleport remains valid without a stair warning");
             student.OnInteractStart(hand.transform);
             Check(student.IsFollowing, "A later chair click cannot cancel escort");
             Vector3 initial = student.transform.position;
@@ -143,9 +186,13 @@ public static class CampusRescueChecks
             }
             Check(student.Current == CampusRescueStudent.State.Delivered && CampusRescueStudent.Rescued,
                 "Actual chair arrival inside the refuge completes delivery");
+            presenter.Hide();
+            resolve.Invoke(teleport, new object[] { stairHit, Vector3.zero });
+            Check(!presenter.IsVisible, "Stair rescue warning stops after the classmate arrives");
             student.ResetQuest();
             Check(student.Current == CampusRescueStudent.State.Waiting && !CampusRescueStudent.Rescued &&
                 !student.DialogueVisible, "Reset clears escort, dialogue and completion");
+            CheckReverseRecovery(student, rig.transform, head);
             File.WriteAllLines("Logs/rescue-assistance-checks.txt", results);
             Debug.Log("RESCUE_CHECKS_PASS\n" + string.Join("\n", results));
         }
@@ -164,7 +211,66 @@ public static class CampusRescueChecks
         }
     }
 
-    private static void Capture(Camera camera)
+    private static void CheckReverseRecovery(CampusRescueStudent student, Transform rig, Transform head)
+    {
+        Vector3 start = new Vector3(0, 3.8f, 0);
+        Quaternion facing = Quaternion.Euler(0, -90, 0);
+        student.transform.SetPositionAndRotation(start, facing);
+        rig.position = start + Vector3.right;
+        Call(student, "OpenDialogue");
+        student.ReplyFollowMe();
+        Check(student.TryGetFollowPosition(rig.position, start + Vector3.right * 2.6f, out var goal, out var rotation),
+            "Player can choose a clear destination behind the wheelchair");
+        rig.position = goal;
+        student.FollowTeleport(goal, rotation);
+        bool movedBackwards = false;
+        for (int i = 0; i < 150; i++)
+        {
+            Vector3 previous = student.transform.position;
+            student.TickFollowing(.02f);
+            movedBackwards |= Vector3.Dot(student.transform.position - previous, student.transform.forward) < -.001f;
+        }
+        Check(student.transform.position.x > 1 &&
+            Quaternion.Angle(student.transform.rotation, Quaternion.Euler(0, 90, 0)) < 5,
+            "Classmate turns to face a player who teleports behind them and then follows forwards");
+        Check(!movedBackwards, "Unobstructed following never drives backwards");
+
+        student.ResetQuest();
+        student.transform.SetPositionAndRotation(start, facing);
+        rig.position = start + Vector3.right;
+        Call(student, "OpenDialogue");
+        student.ReplyFollowMe();
+        goal = new Vector3(-3.3f, 3.8f, 0);
+        Check(student.TryGetFollowPosition(rig.position, goal, out _, out _), "Furniture recovery starts with a valid route");
+        rig.position = goal;
+        student.FollowTeleport(goal, facing);
+        var furniture = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        furniture.name = "QA chair moved into follower route";
+        furniture.transform.position = start + new Vector3(-1, .7f, 0);
+        furniture.transform.localScale = new Vector3(.4f, 1.2f, .4f);
+        Physics.SyncTransforms();
+        try
+        {
+            bool reversed = false, crossedFurniture = false;
+            var body = student.GetComponent<BoxCollider>();
+            var obstacle = furniture.GetComponent<Collider>();
+            for (int i = 0; i < 900; i++)
+            {
+                Vector3 previous = student.transform.position;
+                student.TickFollowing(.02f);
+                reversed |= Vector3.Dot(student.transform.position - previous, facing * Vector3.forward) < -.001f;
+                crossedFurniture |= Physics.ComputePenetration(body, student.transform.position, student.transform.rotation,
+                    obstacle, furniture.transform.position, furniture.transform.rotation, out _, out float depth) && depth > .06f;
+            }
+            Check(reversed, "Blocked classmate backs away from a chair before trying another approach");
+            Check(!crossedFurniture, "Recovery respects solid furniture throughout the manoeuvre");
+            Check(Vector3.Distance(student.transform.position, goal) < 1.2f,
+                "Classmate resumes following after backing around furniture");
+        }
+        finally { UnityEngine.Object.DestroyImmediate(furniture); student.ResetQuest(); }
+    }
+
+    private static void Capture(Camera camera, string path = "Logs/rescue-assistance-preview.png")
     {
         var target = new RenderTexture(1400, 1000, 24) { antiAliasing = 4 };
         var pixels = new Texture2D(1400, 1000, TextureFormat.RGB24, false);
@@ -176,7 +282,7 @@ public static class CampusRescueChecks
             RenderTexture.active = target;
             pixels.ReadPixels(new Rect(0, 0, 1400, 1000), 0, 0);
             pixels.Apply();
-            File.WriteAllBytes("Logs/rescue-assistance-preview.png", pixels.EncodeToPNG());
+            File.WriteAllBytes(path, pixels.EncodeToPNG());
         }
         finally
         {
