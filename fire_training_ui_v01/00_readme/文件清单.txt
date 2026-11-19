@@ -1,0 +1,139 @@
+校园消防疏散 VR — 手绘风格 UI 材料 v01
+对应需求书：Documentation/UI_Artist_Design_Brief.md
+更新日期：2026-11-20（第三轮交付完成）
+
+==================================================
+一、第三轮（训练内界面 + 可接入素材）交付清单
+==================================================
+
+01_previews/  效果图（带示范文字，仅用于确认排版，不直接整张接入游戏）
+  lesson_large.png        课程说明大卡示范（标题 + 要点 + 图示位）
+  lesson_compact.png       短提示条示范（一行说明 + 图标位）
+  tutorial_controller.png  双手柄教学示范（旧版造型，按键/摇杆/扳机标注）
+  tutorial_controller_pair.png  左右手并排教学标注图（新造型；摇杆/握持键/XY·AB 键引线标注，扳机不标注）
+  tasks_panel.png          任务面板收起标签 + 展开夹板对照（完成/进行/受阻/待办四态）
+  map_panel.png            地图面板收起标签 + 展开楼层疏散图对照
+  gameplay_hud.png         常驻状态 HUD 四态：健康 / 警戒 / 危险 / 毛巾防护
+  tooltip_notice.png       普通短提示卡 + 长通知条示范
+  warning_rescue.png       短警告卡 + 最长双语救援警告卡示范
+
+03_png/panels/  公共底板（透明背景 PNG，无字）
+  tooltip_card.png         普通短提示卡底板，左侧方形图标位
+  map_frame.png            地图纸张外框，中央留白（路线/房号/楼层由程序绘制）
+  task_tab.png             收起状态的任务面板标签
+  map_tab.png              收起状态的地图面板标签
+
+03_png/hud/  常驻状态条（透明背景 PNG，无字）
+  hud_shell.png            仪表外壳：左圆图标位 + 中间长槽 + 右侧数值留白
+  hud_track.png            状态条空槽
+  hud_fill.png             满格填充（浅灰白，供程序染色为绿/黄/红/蓝）
+  reading_track.png        阅读进度空槽（超宽长条，勿非等比拉伸）
+  reading_fill.png         阅读进度满格（柔绿）
+
+03_png/controller/  Quest 3 手柄图解（透明背景 PNG）
+  controller_left_base.png   左手柄底图（泪滴形黑圆盘 + 细长流线白握把，握把朝左下；
+                             摇杆贴顶缘偏左，菜单三横线在左、X 中下、Y 右上；
+                             后缘黑色小梯形扳机拨片，侧面白色圆角长方形握持键）
+  controller_right_base.png  右手柄底图（与左手镜像，握把朝右下；摇杆贴顶缘偏右，
+                             B 左上、A 中下、∞ 主页键右下；后缘黑色扳机拨片，侧面白色握持键）
+  overlay_stick.png          摇杆高亮圈（叠加层，位置需程序对齐）
+  overlay_trigger.png        扳机高亮区（后缘小梯形拨片，叠加层）
+  overlay_grip.png           握持键高亮（侧面圆角长方形，叠加层）
+  overlay_buttons.png        ABXY 四键高亮圈 2×2（叠加层，左右手复用）
+
+03_png/icons/  第三轮补充图标（透明背景 PNG，256 视觉规范）
+  icon_pending.png       待办（灰蓝空心圆）
+  icon_active.png        进行中（暖黄实心光点）
+  icon_towel.png         毛巾（蓝毛巾白条）
+  icon_water.png         水源（水龙头 + 水滴）
+  icon_smoke.png         烟雾（三团灰烟）
+  icon_stairs.png        楼梯（台阶 + 上箭头）
+  icon_elevator.png      电梯（电梯门）
+  icon_no_elevator.png   禁止乘梯（电梯 + 红禁止圈）
+  icon_no_jump.png       禁止跳窗（跳窗人形 + 红禁止圈）
+  icon_safe_exit.png     安全出口（绿门 + 奔跑箭头）
+  icon_wheelchair.png    轮椅救援（侧身轮椅）
+  icon_refuge.png        避难处（绿庇护屋 + 十字）
+  icon_player_arrow.png 玩家方向（柔绿箭头）
+  icon_target.png        目标定位（暖黄靶心）
+  icon_north.png         指北针（菱形指针）
+
+==================================================
+二、第二轮（第一批可接入素材）交付清单
+==================================================
+
+01_previews/
+  pause.png                暂停菜单：已暂停 / Paused，继续/重开/返回三按钮
+  result_success.png       成功结算：成功撤离，用时 03:25，血量 68/100，绿条
+  result_failure.png       失败结算：演练失败，用时 03:25，血量 12/100，红条
+  result_details.png       结算明细模板：标题 + 页码 1/4 + 中英双栏 + 翻页三按钮
+
+04_concepts/  设备概念参考（非贴图）
+  terminal_front_side.png  训练终端正面 + 侧面结构草图
+
+03_png/panels/
+  main_terminal_face.png    终端正面外壳，屏幕留白 + 按钮/指示灯/表盘凹槽位
+  main_screen_base.png      屏幕内框底色，不含标记、楼层、数字
+  pause_board.png          暂停夹板底板，三行按钮安装留白
+
+03_png/buttons/
+  button_secondary_normal/hover/pressed/disabled.png  次要横按钮四态（灰蓝 #526376）
+  button_square_normal/hover/pressed/disabled.png    方形实体按钮四态（暖黄 #E7AE45）
+
+03_png/decorations/
+  led_off.png / led_on.png        指示灯熄灭 / 亮起（柔绿发光，两张对齐）
+  badge_success.png               成功圆形勾号印章（柔绿）
+  badge_failure.png               失败警告圆形印章（警示红三角感叹号）
+
+03_png/icons/
+  icon_start · icon_resume · icon_restart · icon_home · icon_exit
+  icon_details · icon_previous · icon_next · icon_map · icon_tasks
+
+==================================================
+三、第一轮已交付（风格确认）
+==================================================
+
+01_previews/main_menu.png                 主菜单值班室操作台效果图
+03_png/panels/report_sheet.png           报告/夹板共用底板（双栏留白）
+03_png/buttons/button_primary_*.png      主横按钮四态（暖黄 #E7AE45）
+03_png/icons/  icon_check · icon_cross · icon_warning · icon_clock ·
+              icon_health · icon_protection
+
+==================================================
+四、目录内既有素材（非本轮产出，保留未改）
+==================================================
+
+下列卡片底板在第二轮下载前已存在于 panels 目录，未由本轮生成、未做修改：
+  report_sheet_plain.png · lesson_card_large.png · lesson_card_compact.png
+  notice_card.png · warning_card.png · task_clipboard.png
+接入前请核对其风格、尺寸与 Brief 要求是否一致。
+
+==================================================
+五、接入备注（程序侧）
+==================================================
+
+1. 所有底板、按钮、图标、印章、指示灯、手柄 PNG 均为 32bpp ARGB，物件外背景
+   alpha=0；纸张内部不透明，可直接叠在场景/HUD 上。效果图与概念图为不透明位图。
+2. 底板与按钮均不含文字、数字、字母；标题、正文、按钮文案、数值、状态符号全部
+   由程序用 TMP 叠加（沿用工程现有 NotoSansCJKsc 字体）。
+3. 按钮四态为同一造型的视觉变体；导入后在 Unity 中对齐同一锚点与透明边距，避免
+   状态切换跳动。点击区域由程序配置，装饰突出部分不等于点击区。
+4. 导出像素为建议尺寸的放大版，导入时按 Brief 建议尺寸压缩：
+   横按钮 512×160、方形按钮 256×256、图标 256×256、指示灯 128×128、
+   印章 512×512、面板 1536×1024 / 1920×1280。不要非等比拉伸。
+5. 效果图内示范文字（标题、按钮文案、说明句、03:25、68/100）为 AI 排版示意，
+   个别字形可能不准；正式文案以工程现有中英文案为准。
+6. 地图底图（map_frame）只给外框与留白；真实路线、房号、楼层、玩家位置、出口
+   标记由程序依据 Unity 场景绘制，不要把效果图里的房间布局当成最终地图。
+7. 手柄底图与高亮 overlay 仅作教学示意：overlay 形状层与底图非像素级对齐，位置
+   需在 Unity 中按真实手柄模型对齐。左右手柄均已按实拍重画为白握把黑圆盘风格。
+8. 本轮为位图产出，未提供分层 PSD；FBX 实体模型不在生图交付范围。
+
+==================================================
+六、已知小瑕疵（如需可单独重出对应文件）
+==================================================
+
+- icon_next 箭头尾部多一竖线。
+- button_secondary_disabled 描边为四角断开式。
+- map_frame 四角花叶装饰偏繁复（Brief 要求避免密集装饰）。
+- map_tab 内混入羽毛笔图案。
