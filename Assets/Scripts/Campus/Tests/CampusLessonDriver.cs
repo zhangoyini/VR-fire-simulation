@@ -104,8 +104,10 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         var handVisual=owner.GetComponent<CampusHandVisual>();
         var boardSign=Field<GameObject>(lesson,"classroomBoardSign");
         var board=Field<Transform>(tutorialView,"world").Find("Quest 3 diagrams on classroom board");
-        Check(!boardSign.activeSelf && board.GetComponentsInChildren<TMPro.TMP_Text>().Select(t=>t.text)
-            .OrderBy(t=>t).SequenceEqual(new[]{"A","B","X","Y"}),"The board shows only the two diagrams and their button labels during training");
+        var boardImages = board.GetComponentsInChildren<UnityEngine.UI.Image>();
+        Check(!boardSign.activeSelf && boardImages.Length == 2 && boardImages.All(i => i.sprite != null) &&
+            boardImages[0].sprite != boardImages[1].sprite,
+            "The board shows distinct left and right illustrated controllers with baked button labels");
         lesson.Confirm();
         lesson.Tick(2.2f);
         Check(tutorial.CurrentStep==Step.Introduction &&
@@ -456,17 +458,25 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         lesson.Tick(.73f);
         Check(lesson.MovementLocked,"The short alarm beat completes before releasing control");
         lesson.Tick(.02f);
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.OpenDoor && !lesson.MovementLocked && movement.Body.enabled,
-            "The 10-second opening returns control automatically without a stand confirmation");
+        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.MainBrief && lesson.MovementLocked && lesson.DamageSuppressed,
+            "The main objective is presented between the movie and free control, without damage");
+        Check(Field<TMPro.TextMeshProUGUI>(lesson,"explanation").text.Contains("毛巾"), "The locked briefing explains the main objective");
+        lesson.Tick(7.9f);
+        Check(lesson.MovementLocked, "The main objective remains readable for eight seconds");
+        lesson.Tick(.11f);
+        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel && !lesson.MovementLocked && movement.Body.enabled,
+            "Free control activates task 1 immediately without waiting for a notification callback");
         head.localPosition=originalHead;
         var highlights=Field<CampusObjectiveHighlights>(lesson,"highlights");
         var primaryOutline=Field<LineRenderer>(highlights,"primary");
         var secondOutline=Field<LineRenderer>(highlights,"secondary");
-        Check(Outlines(primaryOutline,lesson.ClassroomDoor.transform.Find("Push bar").position),"The first objective highlights the classroom push bar");
         var noticeGroup=Field<CanvasGroup>(navigation,"noticeGroup");
         var noticeText=Field<TMPro.TMP_Text>(navigation,"noticeText");
-        Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("主任务"),"The main objective appears in the separate notification");
-        CheckTextFit(noticeText);
+        Check(!noticeGroup.gameObject.activeInHierarchy, "Task 1 waits half a second after releasing control");
+        lesson.Tick(.25f);
+        Check(!noticeGroup.gameObject.activeInHierarchy, "Task 1 has not appeared early");
+        lesson.Tick(.26f);
+        Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("任务 1"), "Task 1 appears after the half-second interval");
         var taskDetails=Field<TMPro.TMP_Text>(navigation,"taskText");
         lesson.Tick(.55f,true,false);
         Check(Mathf.Abs(mapPanel.localPosition.x)<.001f,"Formal exercise uses the same centered X map as teaching");
@@ -480,24 +490,13 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         Check(hands.All(h=>h.GetComponentsInChildren<SkinnedMeshRenderer>(true).All(m=>m.enabled && m.updateWhenOffscreen)),"Both detailed tracked hands are restored after the movie");
         Capture("Lesson_14_HandsRestored",head);
         Check(Mathf.Abs(movement.transform.position.y-rigPosition.y)<.01f && head.localPosition==originalHead && head.localRotation==headRotation,"The cinematic restores standing height and retains natural HMD pose");
-        lesson.ClassroomDoor.SetAngle(0); lesson.Tick(.1f);
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.OpenDoor,"The main notice is still playing before task 1 starts");
         lesson.ClassroomDoor.SetAngle(15); lesson.Tick(.1f);
         var messages=CampusMessagePresenter.Instance;
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.OpenDoor,"Opening the door does not advance the pending main notice");
-        Check(messages.HasPriorityWarning && messages.CurrentMessage==CampusMessagePresenter.SmokeRules &&
-            !noticeGroup.gameObject.activeSelf,"The brief smoke rule takes priority over the main notice");
-        Check(Field<GameObject>(lesson,"doorwayPlume").GetComponentInChildren<ParticleSystem>().particleCount>0,"Opening the door also shows visible smoke");
+        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel, "A warning cannot prevent task 1 activation");
+        Check(messages.HasPriorityWarning && !noticeGroup.gameObject.activeSelf, "Safety warnings temporarily hide task notices");
         lesson.ClassroomDoor.SetAngle(0);
-        lesson.Tick(6.1f);
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.OpenDoor,"A hidden main notice has not finished displaying");
         messages.Hide();
-        float noticeRemaining=Field<float>(navigation,"noticeRemaining");
-        lesson.Tick(noticeRemaining+.1f);
-        Check(lesson.CurrentPhase==CampusLessonDirector.Phase.FindTowel && !lesson.MovementLocked && !lesson.WorldInteractionLocked,
-            "Task 1 starts after the main notice finishes even when the classroom door is closed");
         lesson.Tick(.1f);
-        Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("任务 1"),"Task 1 displays after the main notice");
         Check(exposure.GraceSeconds==3 && exposure.DamagePerSecond==1f && exposure.CoveredDamageMultiplier==.2f,
             "Saved smoke parameters use a three-second grace period, 1 HP/s at full strength and one fifth of the damage under a wet towel");
         Check(spread.Stages.All(stage=>stage.Strength==stage.floor*.25f),"All smoke volumes use their floor's smoke strength");
@@ -538,12 +537,9 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         CheckTextFit(taskDetails);
 
         Check(!lesson.MovementLocked && !lesson.WorldInteractionLocked,"Task 2 announcement does not interrupt held-towel or faucet operations");
-        lesson.Tick(6.1f); lesson.Tick(.1f);
-        Check(noticeText.text.Contains("任务 1 完成"),"Task 1 completion receives a separate confirmation");
-        float completionNoticeRemaining=Field<float>(navigation,"noticeRemaining");
-        lesson.Tick(completionNoticeRemaining+.1f); lesson.Tick(.1f);
-        Check(noticeGroup.gameObject.activeSelf && noticeText.text.Contains("任务 2") && noticeText.color == Color.white,
-            "Task 2 uses the standard task notification styling");
+        Check(noticeText.text.Contains("任务 1 完成") && noticeText.text.Contains("任务 2"), "Task completion and the next action share one current notification");
+        lesson.Tick(.1f);
+        Check(noticeGroup.gameObject.activeSelf && noticeText.text.Contains("任务 2"), "The next task is not queued behind a stale pickup instruction");
         Capture("Lesson_09_WetTask",head);
         var faucet=FindObjectsOfType<CampusFaucet>().Where(f=>lesson.Restroom.bounds.Contains(f.transform.position))
             .OrderBy(f=>Vector3.Distance(f.transform.position,head.position)).First();
@@ -555,9 +551,9 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         lesson.Tick(.1f);
         var faucetHint=Field<TMPro.TMP_Text>(navigation,"objectHint");
         Check(faucetHint.gameObject.activeInHierarchy && faucetHint.text.Contains("打开水龙头") &&
-            faucetHint.text.Contains("turn on the tap") && faucetHint.color==Color.black &&
+            faucetHint.text.Contains("turn on the tap") && faucetHint.color==FireTrainingUIStyle.Ink &&
             faucetHint.fontStyle==TMPro.FontStyles.Bold,"The bilingual faucet instruction is visible in bold black text");
-        Check(!noticeGroup.gameObject.activeSelf,"The faucet prompt takes priority over the task notification");
+        Check(noticeGroup.gameObject.activeSelf,"Object hints cannot starve the current task notification");
         CheckTextFit(faucetHint);
         CheckTextFit(noticeText);
         MoveHead(movement,head,faucetViewPosition);
@@ -662,24 +658,31 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         Check(FindObjectsOfType<MeshFilter>(true).All(m=>m.sharedMesh!=null),"All story and practice meshes retain saved geometry");
         Check(FindObjectsOfType<CampusLessonDirector>(true).Length==1 && FindObjectsOfType<Canvas>(true).Count(c=>c.name=="Seating fade")==1 && FindObjectsOfType<Transform>(true).Count(t=>t.name=="Lesson contact confirmation")==0,"Repeated scene application leaves one lesson, one fade and no blue confirmation object");
 
-        MoveHead(movement,head,new Vector3(-22.5f,9.3f,.5f)); lesson.Tick(.1f);
+        MoveHead(movement,head,new Vector3(-21.55f,9.3f,1.47f)); lesson.Tick(.1f);
         Check(taskDetails.text.Contains("当前目标") && taskDetails.text.Contains("任务 3"),"The 3F debris approach activates task 3");
         var eastStair=Field<TMPro.TextMeshPro>(highlights,"eastStairLabel");
         var debrisParts=Field<Renderer[]>(highlights,"debrisRenderers");
         var debrisMaterials=Field<Material[][]>(highlights,"debrisOriginal");
-        Check(debrisParts.Length>1 && debrisParts.Select((part,i)=>!part.sharedMaterials.SequenceEqual(debrisMaterials[i])).Count(lit=>lit)>1 &&
-            eastStair.gameObject.activeInHierarchy,"Task 3 lights the debris itself and shows the east stair sign");
+        Check(debrisParts.Length>1 && debrisParts.Select((part,i)=>part.sharedMaterials.SequenceEqual(debrisMaterials[i])).All(same=>same) &&
+            eastStair.gameObject.activeInHierarchy,"Contact activates the detour without recolouring the debris, and shows the east stair sign");
         MoveHead(movement,head,new Vector3(21.5f,9.3f,0)); lesson.Tick(.1f);
         Check(taskDetails.text.Contains("已完成</color>  任务 3"),"Reaching the east stair entrance completes task 3");
         Check(debrisParts.Select((part,i)=>part.sharedMaterials.SequenceEqual(debrisMaterials[i])).All(restored=>restored) &&
             !eastStair.gameObject.activeInHierarchy,"The completed detour restores the debris surfaces and clears the sign");
         messages.Hide();
-        for(int i=0;i<10;i++) lesson.Tick(6.1f);
+        lesson.Tick(.1f);
+        Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("即将前往二楼") && !lesson.ExerciseTasks.RescueActive,
+            "Task 3 completion previews 2F help without activating rescue on 3F");
+        var directRoute = new CampusExerciseTasks(Field<Transform>(lesson,"exitDoor"), FindObjectOfType<CampusRescueStudent>(), null);
+        directRoute.Begin();
+        directRoute.Tick(new Vector3(22.6f,7.6f,0));
+        Check(directRoute.DetourStatus == CampusExerciseTasks.Status.Complete && !directRoute.RescueActive,
+            "Direct arrival at Stair B completes task 3 without touching debris or offering rescue early");
+        directRoute.Tick(new Vector3(22.6f,3.8f,0));
+        Check(directRoute.RescueActive, "The direct safe route also offers rescue once on 2F");
         var call=FindObjectOfType<CampusRefugeCall>();
         MoveHead(movement,head,Field<Collider>(call,"refugeVolume").bounds.center); lesson.Tick(.2f);
-        Check(!noticeGroup.gameObject.activeSelf,"The floor-arrival notice gives the player a short settling interval");
-        lesson.Tick(.31f);
-        Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("轮椅救援"),"The optional rescue actually displays its notification on 2F");
+        Check(lesson.ExerciseTasks.RescueActive, "The rescue activates on arrival at 2F");
         CheckTextFit(noticeText);
         CheckTextFit(taskDetails);
         call.OnInteractStart(head);
@@ -738,8 +741,7 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         call.OnInteractStart(head); lesson.Tick(.1f);
         Check(taskDetails.text.Contains("已完成</color>  可选支线"), "Ringing later does not restart the completed rescue");
         for(int i=0;i<5;i++) lesson.Tick(6.1f);
-        MoveHead(movement,head,new Vector3(0,1.7f,-8.5f)); lesson.Tick(.51f);
-        Check(taskDetails.text.Contains("进行中</color>  任务 4"),"Arriving on 1F publishes the exit task");
+        MoveHead(movement,head,new Vector3(22.6f,1.7f,0)); lesson.Tick(.51f);
         Check(taskDetails.text.Contains("当前目标") && taskDetails.text.Contains("任务 4"),"Arriving on 1F publishes the exit task");
         Check(noticeGroup.gameObject.activeInHierarchy && noticeText.text.Contains("任务 4"),"Task 4 actually displays its notification on 1F");
         CheckTextFit(noticeText);
@@ -747,10 +749,13 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         var exitBars=Field<Renderer[]>(highlights,"exitBars");
         Check(exitBars.Length==2 && Outlines(primaryOutline,exitBars[0].bounds.center) && Outlines(secondOutline,exitBars[1].bounds.center),
             "Task 4 highlights both exit-door push bars");
+        MoveHead(movement,head,new Vector3(0,1.7f,-8.5f)); lesson.Tick(.1f);
         Field<Transform>(lesson,"exitDoor").GetComponentInChildren<CampusHingeInteractable>().SetAngle(45);
         lesson.Tick(.1f);
+        Check(lesson.ExerciseTasks.ExitActive, "Opening the exit while standing inside does not complete task 4");
+        MoveHead(movement,head,new Vector3(0,1.7f,-11f)); lesson.Tick(.1f);
         Check(taskDetails.text.Contains("已完成</color>  任务 4") && resolution.CurrentOutcome==ResolutionCoordinator.Outcome.None,
-            "Opening an exit leaf completes task 4 while the main objective stays active");
+            "Crossing outside completes task 4 while reaching assembly remains required");
         Check(Outlines(primaryOutline,Field<Renderer>(highlights,"assemblySign").bounds.center) && !secondOutline.enabled,
             "Opening the exit transfers the highlight to the outdoor assembly sign");
         CheckTextFit(taskDetails);

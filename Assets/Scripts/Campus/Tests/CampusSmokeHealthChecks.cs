@@ -123,14 +123,15 @@ public sealed partial class CampusLessonDriver
             Check(!exposure.ProtectionStable,"Paused time cannot settle towel protection");
             Time.timeScale=1; exposure.Tick(false,.125f);
             Check(exposure.ProtectionStable && !exposure.IsProtected &&
-                CampusExperience.StatusLine(false,false,exposure.TowelReady).Contains("已就位"),
-                "A towel can settle in clean air while the HUD describes readiness rather than smoke protection");
+                string.IsNullOrEmpty(CampusExperience.StatusLine(false,false,exposure.TowelReady)),
+                "A towel can settle in clean air without adding protection wording to the HUD");
             exposure.Tick(true,0);
             var experience=FindObjectOfType<CampusExperience>(); experience.SendMessage("Update");
             Check(exposure.IsProtected && Mathf.Approximately(health.CurrentBaseDrainPerSecond,.02f) &&
                 Field<bool>(FindObjectOfType<HealthTimeBar>(true),"towelProtected") &&
-                Field<TMPro.TextMeshProUGUI>(experience,"floorLabel").text.Contains("防护生效"),
-                "Smoke damage, base loss, the blue bar and HUD text share stable protection");
+                FindObjectOfType<HealthTimeBar>(true).CurrentStateIcon == "icon_protection" &&
+                !Field<TMPro.TextMeshProUGUI>(experience,"floorLabel").text.Contains("防护生效"),
+                "Smoke damage, base loss, the blue bar and protection icon share stable protection");
 
             cover(false); exposure.ResetExposure(); health.ResetHealth(); exposure.Tick(true,3);
             cover(true); float hp=health.CurrentHealth;

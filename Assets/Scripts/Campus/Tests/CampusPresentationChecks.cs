@@ -23,9 +23,10 @@ public sealed partial class CampusRevisionDriver
             Check(material.renderQueue==4000 && (material.shader.name.EndsWith("Overlay") || material.shader.name=="Campus/Foreground UI"),"UI background/font ignores wall depth: "+graphic.name);
         }
         var presenter=CampusMessagePresenter.Instance; presenter.Show(CampusMessagePresenter.WindowWarning);
-        var panel=Field<Transform>(presenter,"panel"); var text=panel.GetComponent<TextMeshPro>();
-        Check(panel.GetComponent<CampusUIForeground>()!=null && text.fontSharedMaterial.renderQueue==4000 && text.fontSharedMaterial.shader.name.EndsWith("Overlay"),"Runtime bilingual warning uses native SDF overlay, not merely canvas sorting order (actual: "+text.fontSharedMaterial.shader.name+", queue="+text.fontSharedMaterial.renderQueue+", configured="+Field<Shader>(panel.GetComponent<CampusUIForeground>(),"fontShader")+")");
-        Check(text.fontSharedMaterial!=text.font.material && Mathf.Approximately(panel.localPosition.z,1),"Warning keeps the one-metre distance without modifying the shared font asset");
+        var panel=Field<Transform>(presenter,"panel"); var text=panel.GetComponentInChildren<TextMeshProUGUI>();
+        var warningMaterial = text.materialForRendering;
+        Check(panel.GetComponent<CampusUIForeground>()!=null && warningMaterial.renderQueue==4000 && warningMaterial.shader.name.EndsWith("Overlay"),"Runtime bilingual warning uses SDF foreground rendering");
+        Check(warningMaterial!=text.font.material && panel.GetComponent<CampusCompactWarning>()!=null && panel.localPosition.z>.3f,"Warning follows the health HUD without modifying the shared font asset");
         Check(player.GetComponentsInChildren<Canvas>(true).All(c=>c.renderMode==RenderMode.WorldSpace),"VR canvases stay world-space; none are converted to Screen Space Overlay");
         var prompt=UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Campus/HealthPrompt.prefab");
         Check(prompt.GetComponent<CampusUIForeground>()!=null && Field<Shader>(prompt.GetComponent<CampusUIForeground>(),"fontShader")!=null,"The dynamically-spawned health/towel notice prefab retains its foreground shaders");

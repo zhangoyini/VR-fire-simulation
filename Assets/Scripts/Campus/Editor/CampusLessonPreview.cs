@@ -10,6 +10,7 @@ public static partial class CampusPreview
     {
         if(SystemInfo.graphicsDeviceType==GraphicsDeviceType.Null) return;
         Directory.CreateDirectory("Documentation/Previews");
+        foreach (var button in Object.FindObjectsOfType<FireTrainingButtonVisual>()) button.Refresh();
         var layout=Object.FindObjectOfType<CampusLessonLayout>();
         typeof(CampusLessonLayout).GetMethod("LateUpdate",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(layout,null);
         foreach(var anchor in Object.FindObjectsOfType<WorldSpaceUIAnchor>()) anchor.SendMessage("Place");

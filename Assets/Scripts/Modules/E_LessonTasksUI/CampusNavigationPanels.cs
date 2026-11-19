@@ -24,9 +24,16 @@ internal sealed class CampusNavigationPanels
     private readonly Image mapBadge, objectHintBackground;
     private readonly GameObject objectHintRoot;
     private readonly RectTransform mapRect, mapContent, taskRect;
+    private readonly CampusTaskCardList taskCards;
     private float mapZoom, taskZoom, taskHeight = 145f;
     private Panel requested;
     private bool wasX, wasY;
+    private Step lastPracticeStep;
+    internal void TogglePracticePanel(bool xDown, bool yDown)
+    {
+        if (yDown && lastPracticeStep >= Step.TaskDemo) requested = requested == Panel.Tasks ? Panel.None : Panel.Tasks;
+        else if (xDown && lastPracticeStep >= Step.MapDemo) requested = requested == Panel.Map ? Panel.None : Panel.Map;
+    }
     private readonly Queue<(string text, bool complete, float delay, Action onFinished)> notices =
         new Queue<(string, bool, float, Action)>();
     private float noticeRemaining, noticeDelay;
@@ -62,10 +69,13 @@ internal sealed class CampusNavigationPanels
         taskLabel = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(196, 48), 21, "Y  任务详情 / Tasks");
         taskText = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(TaskTextWidth, 124), 20, "");
         taskText.alignment = TextAlignmentOptions.Left;
+        // Retain the full instruction text as state for existing lesson diagnostics;
+        // only the concise cards are rendered in the received-task panel.
+        taskText.gameObject.SetActive(false);
+        taskCards = new CampusTaskCardList(taskGroup.transform, font);
+        taskCards.Show(0);
 
-        noticeGroup = CampusTutorialView.CanvasAt("Exercise task notification", root.transform, new Vector3(0, .09f, 1.45f), .002f);
-        CampusTutorialView.Picture(noticeGroup.transform, Vector2.zero, new Vector2(504, 110), Ink);
-        noticeText = CampusTutorialView.CreateLabel(font, noticeGroup.transform, Vector2.zero, new Vector2(480, 94), 23, "");
+        noticeGroup = FireTrainingTaskNotice.Create(root.transform, font, out noticeText);
         noticeGroup.gameObject.SetActive(false);
 
         var hintCanvas = CampusTutorialView.CanvasAt("Nearby exercise operation hint", root.transform, Vector3.zero, .0017f);
@@ -87,11 +97,14 @@ internal sealed class CampusNavigationPanels
         mapGroup.alpha = step == Step.MapDemo ? Mathf.SmoothStep(0, 1, age) : 1;
         taskGroup.alpha = step == Step.TaskDemo ? Mathf.SmoothStep(0, 1, age) : 1;
         SetTaskText("<b>任务详情 / Tasks</b>\n查看教室出口  /  Find the classroom exit\n\n到门内侧的标记处。\n<size=85%>Go to the marker inside the doorway.</size>");
-        requested = step == Step.MapClose ? Panel.Map : step == Step.TaskClose ? Panel.Tasks : Panel.None;
+        taskCards.SetEntries(new[] { new CampusTaskCardList.Entry("练习 · 查看教室出口", "Practice · Find the classroom exit") });
+        if (lastPracticeStep != step)
+            requested = step == Step.MapClose ? Panel.Map : step == Step.TaskClose ? Panel.Tasks : Panel.None;
+        lastPracticeStep = step;
         Animate(dt);
     }
 
-    internal void ShowExercise(bool x, bool y, float dt, string details)
+    internal void ShowExercise(bool x, bool y, float dt, string details, IReadOnlyList<CampusTaskCardList.Entry> entries = null)
     {
         root.SetActive(true);
         mapGroup.gameObject.SetActive(true);
@@ -102,12 +115,18 @@ internal sealed class CampusNavigationPanels
         wasX = x;
         wasY = y;
         SetTaskText(details);
+        if (entries != null) taskCards.SetEntries(entries);
         Animate(dt);
     }
 
     internal void QueueNotice(string text, bool complete = false, float delay = 0, Action onFinished = null)
     {
-        if (notices.Count == 0) noticeDelay = delay;
+        // New progress supersedes old transient notices; persistent task details
+        // remain available with Y. Never replay a task the player has finished.
+        notices.Clear();
+        noticeRemaining = 0;
+        noticeGroup.gameObject.SetActive(false);
+        noticeDelay = delay;
         notices.Enqueue((text, complete, delay, onFinished));
     }
 
@@ -116,7 +135,7 @@ internal sealed class CampusNavigationPanels
         var messages = CampusMessagePresenter.Instance;
         bool priorityWarning = messages?.HasPriorityWarning ?? false;
         if (IsExpanded && !priorityWarning) messages?.Hide();
-        bool blocked = IsExpanded || objectHintRoot.activeSelf || priorityWarning;
+        bool blocked = IsExpanded || priorityWarning;
         taskLabel.text = IsExpanded && notices.Count > 0 ? "Y  新任务 / New task" : "Y  任务详情 / Tasks";
         if (blocked || notices.Count == 0)
         {
@@ -133,7 +152,7 @@ internal sealed class CampusNavigationPanels
         {
             noticeRemaining = NoticeReadingSeconds(notice.text, notice.complete);
             noticeText.text = notice.text;
-            noticeText.color = notice.complete ? new Color(.48f, .94f, .53f) : Color.white;
+            noticeText.color = notice.complete ? new Color(.2f, .4f, .25f) : FireTrainingUIStyle.Ink;
         }
         else
         {
@@ -163,8 +182,8 @@ internal sealed class CampusNavigationPanels
                 objectHintRoot.transform.SetPositionAndRotation(position, Quaternion.LookRotation(offset));
                 objectHint.text = text;
                 objectHint.fontStyle = faucetHint ? FontStyles.Bold : FontStyles.Normal;
-                objectHint.color = faucetHint ? Color.black : new Color(.72f, 1f, .9f);
-                objectHintBackground.gameObject.SetActive(faucetHint);
+                objectHint.color = FireTrainingUIStyle.Ink;
+                objectHintBackground.gameObject.SetActive(true);
             }
         }
         objectHintRoot.SetActive(visible);
@@ -179,14 +198,14 @@ internal sealed class CampusNavigationPanels
             requested = Panel.None;
             mapZoom = taskZoom = 0;
         }
-        root.SetActive(false);
+        if (root != null) root.SetActive(false);
     }
 
     private void SetTaskText(string text)
     {
         if (taskText.text == text) return;
         taskText.text = text;
-        taskHeight = Mathf.Clamp(taskText.GetPreferredValues(text, TaskTextWidth, 0).y + 34f, 145f, 318f);
+        taskHeight = Mathf.Clamp(taskText.GetPreferredValues(text, TaskTextWidth, 0).y + 34f, 145f, 2000f);
         taskText.rectTransform.sizeDelta = new Vector2(TaskTextWidth, taskHeight - 20f);
     }
 
@@ -227,13 +246,13 @@ internal sealed class CampusNavigationPanels
         mapBadge.canvasRenderer.SetAlpha(1f - mapScale);
         mapRect.sizeDelta = Vector2.Lerp(new Vector2(205, 49), new Vector2(268, 44), mapScale);
         mapRect.anchoredPosition = mapLabel.rectTransform.anchoredPosition;
-        // Taller cards grow downwards so the health HUD stays visible.
-        var taskCenter = PanelCenter + Vector3.up * Mathf.Min(0, .35f - taskHeight * ExpandedScale / 2f);
-        taskGroup.transform.localPosition = Vector3.Lerp(TaskCorner, taskCenter, taskScale);
-        taskGroup.transform.localScale = Vector3.one * Mathf.Lerp(.0017f, ExpandedScale, taskScale);
+        taskGroup.transform.localScale = Vector3.one * Mathf.Lerp(.0017f, .0018f, taskScale);
+        taskGroup.transform.localPosition = Vector3.Lerp(TaskCorner, PanelCenter + Vector3.down * .05f, taskScale);
         taskRect.sizeDelta = Vector2.Lerp(new Vector2(205, 52), new Vector2(TaskTextWidth + 24f, taskHeight), taskScale);
         taskLabel.alpha = 1f - taskScale;
-        taskText.alpha = taskScale;
+        taskRect.GetComponent<Image>().enabled = taskScale < .01f;
+        taskCards.Show(taskScale);
+        FireTrainingUIStyle.Apply(taskRect.GetComponent<Image>(), "panels/task_tab");
     }
 
     internal void Dispose() => Object.Destroy(root);

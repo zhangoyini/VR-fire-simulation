@@ -18,7 +18,30 @@ public sealed class CampusMinimap : MonoBehaviour
     [SerializeField] private TMP_Text room13Label;
     [SerializeField] private TMP_Text room14Label;
     private int lastLabelFloor = -1;
-    private void OnEnable() { lastLabelFloor = -1; }
+    private void OnEnable()
+    {
+        lastLabelFloor = -1;
+        var background = transform.Find("Map background");
+        if (background != null)
+        {
+            FireTrainingUIStyle.Apply(background.GetComponent<UnityEngine.UI.Image>(), "panels/map_frame");
+            ((RectTransform)background).sizeDelta = new Vector2(310, 205);
+        }
+        foreach (var label in GetComponentsInChildren<TMP_Text>(true))
+        {
+            label.color = FireTrainingUIStyle.Ink;
+            if (label.rectTransform.sizeDelta.x == 40)
+                label.rectTransform.sizeDelta = new Vector2(40, 24);
+        }
+        if (playerDot != null)
+        {
+            FireTrainingUIStyle.Apply(playerDot.GetComponent<UnityEngine.UI.Image>(), "icons/icon_player_arrow");
+            playerDot.sizeDelta = new Vector2(13, 13);
+            var facing = playerDot.Find("Player facing");
+            if (facing != null) facing.gameObject.SetActive(false);
+            playerDot.SetAsLastSibling();
+        }
+    }
     public int CurrentFloor { get; private set; }
     private void LateUpdate() { Refresh(); }
     public void Refresh()

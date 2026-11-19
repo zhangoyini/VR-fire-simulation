@@ -57,6 +57,8 @@ public sealed partial class CampusRevisionDriver
                 input.transform.position+=Quaternion.AngleAxis(-90f,hinge.transform.up)*radius-radius;
                 input.ProcessGrip(false,true,false);
                 Check(hinge.IsHeldBy(input.transform) && Mathf.Abs(hinge.Angle-90)<.1f && pane.transform.position.z<window.transform.position.z-.5f,"Actual trigger and physical push opens visible stair pane fully");
+                Check(CampusMessagePresenter.Instance.CurrentMessage==CampusMessagePresenter.WindowWarning,
+                    "First opening warns before releasing the window or grabbing it a second time");
                 input.ProcessGrip(false,false,true);
             }
             hinge.SetAngle(0); Vector3 closed=pane.transform.position;
@@ -67,7 +69,7 @@ public sealed partial class CampusRevisionDriver
             Check(Mathf.Abs(hinge.Angle-90)<.1f, "Stair glass stops at 90 degrees");
         }
         var warned=windows[0].Hinge; warned.OnInteractStart(hand); warned.OnInteractEnd(hand);
-        Check(CampusMessagePresenter.Instance.CurrentMessage==CampusMessagePresenter.WindowWarning, "Second grip on a stair window presents the bilingual no-jump warning");
+        Check(CampusMessagePresenter.Instance.CurrentMessage==CampusMessagePresenter.WindowWarning, "The first-opening bilingual warning remains available when regripping");
         yield return new WaitForSeconds(1.8f); Check(warned.Angle>35, "Stair glass stays open for the warning interval");
         yield return new WaitForSeconds(1f); Check(warned.Angle==0, "Stair glass automatically closes after two seconds plus the closing animation");
         foreach(var window in windows) window.Hinge.SetAngle(0); Destroy(hand.gameObject);

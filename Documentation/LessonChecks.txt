@@ -1,6 +1,8 @@
+PASS: All 27 room plaques show English under the Chinese room name
+PASS: Teaching protects health from passive drain and direct damage
 PASS: Entry begins with the scene-local controls demonstration
 PASS: Practice has no fire, alarm or advancing smoke
-PASS: Initial teaching allows free movement and world interaction without damage
+PASS: Observation starts safely with teleport and world interaction gated
 PASS: Safe endpoints cannot finish the game during free practice
 PASS: Head, controller poses and visible interaction proxies use one calibrated origin
 PASS: A has its own generated SteamVR action, distinct from grabbing
@@ -17,80 +19,308 @@ PASS: Controller travel maps one-to-one for RightHand
 PASS: Floor reach remains 14 cm above the actual virtual floor for RightHand
 PASS: Controller travel maps one-to-one for LeftHand
 PASS: Floor reach remains 14 cm above the actual virtual floor for LeftHand
-PASS: The player can walk during entry; right stick still does not turn the view
+PASS: Entry uses either-hand teleport; joystick input does not slide or turn the view
 PASS: Practice reading and exploration cannot cause smoke damage
-PASS: A fresh page cannot be skipped before its reading gate
-PASS: The UI unfolds and fades in rather than instantly appearing
-PASS: Headset demonstration allows thirty seconds with a deliberate reading gate
-PASS: Headset is not automatically replaced after the old twelve-second interval
-PASS: Initial classroom has two grabbable books and rear opening windows
-PASS: Either hand can directly pick up a practice book
-PASS: A second hand cannot steal an already held book
-PASS: A world trigger action practises grabbing without advancing the lesson
-PASS: Practice book release drops it and requests matching grab/drop vibrations
-PASS: Rear windows open during practice without a premature fire warning
+PASS: The board shows distinct left and right illustrated controllers with baked button labels
+PASS: The experience starts with a seven-second practice disclaimer
+PASS: The disclaimer precedes looking around
+PASS: A cannot skip observation and the classroom door remains closed
+PASS: The observation reminder stays readable after seven seconds if the player has not looked around
+PASS: Turning the head advances observation
+PASS: Looking down keeps its full seven-second prompt
+PASS: Looking at both hands is remembered when the player looks up again
+PASS: Raising both hands leaves time to practise squeezing the triggers
+PASS: A trigger closes the empty hand while world interaction is locked
+PASS: Releasing the trigger opens the empty hand
+PASS: The pause exercise precedes the first teleport lesson
+PASS: The menu lesson identifies the left thumbstick
+PASS: Clicking the left thumbstick opens the actual pause panel
+PASS: The tutorial HUD clears when the pause panel opens
+PASS: Clicking the stick again cannot skip the Resume exercise
+PASS: The regular menu ray selects the real Resume button
+PASS: Clicking Resume restores gameplay and starts the teleport animation
+PASS: The menu exercise leads to the movement-locked 2D demo
 PASS: Pause freezes teaching, confirmations and health
-PASS: A key advances to left-stick teaching without a contact button
-PASS: Controller teaching includes two animated detailed 3D hands for forty seconds
-PASS: The actual left-stick click pause control is demonstrated
-PASS: A key advances to push/grab teaching without trigger confirmation
-PASS: The right A key is animated independently of the grabbing triggers
-PASS: Controls end in an unlocked practice/ready phase
-PASS: An idle ready page shrinks but never starts the game automatically
-PASS: Explicit A hold starts the locked first-person cinematic
+PASS: A separate blue-ring and red-cross explanation follows the movement animation
+PASS: The feedback animation shows both actual landing symbols
+PASS: Teleport unlocks inside the classroom after the demo
+PASS: Landing away from the target does not finish the step
+PASS: The tutorial creates only one teleport marker
+PASS: Tutorial marker at (-11.94, 11.40, 7.03) is on a solid floor
+PASS: Tutorial marker at (-11.94, 11.40, 7.03) is a valid teleport landing from (-11.82, 11.40, 5.40)
+PASS: Teleporting to the first marker shows brief arrival feedback
+PASS: The window marker follows without replaying the teleport animation
+PASS: The window instruction stays visible while the player works out how to get there
+PASS: Tutorial marker at (-12.15, 11.40, 9.35) is on a solid floor
+PASS: Tutorial marker at (-12.15, 11.40, 9.35) is a valid teleport landing from (-11.94, 11.40, 7.03)
+PASS: Tutorial marker at (-13.80, 11.40, 9.35) is on a solid floor
+PASS: Tutorial marker at (-13.80, 11.40, 9.35) is a valid teleport landing from (-12.15, 11.40, 9.35)
+PASS: Unmarked jumps are allowed and leave the single window goal in place
+PASS: Tutorial marker at (-15.69, 11.40, 9.59) is on a solid floor
+PASS: Tutorial marker at (-15.69, 11.40, 9.59) is a valid teleport landing from (-13.80, 11.40, 9.35)
+PASS: Window arrival starts a locked 3D demonstration
+PASS: The window cannot be pushed during its demo
+PASS: The 3D window demo remains visible just before seven seconds
+PASS: The whole pane uses its original rightmost hinge
+PASS: The standing marker and grip stay at the existing point on the free end
+PASS: The tutorial window cannot be grabbed from the hinge side
+PASS: The local highlight sits on the actual pane and the hand closes around it while held
+PASS: A stationary grip alone does not complete the window exercise
+PASS: A small outward push completes the exercise at the actual hand-driven angle
+PASS: The visible hand stays on the same spot of the rotating window
+PASS: The pane starts to open outward with a small hand displacement
+PASS: The window still follows the hand after the success prompt has been visible for seven seconds
+PASS: Releasing the trigger lets go and restores the glove to the controller
+PASS: The same contact point can be grabbed again after success
+PASS: Re-grabbing continues the motion without resetting the window
+PASS: The next instruction appears while the window remains available for practice
+PASS: Tutorial marker at (-13.80, 11.40, 9.35) is on a solid floor
+PASS: Tutorial marker at (-13.80, 11.40, 9.35) is a valid teleport landing from (-15.69, 11.40, 9.59)
+PASS: Tutorial marker at (-12.15, 11.40, 9.35) is on a solid floor
+PASS: Tutorial marker at (-12.15, 11.40, 9.35) is a valid teleport landing from (-13.80, 11.40, 9.35)
+PASS: Tutorial marker at (-10.82, 11.40, 7.15) is on a solid floor
+PASS: Tutorial marker at (-10.82, 11.40, 7.15) is a valid teleport landing from (-12.15, 11.40, 9.35)
+PASS: The button registers the press while the hand still holds it
+PASS: The button lesson waits for trigger release
+PASS: Releasing the button opens the hand immediately
+PASS: Tutorial marker at (-11.39, 11.40, 4.55) is on a solid floor
+PASS: Tutorial marker at (-11.39, 11.40, 4.55) is a valid teleport landing from (-10.82, 11.40, 7.15)
+PASS: The existing held-trigger grab cannot be stolen by a second hand
+PASS: Lifting the book leaves time for wrist movement
+PASS: A book lost under the desk resets for another try
+PASS: The reset book is available to pick up
+PASS: Loose tabletop placement completes and introduces a simulated health bar
+PASS: The tutorial health animation does not change real health
+PASS: Y does not operate the minimap
+PASS: Holding X leaves the minimap expanded
+PASS: The minimap interpolates both position and scale
+PASS: X opens the minimap at the center of view
+PASS: A second X animates the map back before the task demo starts
+PASS: The minimap returns to its original corner
+PASS: The task card scales and travels toward the center
+PASS: Y opens the task card at the center of view
+PASS: The task card animates back to its original corner
+PASS: The final prompt explains free movement and what happens at the doorway marker
+PASS: Both classroom books can be picked up during free practice: Grabbable practice book 1
+PASS: Picking up a book triggers one haptic pulse
+PASS: Releasing a book triggers one additional haptic pulse
+PASS: Both classroom books can be picked up during free practice: Grabbable practice book 2
+PASS: Picking up a book triggers one haptic pulse
+PASS: Releasing a book triggers one additional haptic pulse
+PASS: Each classroom window accepts normal contact during free practice: Wall_3m_Window_H 4F North 1
+PASS: The reopened window interaction still follows the hand
+PASS: A moving window keeps sending haptic pulses after contact
+PASS: A stationary or released window stops sending haptic pulses
+PASS: Each classroom window accepts normal contact during free practice: Wall_3m_Window_H 4F North 2
+PASS: The reopened window interaction still follows the hand
+PASS: A moving window keeps sending haptic pulses after contact
+PASS: A stationary or released window stops sending haptic pulses
+PASS: The teaching button enters free practice with a green lamp
+PASS: The first free-practice press turns the lamp red and pulses once
+PASS: Holding the button does not repeat its toggle or haptics
+PASS: The next press turns the lamp green and pulses once
+PASS: Free classroom practice keeps the exit door closed and does not unlock corridor targets
+PASS: Tutorial marker at (-12.20, 11.40, 2.82) is on a solid floor
+PASS: Tutorial marker at (-12.20, 11.40, 2.82) is a valid teleport landing from (-11.39, 11.40, 4.55)
+PASS: The final teleport completes the tutorial
+PASS: The last marker hands off automatically to the short opening
+PASS: The classroom's original sign returns after the tutorial
 PASS: Cinematic disables the actual movement controller, including all stick directions
 PASS: Exclusive system pose rejects an external body movement writer during the movie
 PASS: Real controller hands are hidden while prescribed animation hands own the story
 PASS: World manipulation is blocked during system cinematics
-PASS: Cinematic visibly identifies system-controlled reading
-PASS: Reading includes a separate animated page-turn beat
-PASS: Placing the book is a distinct normal-speed motion after reading
+PASS: The opening starts at seated height over the cushion, including a room-scale head offset
+PASS: The short opening has a single reading caption
+PASS: The short opening retains the animated page turn
+PASS: The book reaches the desk during the short reading sequence
 PASS: Baked story glove preserves the actual anatomical handedness: RightHand
 PASS: Baked story glove preserves the actual anatomical handedness: LeftHand
-PASS: Virtual seating moves the rig under a fade, never the tracked head pose
-PASS: The book rests on the actual desk
-PASS: Additional settling/rest beats keep the cinematic longer than the old six-second opening
-PASS: Alarm follows the 22-second normal-life sequence
+PASS: The reading animation stays seated while preserving the tracked HMD pose
+PASS: The alarm plays after the 6.5-second reading beat
 PASS: The alarm starts with visible corridor smoke already prepared
-PASS: Burning smell follows a distinct alarm-observation beat
-PASS: The odor cue does not disappear after only a few seconds
-PASS: Standing waits indefinitely for deliberate player confirmation
-PASS: Standing includes bracing and a fade rather than an immediate unlock
-PASS: Finishing the cinematic immediately restores free movement, without waiting for a task confirmation
+PASS: Opening prewarm leaves lower floors clear and their propagation clock at zero
+PASS: The player remains seated at the start of the alarm
+PASS: Standing height is restored while the alarm fade is fully dark
+PASS: The short alarm beat completes before releasing control
+PASS: The 10-second opening returns control automatically without a stand confirmation
+PASS: The first objective highlights the classroom push bar
+PASS: The main objective appears in the separate notification
+PASS: Formal exercise uses the same centered X map as teaching
+PASS: Y folds the map before expanding task details
+PASS: Formal Y details show the main objective in the shared task panel
 PASS: Both detailed tracked hands are restored after the movie
 PASS: The cinematic restores standing height and retains natural HMD pose
-PASS: Doorway guidance automatically folds while movement remains unlocked
-PASS: A cracked classroom door cannot start the smoke lesson
-PASS: A partly opened door still waits for the full opening
-PASS: Opening the door and actually entering smoke starts the health lesson
-PASS: The health lesson has real visible smoke rather than an invisible trigger only
-PASS: Saved smoke parameters match the six-second grace and modestly faster 2 HP/s
-PASS: Initial smoke contact leaves six full seconds to react
-PASS: Health demonstration then removes 4 HP across two seconds
-PASS: After the HP demo, waiting to read cannot kill the player
-PASS: Health teaching enforces a twenty-second minimum reading period
-PASS: The next knowledge page gets its own fresh reading timer
-PASS: Immersive fire teaching explains limited cloth protection and CO without a confusing drill disclaimer
-PASS: Task 1 first expands as an animated reading card
+PASS: The main notice is still playing before task 1 starts
+PASS: Opening the door does not advance the pending main notice
+PASS: The brief smoke rule takes priority over the main notice
+PASS: Opening the door also shows visible smoke
+PASS: A hidden main notice has not finished displaying
+PASS: Task 1 starts after the main notice finishes even when the classroom door is closed
+PASS: Task 1 displays after the main notice
+PASS: Saved smoke parameters use a three-second grace period, 1 HP/s at full strength and one fifth of the damage under a wet towel
+PASS: All smoke volumes use their floor's smoke strength
+PASS: Y retains concise smoke timing and carbon-monoxide safety guidance
 PASS: Task 1 lights up only the 411 restroom door sign
-PASS: Task card remains expanded beyond the former twelve-second interval
-PASS: Task announcement protects the player's reading time
-PASS: Unfinished task 1 stays directly ahead, rather than in an uncomfortable corner
-PASS: Task automatically shows floor chevrons without confirmation or cancelled rays
-PASS: An unfinished task stays pinned rather than timing out
+PASS: The classroom push bar stops glowing when task 1 starts
+PASS: Exercise notices leave damage and smoke progression live
+PASS: Safety warnings can temporarily preempt an active task notice
+PASS: The preempted notice resumes with its remaining display time
+PASS: The task uses a short notice and route chevrons
+PASS: Opening Y hides the transient notice and shows the full task instructions
 PASS: Closing the door removes its local visible exposure plume
+PASS: Entering 411 replaces the destination sign with a highlight on the towel
 PASS: Remote towel pickup outside the restroom does not issue task 2
-PASS: Task 1 completion expands task 2 without forcing the held towel to drop
+PASS: Collecting the towel advances to task 2 while the task 1 notice is still displayed
+PASS: Task details retain completed task 1 and activate task 2
 PASS: Task 2 announcement does not interrupt held-towel or faucet operations
-PASS: Task 2 does not overlap the old towel pickup message
+PASS: Task 1 completion receives a separate confirmation
+PASS: Task 2 uses the standard task notification styling
+PASS: Task 2 highlights the faucet lever before opening it
+PASS: The bilingual faucet instruction is visible in bold black text
+PASS: The faucet prompt takes priority over the task notification
+PASS: Starting the tap moves the highlight to the running water
 PASS: Task 2 uses the existing actual running-water wetting interaction
+PASS: Wetting the towel clears the faucet highlight
 PASS: By restroom departure, 4F-to-3F stairs and the 3F corridor contain actual advancing smoke
-PASS: Face coverage updates the same compact task 2 to staircase guidance
+PASS: Face coverage advances to staircase guidance while the task 2 notice is visible
+PASS: Wet-towel coverage cuts the passive loss rate to one fifth even before the smoke grace period
+PASS: Ten seconds of smoke after the grace period cost two health points with wet-towel protection
+PASS: Floor 2 corridor uses 0.1 HP/s across a one-second teleport path (covered=True)
+PASS: Floor 1 corridor uses 0.05 HP/s across a one-second teleport path (covered=True)
 PASS: Dropping the towel cannot complete the descent
+PASS: Releasing the towel restores the passive loss rate to 0.1 HP/s
+PASS: Releasing the towel restores one smoke damage per second without resetting exposure
+PASS: Floor 2 corridor uses 0.5 HP/s across a one-second teleport path (covered=False)
+PASS: Floor 1 corridor uses 0.25 HP/s across a one-second teleport path (covered=False)
 PASS: Only arriving on 3F with the held wet towel at the face completes the chapter
+PASS: Saved health and smoke settings preserve the independent design values
+PASS: Formal lower-floor propagation excludes opening prewarm time
+PASS: Prewarming prepares only 4F, including when the alarm continues before the drill
+PASS: A faint new lower-floor plume appears before its damage volume activates
+PASS: Half-grown 3F smoke has half of its 0.75 cap while lower floors stay clear (strength=0.375, density=0.5)
+PASS: Pause freezes the independent lower-floor clock
+PASS: Visible smoke emission and damage strength grow from the same stage progress
+PASS: 2F develops before 1F receives smoke exposure
+PASS: 1F eventually reaches its quarter-strength cap
+PASS: The complete clear-air path loses 0.2 HP over ten seconds
+PASS: Floor 4: grace exempts smoke damage while base consumption remains (protected=False)
+PASS: Floor 4: real base plus smoke damage totals 11.00 HP in ten seconds (protected=False)
+PASS: Floor 4: grace exempts smoke damage while base consumption remains (protected=True)
+PASS: Floor 4: real base plus smoke damage totals 2.20 HP in ten seconds (protected=True)
+PASS: Floor 3: grace exempts smoke damage while base consumption remains (protected=False)
+PASS: Floor 3: real base plus smoke damage totals 8.50 HP in ten seconds (protected=False)
+PASS: Floor 3: grace exempts smoke damage while base consumption remains (protected=True)
+PASS: Floor 3: real base plus smoke damage totals 1.70 HP in ten seconds (protected=True)
+PASS: Floor 2: grace exempts smoke damage while base consumption remains (protected=False)
+PASS: Floor 2: real base plus smoke damage totals 6.00 HP in ten seconds (protected=False)
+PASS: Floor 2: grace exempts smoke damage while base consumption remains (protected=True)
+PASS: Floor 2: real base plus smoke damage totals 1.20 HP in ten seconds (protected=True)
+PASS: Floor 1: grace exempts smoke damage while base consumption remains (protected=False)
+PASS: Floor 1: real base plus smoke damage totals 3.50 HP in ten seconds (protected=False)
+PASS: Floor 1: grace exempts smoke damage while base consumption remains (protected=True)
+PASS: Floor 1: real base plus smoke damage totals 0.70 HP in ten seconds (protected=True)
+PASS: A newly raised towel does not reduce base loss before settling
+PASS: One equivalent second of teleport exposure cannot settle a towel held for 0.125 real seconds
+PASS: Paused time cannot settle towel protection
+PASS: A towel can settle in clean air while the HUD describes readiness rather than smoke protection
+PASS: Smoke damage, base loss, the blue bar and HUD text share stable protection
+PASS: A one-second real interval splits both losses and exposure at the 0.25-second settle boundary
+PASS: An interval crossing both grace and settle boundaries integrates their overlap exactly
+PASS: Removing the towel immediately clears protection without resetting smoke grace
+PASS: Reset clears every clock, smoke stage and damage volume
+PASS: Real Update samples fully developed 3F smoke and stable towel protection
+PASS: Real Update order produces 0.17 HP/s with 3F wet-towel protection
+PASS: Real Update restores 0.85 HP/s on 3F after removing the towel
 PASS: Chapter completion cannot bypass whole-building evacuation
 PASS: Completed tasks remove their card and route
 PASS: Restroom highlighting clears after the towel task
+PASS: All room and stair windows are present for grip checks
+PASS: Wall_3m_Window_H 1F North 1 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 8 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F North 2 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 9 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 4 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 1 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 7 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 4 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 6 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 4 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F South 7 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 7 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 2 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 9 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 8 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 10 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F North 7 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F North 8 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 5 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F North 3 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 2 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F South 4 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 5 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 3 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F South 10 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 7 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 2 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 1 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F North 4 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 10 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 3 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 8 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 9 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 8 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F North 5 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 10 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 1 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 6 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 10 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 9 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 2 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 5 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 10 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F North 9 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 5 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F South 3 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 3 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 4 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 7 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 5 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 3 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 10 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 1 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F North 6 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 3 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F North 10 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F South 8 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 5 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 4 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F South 9 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 4 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F South 9 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 6 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 2 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F South 1 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 7 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 1F South 2 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 6 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 1 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 7 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 8 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F South 3 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 6 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 3F North 6 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F North 8 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 2F South 9 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 1 follows the hand arc without amplified travel
+PASS: Wall_3m_Window_H 4F North 2 follows the hand arc without amplified travel
+PASS: Stair window (-23.00, 13.30, -1.20) follows the hand arc without amplified travel
+PASS: Stair window (23.00, 9.50, -1.20) follows the hand arc without amplified travel
+PASS: Stair window (-23.00, 5.70, -1.20) follows the hand arc without amplified travel
+PASS: Stair window (-23.00, 9.50, -1.20) follows the hand arc without amplified travel
+PASS: Stair window (23.00, 13.30, -1.20) follows the hand arc without amplified travel
+PASS: Stair window (-23.00, 1.90, -1.20) follows the hand arc without amplified travel
+PASS: Stair window (23.00, 1.90, -1.20) follows the hand arc without amplified travel
+PASS: Stair window (23.00, 5.70, -1.20) follows the hand arc without amplified travel
 PASS: Natural release inherits sampled linear and angular hand motion
 PASS: Thrown book actually travels under Unity physics, not only a stored velocity
 PASS: Fast towel throw is bounded and retains its wet state
@@ -102,8 +332,59 @@ PASS: Crouching and reaching 10 cm above the dropped towel really picks it up: R
 PASS: Picking up from the floor needs neither extra arm extension nor an artificial floor offset
 PASS: Crouching and reaching 10 cm above the dropped towel really picks it up: LeftHand
 PASS: Picking up from the floor needs neither extra arm extension nor an artificial floor offset
-PASS: Forward-facing pause buttons remain within direct controller reach
-PASS: An actual hand-contact trigger resumes the scaled, centred pause menu
+PASS: A paused hand can aim at Resume beyond contact range
+PASS: The menu ray trigger resumes the paused simulation
+PASS: Returning to gameplay hides the dedicated menu ray
 PASS: All story and practice meshes retain saved geometry
 PASS: Repeated scene application leaves one lesson, one fade and no blue confirmation object
+PASS: The 3F debris approach activates task 3
+PASS: Task 3 lights the debris itself and shows the east stair sign
+PASS: Reaching the east stair entrance completes task 3
+PASS: The completed detour restores the debris surfaces and clears the sign
+PASS: The floor-arrival notice gives the player a short settling interval
+PASS: The optional rescue actually displays its notification on 2F
+PASS: Descending from 3F offers the rescue and ringing early cannot end the exercise
+PASS: The optional rescue highlights the classmate rather than the handles
+PASS: Stair escort warning uses the bilingual priority safety presentation
+PASS: Ordinary hints cannot replace the refuge-first stair warning
+PASS: Map hides both rescue cards
+PASS: Reading navigation preserves the pending stair warning
+PASS: Closing navigation restores the rescue cards
+PASS: Mission details hides both rescue cards
+PASS: Reading navigation preserves the pending stair warning
+PASS: Closing navigation restores the rescue cards
+PASS: Starting assistance moves the highlight to the refuge sign
+PASS: Classmate arrival completes only the optional rescue without ringing the bell
+PASS: The rescue highlight clears on arrival
+PASS: Ringing later does not restart the completed rescue
+PASS: Arriving on 1F publishes the exit task
+PASS: Task 4 actually displays its notification on 1F
+PASS: Task 4 highlights both exit-door push bars
+PASS: Opening an exit leaf completes task 4 while the main objective stays active
+PASS: Opening the exit transfers the highlight to the outdoor assembly sign
+PASS: The lit assembly floor footprint matches the real victory trigger
+PASS: The outdoor endpoint completes the main objective and wins the exercise
+PASS: The assembly highlights clear at victory
+PASS: The real outcome opens a report with attributed smoke damage
+PASS: Exercise prompts are cleared before showing the debrief
+PASS: The bilingual outcome summary appears first
+PASS: Summary actions are available immediately without an automatic carousel
+PASS: The summary remains visible and actionable after twelve seconds
+PASS: The controller ray selects the newly unlocked detail button
+PASS: The detail action opens browsable review pages
+PASS: The controller ray can target the next detail page
+PASS: The next detail page is opened by player input
+PASS: Reading detail pages does not dismiss the outcome panel
+PASS: Debrief details expose the Back to summary action
+PASS: The outcome summary exposes the Restart action
+PASS: Restart from Victory/GameOver skips Controls and opens Ready (actual phase=Ready)
+PASS: Restart restores full health
+PASS: Restart clears the previous outcome
+PASS: Restart clears task progress before the drill starts
+PASS: Restarted Ready stage allows a deliberate start after its reading gate
+PASS: The restarted drill begins its normal opening sequence
+PASS: Repeated Restart 2 resets gameplay, health and outcome state
+PASS: Repeated Restart 3 resets gameplay, health and outcome state
+PASS: Return to MainMenu loads the menu after Restart
+PASS: Starting again from MainMenu restores the full first-start tutorial
 Quest tracking, vibration and comfort still need hardware testing.

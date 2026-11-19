@@ -7,7 +7,7 @@ using UnityEngine;
 [DefaultExecutionOrder(-80)]
 public sealed class CampusLessonDirector : MonoBehaviour
 {
-    public enum Phase { Controls, Ready, Classroom, Alarm, OpenDoor, FindTowel, WetTowel, Descend, Complete }
+    public enum Phase { Controls, Ready, Classroom, Alarm, OpenDoor, FindTowel, WetTowel, Descend, Complete, MainBrief }
     public static CampusLessonDirector Instance { get; private set; }
     [SerializeField] private Transform trackedHead;
     [SerializeField] private CampusLocomotion locomotion;
@@ -30,6 +30,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
     private const float StandFadeStart = 2.40f;
     private const float StandBlackout = 2.75f;
     private const float ReadyReadingSeconds = 8f;
+    private const float MainBriefSeconds = 8f;
     [SerializeField] private Transform storyBook, storyLeftHand, storyRightHand, bookRest, storyPage, storyStandingPoint;
     [SerializeField] private Renderer[] trackedHandRenderers;
     [SerializeField] private UnityEngine.UI.Image fade;
@@ -64,11 +65,11 @@ public sealed class CampusLessonDirector : MonoBehaviour
     public Collider Restroom => restroom;
     public CampusSmokeVolume DoorwayExposure => doorwayExposure;
     public bool IsPractice => !bypassed && CurrentPhase<=Phase.Ready;
-    public bool ExerciseStarted => bypassed || CurrentPhase>=Phase.OpenDoor;
+    public bool ExerciseStarted => bypassed || CurrentPhase>=Phase.OpenDoor && CurrentPhase!=Phase.MainBrief;
     public bool NavigationPanelOpen => panels != null && panels.IsExpanded;
     internal bool RequiresResumeButton => tutorial?.AwaitingMenuResume ?? false;
     public bool GuidedTowelTask => !bypassed && CurrentPhase>=Phase.FindTowel && CurrentPhase<=Phase.Descend;
-    private bool CinematicLocked => CurrentPhase==Phase.Classroom || CurrentPhase==Phase.Alarm;
+    private bool CinematicLocked => CurrentPhase==Phase.Classroom || CurrentPhase==Phase.Alarm || CurrentPhase==Phase.MainBrief;
     public bool MovementLocked => !bypassed && (CinematicLocked || CurrentPhase==Phase.Controls && (tutorial==null || !tutorial.AllowsTeleport));
     public bool WorldInteractionLocked => !bypassed && (CinematicLocked || IsPractice);
     public bool AllowsHandTarget(MonoBehaviour target) =>
@@ -100,7 +101,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if(fireOrigin!=null) fireOrigin.SetActive(false);
         if(doorwayPlume!=null) doorwayPlume.SetActive(false);
         alarm?.Stop();
-        ChangePhase(SystemUINavigation.ConsumeRestartTutorialSkip() ? Phase.Ready : Phase.Controls);
+        ChangePhase(Phase.Controls);
     }
     private void Start()
     {
@@ -193,7 +194,13 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if(fireStarted && CurrentPhase>=Phase.OpenDoor && CurrentPhase<Phase.Complete) UpdateDoorwaySmoke();
         if(CurrentPhase==Phase.Classroom) TickStory();
         else if(CurrentPhase==Phase.Alarm) TickAlarm();
-        else if(CurrentPhase==Phase.OpenDoor && panels==null) BeginTowelTask();
+        else if(CurrentPhase==Phase.MainBrief && age>=MainBriefSeconds)
+        {
+            smokeSpread.BeginExerciseSpread();
+            FindObjectOfType<CampusExperience>()?.BeginTimedExercise();
+            tasks?.Begin();
+            ChangePhase(Phase.FindTowel);
+        }
         else if(CurrentPhase==Phase.FindTowel)
         {
             if(restroom.bounds.Contains(trackedHead.position) && targetTowel.IsHeld) ChangePhase(Phase.WetTowel);
@@ -216,7 +223,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
             if (tasks != null)
             {
                 tasks.Tick(feet);
-                panels?.ShowExercise(x, y, dt, tasks.Details(CurrentPhase));
+                panels?.ShowExercise(x, y, dt, tasks.Details(CurrentPhase), tasks.CardEntries(CurrentPhase));
                 UpdateExerciseGuidance();
                 panels?.TickNotice(dt);
             }
@@ -224,6 +231,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         else panels?.Hide(x, y, fold: true);
         UpdatePresentationVisibility();
         if (CurrentPhase == Phase.Ready) layout?.SetReadingProgress(age/ReadyReadingSeconds);
+        if (CurrentPhase == Phase.MainBrief) layout?.SetReadingProgress(age/MainBriefSeconds);
         route?.Tick(trackedHead); layout?.Tick(dt);
     }
     public void Confirm()
@@ -297,9 +305,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if (age < AlarmSeconds) return;
 
         SetHandsVisible(true);
-        smokeSpread.BeginExerciseSpread();
-        FindObjectOfType<CampusExperience>()?.BeginTimedExercise();
-        ChangePhase(Phase.OpenDoor);
+        ChangePhase(Phase.MainBrief);
     }
 
     private void RestoreStandingHeight()
@@ -356,11 +362,6 @@ public sealed class CampusLessonDirector : MonoBehaviour
         doorwayExposure.enabled=on;
     }
 
-    private void BeginTowelTask()
-    {
-        if (CurrentPhase == Phase.OpenDoor) ChangePhase(Phase.FindTowel);
-    }
-
     private void ChangePhase(Phase phase)
     {
         CurrentPhase=phase; age=coverage=0;
@@ -368,7 +369,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if(phase==Phase.OpenDoor)
         {
             foreach(var endpoint in FindObjectsOfType<SafeZoneEndpoint>()) endpoint.ResetZone();
-            tasks?.Begin(BeginTowelTask);
+            tasks?.Begin();
         }
         if(CinematicLocked && phase!=Phase.Classroom)
         { cinematicPosition=locomotion.transform.position; cinematicRotation=locomotion.transform.rotation; }
@@ -399,6 +400,8 @@ public sealed class CampusLessonDirector : MonoBehaviour
         demonstration?.Show(CurrentPhase,0);
         if(CurrentPhase==Phase.Ready)
             SetText("准备开始 / Ready","开始后将播放短开场。\nA short intro plays before the drill.","长按右手柄 A 键开始。 / Hold right A to begin.");
+        else if(CurrentPhase==Phase.MainBrief)
+            SetText("主任务 · 疏散到一楼操场 / Main objective", "先寻找毛巾，打湿后遮住口鼻，沿安全通道撤离至操场集合区。\nFind a towel, wet it and cover your nose and mouth. Evacuate to the schoolyard assembly area.", "即将恢复自由活动。 / Control resumes shortly.");
         else if(CurrentPhase==Phase.Classroom)
             SetText("课间 / Between classes","","");
         else if(CurrentPhase==Phase.Alarm)
@@ -410,7 +413,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         }
         bool cinema = CinematicLocked;
         if(cinema || CurrentPhase==Phase.Ready)
-            layout?.Arrange(!cinema,cinema);
+            layout?.Arrange(CurrentPhase==Phase.MainBrief || !cinema,cinema && CurrentPhase!=Phase.MainBrief);
     }
 
     private void UpdateExerciseGuidance()
@@ -459,7 +462,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
     private void UpdatePresentationVisibility()
     {
         lessonPanel.SetActive(CurrentPhase==Phase.Controls ? tutorial!=null && tutorial.ShowingWindowDemo : WorldInteractionLocked);
-        if(gameplayHUD!=null) gameplayHUD.SetActive(CurrentPhase>=Phase.OpenDoor);
+        if(gameplayHUD!=null) gameplayHUD.SetActive(ExerciseStarted);
     }
     internal void StudentDelivered() => tasks?.StudentDelivered();
     internal void ConfirmRescue() => tasks?.ConfirmRescue();

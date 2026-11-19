@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Jiao.HealthTime
 {
@@ -39,9 +40,63 @@ namespace Jiao.HealthTime
 
         private Coroutine _flashCoroutine;
         private bool towelProtected;
+        private float displayedPercent = 1f;
+        private Image stateIcon;
+        private TMP_Text healthNumber;
+        public string CurrentStateIcon { get; private set; }
+
+        public void ApplyArtwork()
+        {
+            if (slider == null || fillImage == null || stateIcon != null) return;
+            var baseSprite = FireTrainingUIStyle.Load("hud/hud_health_base_flat");
+            if (baseSprite == null) return;
+            var rect = (RectTransform)slider.transform;
+            float width = rect.rect.width;
+            if (width <= 0) width = 1.5f;
+            rect.anchorMin = rect.anchorMax = Vector2.one * .5f;
+            rect.sizeDelta = new Vector2(width, width * baseSprite.rect.height / baseSprite.rect.width);
+            rect.anchoredPosition = Vector2.zero;
+            var background = slider.transform.Find("Background")?.GetComponent<Image>();
+            if (background != null)
+            {
+                background.enabled = true;
+                FireTrainingUIStyle.Apply(background, "hud/hud_health_base_flat");
+                background.rectTransform.anchorMin = Vector2.zero;
+                background.rectTransform.anchorMax = Vector2.one;
+                background.rectTransform.offsetMin = background.rectTransform.offsetMax = Vector2.zero;
+                background.transform.SetAsFirstSibling();
+            }
+            var area = (RectTransform)fillImage.transform.parent;
+            area.anchorMin = new Vector2(.174f, .235f);
+            area.anchorMax = new Vector2(.835f, .775f);
+            area.offsetMin = area.offsetMax = Vector2.zero;
+            FireTrainingUIStyle.Apply(fillImage, "hud/hud_fill");
+            fillImage.rectTransform.anchorMin = Vector2.zero;
+            fillImage.rectTransform.anchorMax = Vector2.one;
+            fillImage.rectTransform.offsetMin = fillImage.rectTransform.offsetMax = Vector2.zero;
+            stateIcon = new GameObject("Health state icon", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
+            stateIcon.transform.SetParent(slider.transform, false);
+            stateIcon.raycastTarget = false; stateIcon.preserveAspect = true;
+            stateIcon.rectTransform.anchorMin = stateIcon.rectTransform.anchorMax = new Vector2(.09f, .5f);
+            stateIcon.rectTransform.sizeDelta = Vector2.one * width * .075f;
+            var label = new GameObject("Health value", typeof(RectTransform), typeof(TextMeshProUGUI));
+            label.transform.SetParent(slider.transform, false);
+            healthNumber = label.GetComponent<TextMeshProUGUI>();
+            var fontSource = GetComponentInChildren<TMP_Text>(true);
+            healthNumber.font = fontSource != null && fontSource != healthNumber ? fontSource.font :
+                Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+            healthNumber.rectTransform.anchorMin = healthNumber.rectTransform.anchorMax = new Vector2(.92f, .5f);
+            healthNumber.rectTransform.sizeDelta = new Vector2(140, 110);
+            healthNumber.transform.localScale = Vector3.one * (width / 1000f);
+            healthNumber.enableAutoSizing = true; healthNumber.fontSizeMax = 86; healthNumber.fontSizeMin = 48;
+            healthNumber.alignment = TextAlignmentOptions.Center; healthNumber.color = Color.white;
+            healthNumber.raycastTarget = false;
+            OnHealthChanged(displayedPercent);
+        }
 
         private void Start()
         {
+            ApplyArtwork();
             if (HealthTimeController.Instance != null)
             {
                 HealthTimeController.Instance.HealthChanged += OnHealthChanged;
@@ -58,16 +113,6 @@ namespace Jiao.HealthTime
             if (warningImage != null)
                 warningImage.enabled = false;
 
-            // 确保 Fill 的 pivot 在左侧，这样血量减少时从右往左缩短
-            if (fillImage != null)
-            {
-                RectTransform fillRT = fillImage.rectTransform;
-                fillRT.anchorMin = new Vector2(0f, 0f);
-                fillRT.anchorMax = new Vector2(1f, 1f);
-                fillRT.pivot = new Vector2(0f, 0.5f);
-                fillRT.offsetMin = Vector2.zero;
-                fillRT.offsetMax = Vector2.zero;
-            }
         }
 
         private void OnDestroy()
@@ -103,11 +148,17 @@ namespace Jiao.HealthTime
             if (towelProtected == active) return;
             towelProtected = active;
             if (fillImage != null)
-                fillImage.color = GetColorForPercent(HealthTimeController.Instance?.HealthPercent ?? 1f);
+                OnHealthChanged(displayedPercent);
         }
 
         private void OnHealthChanged(float percent)
         {
+            displayedPercent = Mathf.Clamp01(percent);
+            percent = displayedPercent;
+            CurrentStateIcon = towelProtected ? "icon_protection" : percent <= dangerThreshold ? "icon_cross" :
+                percent <= warningThreshold ? "icon_warning" : "icon_health";
+            if (stateIcon != null) FireTrainingUIStyle.Apply(stateIcon, "icons/" + CurrentStateIcon);
+            if (healthNumber != null) healthNumber.text = Mathf.RoundToInt(percent * 100f).ToString();
             // 同时更新 Slider 值和 Fill 的 RectTransform，避免 Slider 的 Fill Rect 机制失效
             if (slider != null)
                 slider.value = percent;

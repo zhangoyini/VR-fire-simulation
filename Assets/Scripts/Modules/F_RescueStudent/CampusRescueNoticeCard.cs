@@ -12,12 +12,18 @@ public sealed class CampusRescueNoticeCard : MonoBehaviour
 
     public static CampusRescueNoticeCard Create(Transform head, TMP_FontAsset font, string title)
     {
-        var group = CampusTutorialView.CanvasAt(title, head, new Vector3(0, 0, 1.3f), .0016f);
-        CampusTutorialView.Picture(group.transform, Vector2.zero, new Vector2(620, 210),
-            new Color(.025f, .07f, .085f, .96f));
+        bool warning = title.Contains("warning");
+        TMP_Text warningLabel = null;
+        var group = warning ? CampusCompactWarning.Create(head, font, out warningLabel) :
+            CampusTutorialView.CanvasAt(title, head, new Vector3(0, 0, 1.3f), .0016f);
+        if (!warning)
+        {
+            var backing = CampusTutorialView.Picture(group.transform, Vector2.zero, new Vector2(700, 270), Color.white);
+            FireTrainingUIStyle.Apply(backing, "panels/notice_card");
+        }
         var card = group.gameObject.AddComponent<CampusRescueNoticeCard>();
         card.canvas = group.GetComponent<Canvas>();
-        card.label = CampusTutorialView.CreateLabel(font, group.transform, Vector2.zero,
+        card.label = warning ? warningLabel : CampusTutorialView.CreateLabel(font, group.transform, Vector2.zero,
             new Vector2(580, 180), 24, "");
         card.foreground = group.gameObject.AddComponent<CampusUIForeground>();
         card.foreground.Configure(Shader.Find("Campus/Foreground UI"));
@@ -35,7 +41,7 @@ public sealed class CampusRescueNoticeCard : MonoBehaviour
             label.ForceMeshUpdate();
             foreground.Refresh();
         }
-        label.color = colour;
+        label.color = FireTrainingUIStyle.Ink;
         PlaceInFront();
     }
 

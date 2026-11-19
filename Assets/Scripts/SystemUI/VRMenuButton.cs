@@ -13,9 +13,11 @@ public class VRMenuButton : MonoBehaviour, IInteractable
         clickAudio = audio;
     }
 
-    public void OnHoverEnter() { }
+    private FireTrainingButtonVisual visual;
+    private void Awake() { visual = gameObject.AddComponent<FireTrainingButtonVisual>(); }
+    public void OnHoverEnter() { if (visual != null) visual.Hover(true); }
 
-    public void OnHoverExit() { }
+    public void OnHoverExit() { if (visual != null) visual.Hover(false); }
 
     public void OnInteractStart(Transform handTransform)
     {
@@ -25,6 +27,7 @@ public class VRMenuButton : MonoBehaviour, IInteractable
         // Contact (Update) and ray (LateUpdate) share a press. Contact takes priority,
         // including when it targets a different menu button. Listeners may hide this UI.
         lastActivationFrame = Time.frameCount;
+        if (visual != null) visual.Press();
         if (clickAudio != null) clickAudio.PlayClick();
         onClick.Invoke();
     }

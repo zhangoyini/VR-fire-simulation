@@ -9,9 +9,9 @@ internal sealed class CampusDebriefView
 {
     private const int DetailCount = 4;
     private static readonly Color Background = new Color(.045f, .075f, .11f);
-    private static readonly Color Accent = new Color(.27f, .87f, .94f);
-    private static readonly Color Success = new Color(.50f, .92f, .69f);
-    private static readonly Color Failure = new Color(1f, .69f, .60f);
+    private static readonly Color Accent = new Color(.20f, .30f, .36f);
+    private static readonly Color Success = new Color(.20f, .40f, .25f);
+    private static readonly Color Failure = new Color(.64f, .19f, .15f);
 
     private readonly CampusDebriefReport report;
     private readonly TMP_FontAsset font;
@@ -34,7 +34,7 @@ internal sealed class CampusDebriefView
         foreach (Transform child in panel.transform) child.gameObject.SetActive(false);
         Transform root = Group("Campus debrief", panel.transform).transform;
         root.localScale = Vector3.one * (.00094f / Mathf.Max(.00001f, panel.transform.lossyScale.x));
-        CampusTutorialView.Picture(root, Vector2.zero, new Vector2(720, 430), Background);
+        CampusTutorialView.Picture(root, Vector2.zero, new Vector2(820, 520), Background);
         CampusTutorialView.Picture(root, new Vector2(0, 209), new Vector2(720, 5), report.success ? Success : Failure);
 
         eyebrow = Label(root, new Vector2(0, 181), new Vector2(650, 32), 20, "");
@@ -91,7 +91,7 @@ internal sealed class CampusDebriefView
         body.rectTransform.sizeDelta = summary ? new Vector2(640, 172) : new Vector2(316, 192);
         body.fontSizeMin = 18f;
         body.fontSizeMax = summary ? 25f : 23f;
-        title.color = summary ? report.success ? Success : Failure : Color.white;
+        title.color = summary ? report.success ? Success : Failure : FireTrainingUIStyle.Ink;
         if (summary)
         {
             title.text = report.success ? Bilingual("成功撤离", "Evacuation successful") : Bilingual("演练失败", "Evacuation incomplete");
@@ -114,12 +114,12 @@ internal sealed class CampusDebriefView
                 string rescueEnglish = report.rescue == Status.Hidden ? "Not triggered" : report.rescue == Status.Complete ? "Rescued" :
                     report.rescueDelivered ? "Delivered" : report.rescueStarted ? "Incomplete" : "Skipped";
                 body.text = $"1  寻找毛巾    {State(report.tasks[0])}\n2  浸湿毛巾并下到三楼    {State(report.tasks[1])}\n" +
-                    $"3  遇阻后改走 B 楼梯    {State(report.tasks[2])}\n4  打开操场出口    {State(report.tasks[3])}\n" +
+                    $"3  遇阻后改走 B 楼梯    {State(report.tasks[2])}\n4  找到出口并撤离    {State(report.tasks[3])}\n" +
                     $"可选 · 轮椅救援    {rescue}\n" +
                     $"<size=82%>触发 {YesNo(report.rescue != Status.Hidden)}  ·  开始 {YesNo(report.rescueStarted)}\n" +
                     $"送达 {YesNo(report.rescueDelivered)}  ·  完成 {YesNo(report.rescue == Status.Complete)}</size>";
                 englishBody.text = $"1  Find a towel · {State(report.tasks[0], true)}\n2  Wet towel, reach 3F · {State(report.tasks[1], true)}\n" +
-                    $"3  Detour via Stair B · {State(report.tasks[2], true)}\n4  Open schoolyard exit · {State(report.tasks[3], true)}\n" +
+                    $"3  Detour via Stair B · {State(report.tasks[2], true)}\n4  Find exit and evacuate · {State(report.tasks[3], true)}\n" +
                     $"Optional rescue · {rescueEnglish}\n" +
                     $"<size=82%>Triggered {YesNo(report.rescue != Status.Hidden, true)} · Started {YesNo(report.rescueStarted, true)}\n" +
                     $"Delivered {YesNo(report.rescueDelivered, true)} · Complete {YesNo(report.rescue == Status.Complete, true)}</size>";

@@ -86,9 +86,7 @@ internal sealed class CampusObjectiveHighlights
         root.SetActive(true);
         primary.enabled = secondary.enabled = false;
         bool showEastStair = false;
-        bool showDebris = tasks.Floor == 3 && tasks.DetourActive && debrisAnchor != null &&
-            (head.position - debrisAnchor.position).sqrMagnitude <= 7f * 7f;
-        SetDebrisHighlight(showDebris);
+        SetDebrisHighlight(false);
         bool showAssembly = tasks.Floor == 1 && tasks.AssemblyApproach;
         if (assemblyArea != null) assemblyArea.SetActive(showAssembly);
 

@@ -180,11 +180,17 @@ public sealed class RuntimeFireWindow : MonoBehaviour
     private IEnumerator RotateTo(float target, bool opened)
     {
         busy = true;
+        bool openingWarningShown = false;
         Quaternion baseRotation = Quaternion.LookRotation(transform.forward, transform.up);
         float start = angle;
         for (float elapsed = 0; elapsed < 0.65f; elapsed += Time.deltaTime)
         {
             angle = Mathf.Lerp(start, target, Mathf.SmoothStep(0, 1, elapsed / 0.65f));
+            if (opened && !openingWarningShown && angle > .1f)
+            {
+                openingWarningShown = true;
+                CampusMessagePresenter.Instance?.Show(CampusMessagePresenter.WindowWarning);
+            }
             pivot.rotation = baseRotation * Quaternion.Euler(0, angle, 0);
             yield return null;
         }

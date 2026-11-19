@@ -37,6 +37,10 @@ internal sealed class CampusTutorialView
     private Step step;
     private Demo demo;
     private float promptAge, fadeFrom;
+    private readonly CanvasGroup skipGroup;
+    private System.Action advancePage;
+    internal void BindAdvance(System.Action action) => advancePage = action;
+    internal void PracticeInput(bool xDown, bool yDown) => panels.TogglePracticePanel(xDown, yDown);
     internal CampusTutorialButton Button { get; }
 
     internal CampusTutorialView(Transform parent, Transform head, Transform board, GameObject boardSign,
@@ -116,6 +120,8 @@ internal sealed class CampusTutorialView
         hpFill.rectTransform.pivot = new Vector2(0, .5f);
         hpFill.rectTransform.anchoredPosition = new Vector2(-153, 0);
         hpNumber = Label(healthGroup.transform, new Vector2(143, 0), new Vector2(75, 42), 25, "100");
+        hpNumber.color = Color.white;
+        FireTrainingUIStyle.Apply(hpFill, "hud/hud_fill");
 
         var foregroundHud = hud.gameObject.AddComponent<CampusUIForeground>();
         foregroundHud.Configure(Shader.Find("Campus/Foreground UI"));
@@ -138,6 +144,18 @@ internal sealed class CampusTutorialView
         Button = buttonFace.gameObject.AddComponent<CampusTutorialButton>();
         lamp = Shape("Teaching indicator", PrimitiveType.Sphere, button + new Vector3(-.055f, .10f, 0),
             Vector3.one * .055f, Dark);
+        skipGroup = CanvasAt("Manual tutorial advance", hud, new Vector3(0, -.2f, 1.35f), .0014f);
+        var skip = Picture(skipGroup.transform, Vector2.zero, new Vector2(230, 77), Color.white,
+            FireTrainingUIStyle.Load("buttons/button_skip_wide"));
+        skip.name = "Tutorial skip";
+        skip.preserveAspect = true;
+        var collider = skip.gameObject.AddComponent<BoxCollider>();
+        collider.size = new Vector3(230, 77, 18); collider.isTrigger = true;
+        var advance = skip.gameObject.AddComponent<VRMenuButton>();
+        advance.Bind(() => advancePage?.Invoke(), Object.FindObjectOfType<SystemUIAudio>());
+        var appearance = skip.GetComponent<FireTrainingButtonVisual>();
+        if (appearance != null) appearance.ArtworkOverride = "buttons/button_skip_wide";
+        foreach (var ray in Object.FindObjectsOfType<VRMenuRayPointer>(true)) ray.RegisterMenuButton(advance);
     }
 
     internal void Show(Step next, string text, Demo animation, float readingSeconds)
@@ -157,6 +175,7 @@ internal sealed class CampusTutorialView
         demoGroup.gameObject.SetActive(demo != Demo.None && demo != Demo.Feedback);
         feedbackGroup.gameObject.SetActive(demo == Demo.Feedback);
         promptGroup.gameObject.SetActive(step == Step.FadePrompt || !string.IsNullOrEmpty(text));
+        skipGroup.gameObject.SetActive(!string.IsNullOrEmpty(text) && step != Step.FadePrompt);
         healthGroup.gameObject.SetActive(step >= Step.Health);
         contact.gameObject.SetActive(step == Step.WindowDemo || step == Step.OpenWindow || step == Step.WindowDone);
         bookHighlight.gameObject.SetActive(false);
@@ -176,11 +195,14 @@ internal sealed class CampusTutorialView
     {
         promptAge += dt;
         // Long instructions remain legible while the interaction is pending.
-        float reminder = Fade(promptAge - promptDuration, .2f);
         promptGroup.alpha = step == Step.FadePrompt ? fadeFrom * (1f - Fade(age, .65f)) :
-            Fade(promptAge, .2f) * Mathf.Lerp(1f, .82f, reminder);
+            Fade(promptAge, .2f);
         float hintY = step == Step.MapClose || step == Step.TaskClose ? -.36f : .22f;
         promptGroup.transform.localPosition = new Vector3(0, hintY, 1.35f);
+        float bottom = hintY - promptBackground.rect.height * .0014f * .5f;
+        if (demo != Demo.None) bottom = Mathf.Min(bottom, -.07f - 270 * .00125f * .5f);
+        if (step == Step.WindowDemo) bottom = Mathf.Min(bottom, -.40f);
+        skipGroup.transform.localPosition = new Vector3(0, bottom - .025f - 77 * .0014f * .5f, 1.35f);
         demoGroup.alpha = Fade(age, .45f);
         feedbackGroup.alpha = Fade(age, .45f);
         if (demo == Demo.Feedback)
@@ -208,7 +230,9 @@ internal sealed class CampusTutorialView
         demoTrigger.color = trigger ? squeezed ? Mint : Blue : Dark;
         demoTrigger.rectTransform.localScale = trigger && squeezed ? new Vector3(.65f, 1f, 1f) : Vector3.one;
         bool aiming = demo == Demo.Teleport && age >= 1f && age < 4.5f;
-        demoStick.anchoredPosition = new Vector2(-154, aiming ? 73 : 59);
+        demoStick.anchoredPosition = new Vector2(-125, aiming ? 99 : 93);
+        foreach (var highlight in new[] { demoStickImage, demoX, demoY, demoTrigger })
+        { var tint = highlight.color; tint.a = tint == Dark ? 0 : .48f; highlight.color = tint; }
         for (int i = 0; i < arc.Length; i++)
         {
             float t = (i + 1f) / arc.Length;
@@ -325,26 +349,26 @@ internal sealed class CampusTutorialView
         diagram.SetParent(parent, false);
         diagram.anchoredPosition = new Vector2(x, 14);
         diagram.localScale = Vector3.one * 1.9f;
-        DrawController(diagram, Vector2.zero, left, out _, out _, out _, out _);
+        var art = Picture(diagram, Vector2.zero, new Vector2(180, 180), Color.white,
+            FireTrainingUIStyle.Load("controller/controller_" + (left ? "left" : "right") + "_base"));
+        art.preserveAspect = true;
     }
 
     private void DrawController(Transform parent, Vector2 origin, bool left,
         out Image stick, out Image lower, out Image upper, out Image trigger)
     {
-        float side = left ? -1 : 1;
-        Color shell = new Color(.88f, .92f, .91f);
-        var grip = Picture(parent, origin + new Vector2(side * 20, -40), new Vector2(57, 110), shell, disc);
-        grip.rectTransform.localRotation = Quaternion.Euler(0, 0, side * -18f);
-        trigger = Picture(parent, origin + new Vector2(side * 60, 3), new Vector2(25, 47), Dark, disc);
-        Picture(parent, origin + new Vector2(0, 24), new Vector2(121, 106), shell, disc);
-        stick = Picture(parent, origin + new Vector2(side * 26, 29), Vector2.one * 37, Dark, disc);
-        Picture(stick.transform, Vector2.zero, Vector2.one * 23, new Color(.30f, .39f, .43f), disc);
-        Vector2 low = origin + new Vector2(side * -25, 15);
-        Vector2 high = origin + new Vector2(side * -21, 46);
-        lower = Picture(parent, low, Vector2.one * 28, Dark, disc);
-        upper = Picture(parent, high, Vector2.one * 28, Dark, disc);
-        Label(parent, low, new Vector2(32, 42), 20, left ? "X" : "A");
-        Label(parent, high, new Vector2(32, 42), 20, left ? "Y" : "B");
+        var art = Picture(parent, origin, new Vector2(200, 200), Color.white,
+            FireTrainingUIStyle.Load("controller/controller_" + (left ? "left" : "right") + "_base"));
+        art.preserveAspect = true;
+        float mirror = left ? 1 : -1;
+        // Highlight centres follow the supplied illustrated control faces.
+        stick = Picture(parent, origin + new Vector2(3 * mirror, 63), Vector2.one * 30, Dark, disc);
+        lower = Picture(parent, origin + new Vector2(-3 * mirror, 43), Vector2.one * 19, Dark, disc);
+        upper = Picture(parent, origin + new Vector2(20 * mirror, 55), Vector2.one * 19, Dark, disc);
+        trigger = Picture(parent, origin + new Vector2(49 * mirror, 21), new Vector2(15, 23), Dark, disc);
+        // The supplied base already includes readable ABXY labels. Highlights pulse
+        // translucent over the controls, rather than replacing their lettering.
+
     }
 
     internal static CanvasGroup CanvasAt(string name, Transform parent, Vector3 offset, float scale)
@@ -369,6 +393,7 @@ internal sealed class CampusTutorialView
         image.raycastTarget = false;
         image.color = color;
         image.sprite = sprite;
+        if (sprite == null) FireTrainingUIStyle.StyleCard(image, parent, size);
         return image;
     }
 
@@ -389,6 +414,7 @@ internal sealed class CampusTutorialView
         label.alignment = TextAlignmentOptions.Center;
         label.raycastTarget = false;
         label.text = value;
+        label.color = FireTrainingUIStyle.Ink;
         return label;
     }
 
@@ -405,10 +431,8 @@ internal sealed class CampusTutorialView
     {
         if (boardSign != null) boardSign.SetActive(boardSignWasActive);
         panels.Hide(false, false, fold: true);
-        hud.gameObject.SetActive(false);
-        world.gameObject.SetActive(false);
-        Object.Destroy(hud.gameObject);
-        Object.Destroy(world.gameObject);
+        if (hud != null) { hud.gameObject.SetActive(false); Object.Destroy(hud.gameObject); }
+        if (world != null) { world.gameObject.SetActive(false); Object.Destroy(world.gameObject); }
         Object.Destroy(worldMaterial);
         Object.Destroy(disc);
         Object.Destroy(discTexture);

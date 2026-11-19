@@ -81,15 +81,11 @@ public sealed class CampusExperience : MonoBehaviour
             if (floor < 4) JourneyDirector.Instance?.Request(JourneyState.Descending);
         }
     }
-    /// <summary>HUD 第二行状态文案：烟中已防护 / 烟中未防护 / 烟外毛巾就位 / 无提示。</summary>
+    /// <summary>HUD 只保留未防护烟雾提醒；毛巾防护状态改用血条左侧图标。</summary>
     internal static string StatusLine(bool inSmoke, bool isProtected, bool towelReady)
     {
-        if (inSmoke)
-            return isProtected
-                ? "<color=#69d2ff>防护生效 · 掉血减缓 / Protected · damage reduced</color>"
-                : "<color=#ffc676>烟雾区 · 尽快离开 / Smoke · Move out</color>";
-        if (towelReady)
-            return "<color=#69d2ff>湿毛巾已就位 / Wet towel ready</color>";
+        if (inSmoke && !isProtected)
+            return "<color=#ffc676>烟雾区 · 尽快离开 / Smoke · Move out</color>";
         return string.Empty;
     }
 

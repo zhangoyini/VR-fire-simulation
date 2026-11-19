@@ -18,10 +18,18 @@ public sealed class CampusLessonLayout : MonoBehaviour
     private Vector3 fromPosition, fromScale, targetPosition, targetScale;
     public bool IsFull => full;
     public bool IsAnimating => progress<1;
+    public void ApplyArtwork()
+    {
+        if (background != null) FireTrainingUIStyle.Apply(background.GetComponent<UnityEngine.UI.Image>(), "panels/" + (full ? "lesson_card_large" : "lesson_card_compact"));
+        if (title != null) title.color = FireTrainingUIStyle.Ink;
+        if (body != null) body.color = FireTrainingUIStyle.Ink;
+        if (footer != null) footer.color = FireTrainingUIStyle.Ink;
+        if (readingProgress != null) FireTrainingUIStyle.Apply(readingProgress, "hud/reading_fill");
+    }
     public void Arrange(bool large) { Arrange(large,false); }
     public void Arrange(bool large,bool cinematic)
     {
-        full=large; progress=0;
+        full=large; progress=0; ApplyArtwork();
         fromPosition=trackedHead!=null?trackedHead.InverseTransformPoint(panel.position):new Vector3(0,-.10f,1.6f);
         fromScale=panel.localScale;
         targetPosition=full?new Vector3(0,-.04f,1.6f):cinematic?new Vector3(0,-.20f,1.6f):new Vector3(0,.04f,1.6f);

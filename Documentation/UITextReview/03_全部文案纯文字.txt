@@ -1,0 +1,1112 @@
+﻿当前 UI 文案（阅读版；来源与格式见 Markdown 文件）
+
+[UI-001] Assets/Scripts/Health/SmokeZone.cs:32
+烟雾区！时间流失加快
+
+[UI-002] Assets/Scripts/Health/TowelPickup.cs:37
++{0} 时间
+
+[UI-003] Assets/Scripts/Modules/C_TowelWater/CampusTowelInteractable.cs:56
+按住扳机拿着毛巾，在流水下浸湿。
+Hold the trigger; wet the towel under running water.
+
+[UI-004] Assets/Scripts/Modules/C_TowelWater/CampusTowelInteractable.cs:84
+毛巾已浸湿，持续握持并放在口鼻前。
+Towel is wet. Keep holding it over your mouth and nose.
+
+[UI-005] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:74
+本体验用于熟悉操作和模拟演练。
+不能替代官方消防培训，请遵循当地消防指引。
+This is a practice simulation, not official fire-safety training.
+Follow local fire-safety guidance.
+
+[UI-006] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:110
+前推任一摇杆，瞄准落点。
+让摇杆回中，完成瞬移。
+Push either stick forward to aim.
+Release it to teleport.
+
+[UI-007] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:130
+看看四周，熟悉一下教室。
+Look around the classroom.
+
+[UI-008] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:140
+低头看看你的双手
+Look down at your hands.
+
+[UI-009] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:153
+抬起双手，试着动一动
+Raise both hands and move them.
+
+[UI-010] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:159
+想暂停或退出时，按下左摇杆打开菜单。
+现在试一次。用手柄射线指向「继续」，按下扳机确认返回练习。
+Click the left stick to open the pause menu. Try it now.
+Aim the controller ray at Resume and press the trigger to confirm.
+
+[UI-011] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:163
+蓝色圆环表示可以到达，松开摇杆即可瞬移。
+红色叉号表示无法到达，请重新选择落点。
+Blue ring means you can teleport there.
+Red cross means choose another landing point.
+
+[UI-012] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:166
+寻找过道地面上的高亮点，尝试瞬移到那里。
+Find the highlighted spot on the aisle floor and teleport there.
+
+[UI-013] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:169
+已到达
+Marker reached.
+
+[UI-014] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:172
+寻找窗边地面上的高亮点，尝试前往那里。
+Find the highlighted spot on the floor by the window and teleport there.
+
+[UI-015] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:175
+将手靠近窗扇高亮处，持续按住扳机。
+握住后沿弧线向外推，松开扳机即可放手。
+Reach for the highlighted edge and hold the trigger.
+Push outward along the arc. Release the trigger to let go.
+
+[UI-016] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:178
+手靠近高亮处，按住扳机握住窗扇，再向外推。
+Reach for the highlight, hold the trigger and push the window outward.
+
+[UI-017] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:182
+窗户已打开。门也用同样的方式打开。
+Window open. Doors work the same way.
+
+[UI-018] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:186
+寻找教学按钮旁地面上的高亮点，尝试前往那里。
+Find the highlighted floor spot beside the practice button and teleport there.
+
+[UI-019] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:189
+手靠近按钮，按住扳机，再松开
+Reach for the button. Press and release the trigger.
+
+[UI-020] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:192
+试着按下按钮
+Try pressing the button.
+
+[UI-021] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:195
+操作成功
+Button pressed.
+
+[UI-022] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:199
+寻找书桌旁地面上的高亮点，前往那里拿起发光的书。
+Find the highlighted floor spot by the desk and go there to pick up the glowing book.
+
+[UI-023] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:202
+靠近书本，持续按住扳机
+Reach for the book and hold the trigger.
+
+[UI-024] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:205
+按住扳机，拿起这本书
+Hold the trigger to pick up the book.
+
+[UI-025] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:210
+转动手腕，看看手里的书
+Turn your wrist to look at the book.
+
+[UI-026] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:214
+把书移到桌面轮廓上方，松开扳机放下。
+Move the book over the desk outline and release the trigger.
+
+[UI-027] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:217
+把书放回桌上
+Put the book back on the desk.
+
+[UI-028] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:223
+上方是你的血量。受伤会扣血，耗尽后演练结束。
+教学期间不会受到伤害。
+Your health is shown above. The drill ends at zero HP.
+You take no damage during the tutorial.
+
+[UI-029] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:226
+按左手柄的 X 展开小地图，再按 X 收起
+Press X on the left controller to open or close the map.
+
+[UI-030] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:229
+按 X 展开小地图
+Press X to open the map.
+
+[UI-031] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:232
+再按 X 收起小地图
+Press X again to close the map.
+
+[UI-032] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:239
+按左手柄的 Y 查看任务详情，再按 Y 收起
+Press Y on the left controller to open or close Tasks.
+
+[UI-033] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:242
+按 Y 查看任务详情
+Press Y to view Tasks.
+
+[UI-034] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:245
+再按 Y 收起任务详情
+Press Y again to close Tasks.
+
+[UI-035] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:252
+现在可以在教室内自由活动。
+寻找门前地面上的高亮点，到达后结束教学并开始演练。
+Explore the classroom freely. Find the highlighted floor spot
+by the door and reach it to finish training and start the drill.
+
+[UI-036] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:255
+操作练习完成
+Tutorial complete.
+
+[UI-037] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:292
+书已回到桌上，重新拿起
+The book is back on the desk. Pick it up again.
+
+[UI-038] Assets/Scripts/Modules/E_LessonTasksUI/CampusClassroomTutorial.cs:295
+重新拿起这本书，再放回桌上
+Pick the book up and put it back on the desk.
+
+[UI-039] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:53
+查看明细
+
+[UI-040] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:53
+View details
+
+[UI-041] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:54
+重新开始
+
+[UI-042] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:54
+Restart
+
+[UI-043] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:55
+返回主菜单
+
+[UI-044] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:55
+Main menu
+
+[UI-045] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:57
+上一页
+
+[UI-046] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:58
+返回结算
+
+[UI-047] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:58
+Back to summary
+
+[UI-048] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:59
+下一页
+
+[UI-049] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:87
+校园消防疏散演练 / Campus Fire Drill
+
+[UI-050] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:87
+本轮明细 / Drill details   {page} / {DetailCount}
+
+[UI-051] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:97
+成功撤离
+
+[UI-052] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:97
+Evacuation successful
+
+[UI-053] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:97
+演练失败
+
+[UI-054] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:97
+Evacuation incomplete
+
+[UI-055] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:98
+已到达
+
+[UI-056] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:99
+血量耗尽
+
+[UI-057] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:99
+演练结束
+
+[UI-058] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:102
+结束时的任务 ·
+
+[UI-059] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:102
+Task at end ·
+
+[UI-060] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:104
+正式演练用时 / Drill time   {Clock(report.duration)}
+剩余血量 / Health left   {Points(report.endHealth)} / {Points(report.initialHealth)}
+
+[UI-061] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:111
+任务完成情况
+
+[UI-062] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:111
+Task progress
+
+[UI-063] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:112
+未触发
+
+[UI-064] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:112
+救助成功
+
+[UI-065] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:113
+已送达
+
+[UI-066] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:113
+救助未完成
+
+[UI-067] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:113
+未参与
+
+[UI-068] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:116
+1  寻找毛巾    {State(report.tasks[0])}
+2  浸湿毛巾并下到三楼    {State(report.tasks[1])}
+
+[UI-069] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:117
+3  遇阻后改走 B 楼梯    {State(report.tasks[2])}
+4  找到出口并撤离    {State(report.tasks[3])}
+
+[UI-070] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:118
+可选 · 轮椅救援    {rescue}
+
+[UI-071] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:119
+触发 {YesNo(report.rescue != Status.Hidden)}  ·  开始 {YesNo(report.rescueStarted)}
+
+[UI-072] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:120
+送达 {YesNo(report.rescueDelivered)}  ·  完成 {YesNo(report.rescue == Status.Complete)}
+
+[UI-073] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:121
+1  Find a towel · {State(report.tasks[0], true)}
+2  Wet towel, reach 3F · {State(report.tasks[1], true)}
+
+[UI-074] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:122
+3  Detour via Stair B · {State(report.tasks[2], true)}
+4  Find exit and evacuate · {State(report.tasks[3], true)}
+
+[UI-075] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:124
+Triggered {YesNo(report.rescue != Status.Hidden, true)} · Started {YesNo(report.rescueStarted, true)}
+
+[UI-076] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:128
+血量与受伤
+
+[UI-077] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:128
+Health and damage
+
+[UI-078] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:132
+初始 {Points(report.initialHealth)}  ·  剩余 {Points(report.endHealth)}
+累计损失  {Points(report.TotalLoss)} 点
+
+[UI-079] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:133
+基础时间消耗  {Points(report.timeLoss)} 点
+烟雾伤害  {Points(report.smokeLoss)} 点
+
+[UI-080] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:134
+其他扣血  {Points(report.otherLoss)} 点
+
+[UI-081] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:135
+烟雾扣血最多：{worst + 1} 楼，{Points(report.smokeLossByFloor[worst])} 点
+
+[UI-082] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:136
+Start {Points(report.initialHealth)} · End {Points(report.endHealth)}
+Total lost  {Points(report.TotalLoss)} HP
+
+[UI-083] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:142
+毛巾防护
+
+[UI-084] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:142
+Towel protection
+
+[UI-085] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:144
+有效防护 {report.protectedSeconds:0.#} / {report.smokeSeconds:0.#} 秒 · {report.protectedSeconds / report.smokeSeconds:P0}
+
+[UI-086] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:145
+无烟雾暴露
+
+[UI-087] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:146
+拿到毛巾  {Done(report.towelPickedUp)}
+打湿毛巾  {Done(report.towelWet)}
+
+[UI-088] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:147
+遮住口鼻  {Done(report.firstProtection >= 0)}
+
+[UI-089] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:148
+首次启用防护  {Clock(report.firstProtection)}
+
+[UI-090] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:149
+实际烟雾中  {coverage}
+
+[UI-091] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:153
+Towel picked up  {YesNo(report.towelPickedUp, true)}
+Towel wetted  {YesNo(report.towelWet, true)}
+
+[UI-092] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:154
+Nose and mouth covered  {YesNo(report.firstProtection >= 0, true)}
+
+[UI-093] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:159
+路线与改道
+
+[UI-094] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:159
+Route and detour
+
+[UI-095] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:167
+经过楼层  {floors}
+A 楼梯障碍提示  {(report.tasks[2] == Status.Hidden ?
+
+[UI-096] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:168
+B 楼梯口  {(report.eastStairReached ?
+
+[UI-097] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:168
+)}
+操场出口  {State(report.tasks[3])}
+集合点  {(report.success ?
+
+[UI-098] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:169
+Floors visited  {floors}
+Stair A blockage alert  {(report.tasks[2] == Status.Hidden ?
+
+[UI-099] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:170
+Stair B reached  {YesNo(report.eastStairReached, true)}
+Schoolyard exit  {State(report.tasks[3], true)}
+Assembly point reached  {YesNo(report.success, true)}
+
+[UI-100] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:176
+Done
+
+[UI-101] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:176
+已完成
+
+[UI-102] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:177
+未完成
+
+[UI-103] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:179
+Yes
+
+[UI-104] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:179
+是
+
+[UI-105] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:179
+No
+
+[UI-106] Assets/Scripts/Modules/E_LessonTasksUI/CampusDebriefView.cs:179
+否
+
+[UI-107] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:57
+任务 1 · 寻找毛巾
+前往 411 卫生间。
+Task 1 · Find a towel in restroom 411.
+
+[UI-108] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:60
+任务 1 完成 · 已拿到毛巾
+任务 2 · 到洗手台打湿毛巾，再下到三楼。
+Towel picked up. Task 2 · Wet it at the sink, then head down to 3F.
+
+[UI-109] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:63
+任务 2 完成 · 继续前往一楼操场
+Task 2 complete · Continue to the schoolyard.
+
+[UI-110] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:76
+任务 3 完成 · 已到达 B 楼梯口
+即将前往二楼，
+走廊会有需要帮助的同学。
+Task 3 complete · Stair B reached. You are heading to 2F. A classmate in the corridor will need your help.
+
+[UI-111] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:83
+任务 3 · 遇见障碍物
+请从东侧 B 楼梯撤离。
+Task 3 · Route blocked. Use the east stairs (B).
+
+[UI-112] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:90
+可选支线 · 轮椅救援
+与走廊里的同学交谈，选择“跟我来”，带他到二楼避难区。
+Optional · Wheelchair rescue. Talk to your classmate in the corridor, choose “Follow me”, and lead him to the 2F refuge.
+
+[UI-113] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:98
+任务 4 · 找到出口并撤离
+沿出口标识找到大厅双开门。
+Task 4 · Find the exit and leave the building.
+
+[UI-114] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:107
+任务 4 完成 · 已离开教学楼
+前往操场集合区。
+You have left the building. Continue to the schoolyard assembly area.
+
+[UI-115] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:136
+先与同学交谈，再带他进入避难区。
+Talk to your classmate, then lead him into the refuge.
+
+[UI-116] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:148
+轮椅救援完成 · 继续前往一楼操场
+Rescue complete · Continue to the schoolyard.
+
+[UI-117] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:163
+任务详情 / Tasks
+
+[UI-118] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:165
+进入操场高亮集合区并停留。
+
+[UI-119] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:165
+沿疏散标识前往一楼操场集合区。
+
+[UI-120] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:170
+握住扳机推开 401 教室门，观察门外。
+
+[UI-121] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:173
+主任务 · 疏散到一楼操场
+
+[UI-122] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:178
+任务 1 · 寻找毛巾
+
+[UI-123] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:179
+到 411 卫生间，按住任一手柄扳机拿起干毛巾。
+
+[UI-124] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:185
+任务 2 · 浸湿毛巾并下到三楼
+
+[UI-125] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:186
+用空闲手开水龙头并浸湿毛巾。捂住口鼻，沿楼梯下到三楼。
+
+[UI-126] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:190
+任务 3 · 改走另一通道
+
+[UI-127] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:191
+路线受阻。沿三楼走廊返回，前往东侧 B 楼梯。
+
+[UI-128] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:197
+同学已安全到达避难区。
+
+[UI-129] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:198
+走近同学并选择“跟我来”。每次传送后，同学会平滑跟上；带他进入避难区。
+
+[UI-130] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:202
+可选支线 · 轮椅救援
+
+[UI-131] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:203
+任务 4 · 找到出口并撤离
+
+[UI-132] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:204
+沿一楼走廊到大厅双开门，推开任意一扇并走到室外。
+
+[UI-133] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:207
+安全提示 · Safety  烟雾暴露 3 秒后扣血，传送也计时；湿毛巾只能减缓扣血，不能过滤一氧化碳。
+
+[UI-134] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:220
+主任务 · 到操场集合
+
+[UI-135] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:220
+Main · Reach the assembly area
+
+[UI-136] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:224
+1 · 到 411 寻找毛巾
+
+[UI-137] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:227
+2 · 打湿毛巾并下到三楼
+
+[UI-138] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:228
+3 · 前往 B 楼梯
+
+[UI-139] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:228
+3 · Reach Stair B
+
+[UI-140] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:229
+可选 · 护送同学到二楼避难区
+
+[UI-141] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:229
+Optional · Escort to 2F refuge
+
+[UI-142] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:230
+4 · 找到出口并走到室外
+
+[UI-143] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:230
+4 · Find exit, go outside
+
+[UI-144] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:254
+Task 1 · Find a towel
+
+[UI-145] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:255
+Task 2 · Wet the towel and reach 3F
+
+[UI-146] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:256
+Task 3 · Detour via Stair B
+
+[UI-147] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:256
+任务 3 · 改走 B 楼梯
+
+[UI-148] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:259
+Optional · Wheelchair rescue
+
+[UI-149] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:261
+Task 4 · Find the exit and evacuate
+
+[UI-150] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:264
+Check the exit from room 401
+
+[UI-151] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:264
+观察 401 教室出口
+
+[UI-152] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:267
+Reach the schoolyard assembly point
+
+[UI-153] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:267
+前往操场集合点
+
+[UI-154] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:275
+主任务
+
+[UI-155] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:275
+任务
+
+[UI-156] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:277
+✓ 已完成
+
+[UI-157] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:278
+当前目标
+
+[UI-158] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:279
+待处理
+
+[UI-159] Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs:279
+进行中
+
+[UI-160] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:69
+{floor}F   HP {Mathf.RoundToInt((HealthTimeController.Instance != null ? HealthTimeController.Instance.HealthPercent : 1) * 100)} / 血量
+
+[UI-161] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:89
+防护生效 · 掉血减缓 / Protected · damage reduced
+
+[UI-162] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:90
+烟雾区 · 尽快离开 / Smoke · Move out
+
+[UI-163] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:92
+湿毛巾已就位 / Wet towel ready
+
+[UI-164] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:107
+主任务完成 · 已到达操场
+Main objective complete · Schoolyard reached
+
+[UI-165] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:108
+本次练习用时 {elapsed / 60:D2}:{elapsed % 60:D2}  /  Practice time
+
+[UI-166] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:109
+识别警报 · 跟随标识 · 路线受阻时重新选择
+Notice cues · Follow signs · Choose another route
+
+[UI-167] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:110
+请勿使用电梯或跳窗逃生。
+Avoid elevators and window escape.
+
+[UI-168] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:121
+一楼室外操场安全集合点
+
+[UI-169] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:121
+四楼 411 卫生间
+
+[UI-170] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:122
+楼
+
+[UI-171] Assets/Scripts/Modules/E_LessonTasksUI/CampusExperience.cs:122
+未记录位置
+
+[UI-172] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonAnimation.cs:74
+暂停/结束：射线变绿，按对应扳机点击
+Pause/results: aim green, press that trigger
+
+[UI-173] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonAnimation.cs:74
+左摇杆按下：暂停
+Click left stick: pause
+
+[UI-174] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonAnimation.cs:74
+摇杆回中：传送（最多 3 米）
+Re-centre: teleport up to 3 m
+
+[UI-175] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonAnimation.cs:74
+任一摇杆前推：瞄准绿色落点
+Either stick forward: aim at green ground
+
+[UI-176] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonAnimation.cs:75
+双扳机：握持
+Either trigger: grab
+
+[UI-177] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonAnimation.cs:75
+握住推动：开门
+Hold and push: open
+
+[UI-178] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonAnimation.cs:75
+挥手松开：投掷
+Swing and release: throw
+
+[UI-179] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonAnimation.cs:75
+右 A：教学确认/开始
+Right A: lesson confirm / begin
+
+[UI-180] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:402
+准备开始 / Ready
+
+[UI-181] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:402
+开始后将播放短开场。
+A short intro plays before the drill.
+
+[UI-182] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:402
+长按右手柄 A 键开始。 / Hold right A to begin.
+
+[UI-183] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:404
+主任务 · 疏散到一楼操场 / Main objective
+
+[UI-184] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:404
+先寻找毛巾，打湿后遮住口鼻，沿安全通道撤离至操场集合区。
+Find a towel, wet it and cover your nose and mouth. Evacuate to the schoolyard assembly area.
+
+[UI-185] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:404
+即将恢复自由活动。 / Control resumes shortly.
+
+[UI-186] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:406
+课间 / Between classes
+
+[UI-187] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:408
+火灾警报 / Fire alarm
+
+[UI-188] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:431
+握住扳机，拿起干毛巾
+Hold the trigger to pick up the towel.
+
+[UI-189] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:447
+毛巾已湿，持续握持并遮住口鼻
+Hold the wet towel over your nose and mouth.
+
+[UI-190] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:448
+在流水下保持 1.5 秒
+Hold under running water for 1.5 s.
+
+[UI-191] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonDirector.cs:449
+用空闲手按扳机打开水龙头
+Use your free hand's trigger to turn on the tap.
+
+[UI-192] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonRoute.cs:17
+前方 / ahead
+
+[UI-193] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonRoute.cs:17
+后方 / behind
+
+[UI-194] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonRoute.cs:17
+右侧 / right
+
+[UI-195] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonRoute.cs:17
+左侧 / left
+
+[UI-196] Assets/Scripts/Modules/E_LessonTasksUI/CampusLessonRoute.cs:20
+卫生间路线：
+
+[UI-197] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:59
+F   N ↑
+
+[UI-198] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:64
+01教室
+
+[UI-199] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:65
+02教室
+
+[UI-200] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:66
+03教室
+
+[UI-201] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:67
+04教室
+
+[UI-202] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:68
+11卫生间
+
+[UI-203] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:69
+12门厅
+
+[UI-204] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:69
+12避难区
+
+[UI-205] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:69
+12阅览室
+
+[UI-206] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:70
+13电梯
+
+[UI-207] Assets/Scripts/Modules/E_LessonTasksUI/CampusMinimap.cs:71
+14实验室
+
+[UI-208] Assets/Scripts/Modules/E_LessonTasksUI/CampusNavigationPanels.cs:46
+X  小地图 / Map
+
+[UI-209] Assets/Scripts/Modules/E_LessonTasksUI/CampusNavigationPanels.cs:63
+Y  任务详情 / Tasks
+
+[UI-210] Assets/Scripts/Modules/E_LessonTasksUI/CampusNavigationPanels.cs:93
+任务详情 / Tasks
+查看教室出口  /  Find the classroom exit
+
+到门内侧的标记处。
+Go to the marker inside the doorway.
+
+[UI-211] Assets/Scripts/Modules/E_LessonTasksUI/CampusNavigationPanels.cs:94
+练习 · 查看教室出口
+
+[UI-212] Assets/Scripts/Modules/E_LessonTasksUI/CampusNavigationPanels.cs:94
+Practice · Find the classroom exit
+
+[UI-213] Assets/Scripts/Modules/E_LessonTasksUI/CampusNavigationPanels.cs:131
+Y  新任务 / New task
+
+[UI-214] Assets/Scripts/Modules/E_LessonTasksUI/CampusObjectiveHighlights.cs:51
+Sign 2F REFUGE  /  二层避难区
+
+[UI-215] Assets/Scripts/Modules/E_LessonTasksUI/CampusObjectiveHighlights.cs:78
+B 楼梯 / Stair B
+
+[UI-216] Assets/Scripts/Modules/E_LessonTasksUI/CampusRouteCue.cs:13
+此路线暂时封闭，请返回走廊并使用东侧楼梯。
+This route is closed. Return to the corridor and use Stair B.
+
+[UI-217] Assets/Scripts/Modules/E_LessonTasksUI/CampusTaskCardList.cs:26
+任务详情 / Tasks
+
+[UI-218] Assets/Scripts/Modules/E_LessonTasksUI/CampusTutorialView.cs:79
+Quest 3  ·  左手柄 / Left controller
+
+[UI-219] Assets/Scripts/Modules/F_RescueStudent/CampusRescueAssistanceView.cs:9
+传送后，同学会沿路线跟上你
+Your classmate will follow after each teleport
+
+[UI-220] Assets/Scripts/Modules/F_RescueStudent/CampusRescueAssistanceView.cs:95
+同学正在跟随 · 前往二楼避难区
+Classmate following · Go to the 2F refuge
+
+[UI-221] Assets/Scripts/Modules/F_RescueStudent/CampusRescueAssistanceView.cs:103
+同学正在跟随 · 避难区在身后
+Classmate following · Refuge behind you
+
+[UI-222] Assets/Scripts/Modules/F_RescueStudent/CampusRescueAssistanceView.cs:104
+同学正在跟随 · 避难区在右侧
+Classmate following · Refuge on your right
+
+[UI-223] Assets/Scripts/Modules/F_RescueStudent/CampusRescueAssistanceView.cs:105
+同学正在跟随 · 避难区在左侧
+Classmate following · Refuge on your left
+
+[UI-224] Assets/Scripts/Modules/F_RescueStudent/CampusRescueAssistanceView.cs:110
+同学在身后 / Classmate behind you
+
+[UI-225] Assets/Scripts/Modules/F_RescueStudent/CampusRescueAssistanceView.cs:111
+同学在右侧 / Classmate on your right
+
+[UI-226] Assets/Scripts/Modules/F_RescueStudent/CampusRescueAssistanceView.cs:111
+同学在左侧 / Classmate on your left
+
+[UI-227] Assets/Scripts/Modules/F_RescueStudent/CampusRescueDialogue.cs:23
+轮椅同学 / Classmate
+
+[UI-228] Assets/Scripts/Modules/F_RescueStudent/CampusRescueDialogue.cs:28
+我好慌，不知道该怎么办……
+I'm so lost. I don't know what to do...
+
+[UI-229] Assets/Scripts/Modules/F_RescueStudent/CampusRescueDialogue.cs:39
+跟我来。 / Follow me.
+
+[UI-230] Assets/Scripts/Modules/F_RescueStudent/CampusRescueStudent.cs:374
+同学已安全到达避难区，救援完成。
+Classmate reached the refuge safely. Rescue complete.
+
+[UI-231] Assets/Scripts/Shared/Campus/CampusDebrisTouchPrompt.cs:14
+堵塞物无法搬开。
+
+[UI-232] Assets/Scripts/Shared/Campus/CampusMessagePresenter.cs:6
+警告：请离开烟雾区
+Warning: Please leave the smoke area.
+
+[UI-233] Assets/Scripts/Shared/Campus/CampusMessagePresenter.cs:7
+烟雾暴露累计超过 3 秒会扣血
+Smoke exposure starts draining health after 3 seconds.
+
+[UI-234] Assets/Scripts/Shared/Campus/CampusMessagePresenter.cs:8
+发生火灾时，请勿使用电梯！
+Do not use the elevator in case of fire!
+
+[UI-235] Assets/Scripts/Shared/Campus/CampusMessagePresenter.cs:9
+发生火灾时，请勿试图跳窗逃生！
+Do not attempt to jump out of a window to escape during a fire
+
+[UI-236] Assets/Scripts/Shared/Campus/CampusMessagePresenter.cs:10
+请先带轮椅同学到二楼避难区，再使用楼梯。
+Please lead your classmate to the 2F refuge before using the stairs.
+
+[UI-237] Assets/Scripts/SystemUI/FireTrainingButtonVisual.cs:18
+继续
+
+[UI-238] Assets/Scripts/SystemUI/FireTrainingButtonVisual.cs:18
+查看
+
+[UI-239] Assets/Scripts/SystemUI/FireTrainingButtonVisual.cs:18
+下一页
+
+[UI-240] Assets/Scripts/SystemUI/FireTrainingSceneStyle.cs:44
+消防疏散训练
+Fire Evacuation Training
+
+[UI-241] Assets/Scenes/MainMenu/MainMenu.unity:612
+FIRE EVACUATION TRAINING
+火灾疏散训练
+
+[UI-242] Assets/Scenes/MainMenu/MainMenu.unity:882
+START
+开始
+
+[UI-243] Assets/Scenes/MainMenu/MainMenu.unity:1152
+EXIT
+退出
+
+[UI-244] Assets/Scenes/MainMenu/MainMenu.unity:2969
+用手柄射线指向选项，按下扳机确认。
+Point at an option with the controller ray, then press the trigger to confirm.
+
+[UI-245] Assets/Scenes/Campus/CampusTraining.unity:182
+EXIT
+
+[UI-246] Assets/Scenes/Campus/CampusTraining.unity:2451
+B
+
+[UI-247] Assets/Scenes/Campus/CampusTraining.unity:4071
+411 · 卫生间
+Restroom
+
+[UI-248] Assets/Scenes/Campus/CampusTraining.unity:4608
+LEARN · CREATE · COLLABORATE
+学习 · 创造 · 协作
+
+[UI-249] Assets/Scenes/Campus/CampusTraining.unity:8891
+RESTART
+重新开始
+
+[UI-250] Assets/Scenes/Campus/CampusTraining.unity:27076
+FIRE SAFETY PRACTICE  /  消防疏散教学
+
+[UI-251] Assets/Scenes/Campus/CampusTraining.unity:33061
+TOGETHER WE LEARN
+分享 · 合作 · 成长
+
+[UI-252] Assets/Scenes/Campus/CampusTraining.unity:46869
+403 · 教室
+Classroom
+
+[UI-253] Assets/Scenes/Campus/CampusTraining.unity:60674
+CALL  /  呼叫
+
+[UI-254] Assets/Scenes/Campus/CampusTraining.unity:65939
+▲
+
+[UI-255] Assets/Scenes/Campus/CampusTraining.unity:66110
+ASSEMBLY POINT
+室外集合点
+STAY HERE / 在此等待
+
+[UI-256] Assets/Scenes/Campus/CampusTraining.unity:85647
+4F  ·  HEALTH / 血量
+
+[UI-257] Assets/Scenes/Campus/CampusTraining.unity:93742
+301 · 教室
+Classroom
+
+[UI-258] Assets/Scenes/Campus/CampusTraining.unity:102041
+已到达安全地点
+SAFE ENDPOINT REACHED
+
+[UI-259] Assets/Scenes/Campus/CampusTraining.unity:103826
+▼
+
+[UI-260] Assets/Scenes/Campus/CampusTraining.unity:105942
+● YOU / 位置   A / B → EXIT
+
+[UI-261] Assets/Scenes/Campus/CampusTraining.unity:116347
+Y
+
+[UI-262] Assets/Scenes/Campus/CampusTraining.unity:117328
+IDEAS START HERE
+好奇 · 探索 · 实践
+
+[UI-263] Assets/Scenes/Campus/CampusTraining.unity:135337
+4F   N ↑
+
+[UI-264] Assets/Scenes/Campus/CampusTraining.unity:144957
+RESUME
+继续
+
+[UI-265] Assets/Scenes/Campus/CampusTraining.unity:158894
+MAIN MENU
+主菜单
+
+[UI-266] Assets/Scenes/Campus/CampusTraining.unity:161739
+3F
+
+[UI-267] Assets/Scenes/Campus/CampusTraining.unity:173264
+电梯 / LIFT
+
+[UI-268] Assets/Scenes/Campus/CampusTraining.unity:189478
+4F
+
+[UI-269] Assets/Scenes/Campus/CampusTraining.unity:206901
+SCIENCE & DISCOVERY
+观察 · 实验 · 创新
+
+[UI-270] Assets/Scenes/Campus/CampusTraining.unity:207682
+211 · 卫生间
+Restroom
+
+[UI-271] Assets/Scenes/Campus/CampusTraining.unity:213943
+HARBOURVIEW
+LEARNING BLOCK  /  教学楼
+
+[UI-272] Assets/Scenes/Campus/CampusTraining.unity:216351
+203 · 教室
+Classroom
+
+[UI-273] Assets/Scenes/Campus/CampusTraining.unity:229600
+304 · 教室
+Classroom
+
+[UI-274] Assets/Scenes/Campus/CampusTraining.unity:229962
+302 · 教室
+Classroom
+
+[UI-275] Assets/Scenes/Campus/CampusTraining.unity:273748
+2F
+
+[UI-276] Assets/Scenes/Campus/CampusTraining.unity:274815
+204 · 教室
+Classroom
+
+[UI-277] Assets/Scenes/Campus/CampusTraining.unity:277431
+1F
+
+[UI-278] Assets/Scenes/Campus/CampusTraining.unity:332607
+401
+教室
+
+[UI-279] Assets/Scenes/Campus/CampusTraining.unity:332741
+402
+教室
+
+[UI-280] Assets/Scenes/Campus/CampusTraining.unity:332875
+403
+教室
+
+[UI-281] Assets/Scenes/Campus/CampusTraining.unity:333009
+404
+教室
+
+[UI-282] Assets/Scenes/Campus/CampusTraining.unity:333143
+411
+卫生间
+
+[UI-283] Assets/Scenes/Campus/CampusTraining.unity:333277
+412
+阅览室
+
+[UI-284] Assets/Scenes/Campus/CampusTraining.unity:333411
+413
+电梯
+
+[UI-285] Assets/Scenes/Campus/CampusTraining.unity:333545
+414
+实验室
+
+[UI-286] Assets/Scenes/Campus/CampusTraining.unity:365613
+412 · 阅览室
+Reading Room
+
+[UI-287] Assets/Scenes/Campus/CampusTraining.unity:383668
+404 · 教室
+Classroom
+
+[UI-288] Assets/Scenes/Campus/CampusTraining.unity:410347
+可自由移动与练习；教学自动继续，A 可跳过。
+Explore freely. Teaching advances automatically; A skips.
+
+[UI-289] Assets/Scenes/Campus/CampusTraining.unity:426791
+314 · 实验室
+Lab
+
+[UI-290] Assets/Scenes/Campus/CampusTraining.unity:431331
+311 · 卫生间
+Restroom
+
+[UI-291] Assets/Scenes/Campus/CampusTraining.unity:433894
+自然转头观察；调整佩戴并确认周围空间安全。不适时暂停。
+Look around naturally. Check your fit and clear space; pause if uncomfortable.
+
+[UI-292] Assets/Scenes/Campus/CampusTraining.unity:436908
+102 · 教室
+Classroom
+
+[UI-293] Assets/Scenes/Campus/CampusTraining.unity:474315
+101 · 教室
+Classroom
+
+[UI-294] Assets/Scenes/Campus/CampusTraining.unity:481211
+201 · 教室
+Classroom
+
+[UI-295] Assets/Scenes/Campus/CampusTraining.unity:487871
+414 · 实验室
+Lab
+
+[UI-296] Assets/Scenes/Campus/CampusTraining.unity:494902
+PAUSED
+已暂停
+
+[UI-297] Assets/Scenes/Campus/CampusTraining.unity:564888
+401 · 教室
+Classroom
+
+[UI-298] Assets/Scenes/Campus/CampusTraining.unity:581813
+104 · 教室
+Classroom
+
+[UI-299] Assets/Scenes/Campus/CampusTraining.unity:584204
+X
+
+[UI-300] Assets/Scenes/Campus/CampusTraining.unity:609575
+A
+
+[UI-301] Assets/Scenes/Campus/CampusTraining.unity:622183
+2F REFUGE  /  二层避难区
+到达后使用对讲机确认，等待协助
+USE INTERCOM TO CONFIRM AND WAIT
+
+[UI-302] Assets/Scenes/Campus/CampusTraining.unity:625328
+312 · 阅览室
+Reading Room
+
+[UI-303] Assets/Scenes/Campus/CampusTraining.unity:632190
+111 · 卫生间
+Restroom
+
+[UI-304] Assets/Scenes/Campus/CampusTraining.unity:632909
+303 · 教室
+Classroom
+
+[UI-305] Assets/Scenes/Campus/CampusTraining.unity:638940
+头显与安全 / Headset & safety
+
+[UI-306] Assets/Scenes/Campus/CampusTraining.unity:640787
+402 · 教室
+Classroom
+
+[UI-307] Assets/Scenes/Campus/CampusTraining.unity:646904
+GAME OVER
+游戏结束
+
+[UI-308] Assets/Scenes/Campus/CampusTraining.unity:660758
+202 · 教室
+Classroom
+
+[UI-309] Assets/Scenes/Campus/CampusTraining.unity:664222
+212 · 避难区
+Refuge Area
+
+[UI-310] Assets/Scenes/Campus/CampusTraining.unity:714172
+214 · 实验室
+Lab
+
+[UI-311] Assets/Scenes/Campus/CampusTraining.unity:747861
+114 · 实验室
+Lab
+
+[UI-312] Assets/Scenes/Campus/CampusTraining.unity:751270
+103 · 教室
+Classroom

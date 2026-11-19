@@ -17,6 +17,7 @@ public sealed class CampusHingeInteractable : MonoBehaviour, IInteractable
     private Vector3 windowGripLocal, windowGrabRadius;
     private CampusHandInteractor windowHand;
     private Coroutine closeRoutine;
+    private bool warnedThisOpening;
     public float Angle => angle;
     public bool IsHeld => owner != null;
     public bool IsWindow => windowWarning;
@@ -79,6 +80,7 @@ public sealed class CampusHingeInteractable : MonoBehaviour, IInteractable
             Vector3 radius = windowGrabRadius + Vector3.ProjectOnPlane(displacement, pivot.up);
             if (windowGrabRadius.sqrMagnitude > .0001f && radius.sqrMagnitude > .0001f)
                 SetAngle(grabAngle + Vector3.SignedAngle(windowGrabRadius, radius, pivot.up) * openSign);
+            WarnWhenOpened();
             return;
         }
         float travel = Vector3.Dot(HandPosition(hand) - grabHandPosition, grabPushDirection);
@@ -91,14 +93,25 @@ public sealed class CampusHingeInteractable : MonoBehaviour, IInteractable
         owner = null;
         windowHand = null;
 
-        if (windowWarning && grabAngle > 35f && angle > 35f && (CampusLessonDirector.Instance==null || !CampusLessonDirector.Instance.IsPractice))
+        if (windowWarning && warnedThisOpening && angle > .1f)
         {
-            CampusMessagePresenter.Instance?.Show(CampusMessagePresenter.WindowWarning);
             closeRoutine = StartCoroutine(CloseAfterWarning());
         }
     }
+    private void WarnWhenOpened()
+    {
+        // Warn on the first actual opening movement, even before releasing the
+        // hand. Scripted SetAngle calls used by demonstrations do not show UI.
+        if (!windowWarning || warnedThisOpening || angle <= .1f) return;
+        warnedThisOpening = true;
+        CampusMessagePresenter.Instance?.Show(CampusMessagePresenter.WindowWarning);
+    }
     public void SetAngle(float value)
-    { angle = Mathf.Clamp(value, windowWarning ? 0 : -maximumAngle, maximumAngle); pivot.localRotation = closedRotation * Quaternion.Euler(0, angle * openSign, 0); }
+    {
+        angle = Mathf.Clamp(value, windowWarning ? 0 : -maximumAngle, maximumAngle);
+        pivot.localRotation = closedRotation * Quaternion.Euler(0, angle * openSign, 0);
+        if (angle <= .1f) warnedThisOpening = false;
+    }
     private IEnumerator CloseAfterWarning()
     {
         yield return new WaitForSeconds(2f);

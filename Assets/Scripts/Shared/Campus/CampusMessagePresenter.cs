@@ -14,7 +14,7 @@ public sealed class CampusMessagePresenter : MonoBehaviour
     [SerializeField] private Shader foregroundFontShader;
     private Transform panel;
     private CampusRescueNoticeCard rescueWarningCard;
-    private TextMeshPro text;
+    private TextMeshProUGUI text;
     private float hideAt;
     private bool priorityWarning;
     public string CurrentMessage => RescueWarningVisible ? RescueStairWarning : text != null ? text.text : "";
@@ -53,17 +53,16 @@ public sealed class CampusMessagePresenter : MonoBehaviour
         if (rescueWarningCard != null) rescueWarningCard.gameObject.SetActive(false);
         if (panel == null)
         {
-            var go = new GameObject("World-space safety warning (1m)", typeof(RectTransform)); panel = go.transform; panel.SetParent(camera.transform, false);
-            text = go.AddComponent<TextMeshPro>(); text.font = font != null ? font : Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
-            text.fontSize = .55f; text.rectTransform.sizeDelta = new Vector2(1.45f, .45f); text.alignment = TextAlignmentOptions.Center;
-            text.color = new Color(1, .92f, .55f); text.enableWordWrapping = true;
-            go.AddComponent<CampusUIForeground>().Configure(foregroundShader,foregroundFontShader);
+            var group = CampusCompactWarning.Create(camera.transform, DisplayFont, out var warningText);
+            panel = group.transform;
+            text = (TextMeshProUGUI)warningText;
+            text.color = FireTrainingUIStyle.Ink;
+            group.gameObject.AddComponent<CampusUIForeground>().Configure(foregroundShader,foregroundFontShader);
         }
         priorityWarning = safety;
-        panel.localPosition = safety ? new Vector3(0, .24f, 1.3f) : new Vector3(0, 0, 1);
-        panel.localRotation = Quaternion.identity;
-        text.fontSize = safety ? .34f : .55f;
-        panel.gameObject.SetActive(true); text.text = message;
+        panel.GetComponent<CampusCompactWarning>().Place();
+        panel.gameObject.SetActive(true);
+        panel.GetComponent<CampusCompactWarning>().SetMessage(message);
         hideAt = Time.time + (safety ? 2.5f : 5f);
         text.ForceMeshUpdate();
         panel.GetComponent<CampusUIForeground>().Refresh();
