@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class SystemUINavigation : MonoBehaviour
 {
+    private static bool skipTutorialOnNextSceneLoad;
     [SerializeField] private string gameplayEntrySceneName;
     [SerializeField] private string mainMenuSceneName;
 
@@ -15,8 +16,17 @@ public class SystemUINavigation : MonoBehaviour
 
     public void RestartGame()
     {
-        // Restart the entire experience, including when called from a later scene.
+        // A fresh scene reload resets scene-owned health and task state. Mark this
+        // one load so the lesson director skips only the controller tutorial.
+        skipTutorialOnNextSceneLoad = true;
         LoadDestination(gameplayEntrySceneName, "Gameplay Entry Scene Name");
+    }
+
+    public static bool ConsumeRestartTutorialSkip()
+    {
+        bool skip = skipTutorialOnNextSceneLoad;
+        skipTutorialOnNextSceneLoad = false;
+        return skip;
     }
 
     public void ReturnToMainMenu()
@@ -42,6 +52,7 @@ public class SystemUINavigation : MonoBehaviour
 
         if (string.IsNullOrWhiteSpace(sceneName))
         {
+            skipTutorialOnNextSceneLoad = false;
             Debug.LogWarning("[SystemUINavigation] Cannot load destination: assign " +
                 inspectorField + " in the Inspector.", this);
             return;
@@ -49,6 +60,7 @@ public class SystemUINavigation : MonoBehaviour
 
         if (!Application.CanStreamedLevelBeLoaded(sceneName))
         {
+            skipTutorialOnNextSceneLoad = false;
             Debug.LogWarning("[SystemUINavigation] Cannot load scene '" +
                 sceneName + "': verify its name and enable it in Build Settings.", this);
             return;

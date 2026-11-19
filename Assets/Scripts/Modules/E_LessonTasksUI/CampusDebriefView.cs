@@ -7,8 +7,6 @@ using Status = CampusExerciseTasks.Status;
 
 internal sealed class CampusDebriefView
 {
-    private const float SummarySeconds = 2f;
-    private const float DetailSeconds = 2.5f;
     private const int DetailCount = 4;
     private static readonly Color Background = new Color(.045f, .075f, .11f);
     private static readonly Color Accent = new Color(.27f, .87f, .94f);
@@ -67,14 +65,11 @@ internal sealed class CampusDebriefView
 
     internal IEnumerator Play()
     {
-        Render(0, false);
-        yield return new WaitForSecondsRealtime(SummarySeconds);
-        for (int page = 1; page <= DetailCount; page++)
-        {
-            Render(page, false);
-            yield return new WaitForSecondsRealtime(DetailSeconds);
-        }
+        // Keep the recorded result available until the player chooses an action.
+        // The previous timed carousel exposed details without interaction and
+        // hid them before most players could read the summary.
         Render(0, true);
+        yield break;
     }
 
     private void Browse(int page)

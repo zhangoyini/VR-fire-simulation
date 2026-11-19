@@ -27,6 +27,7 @@ internal sealed class CampusTutorialView
     private readonly RectTransform promptBackground;
     private readonly Image hpFill, hpLost, hpGlow;
     private readonly CampusNavigationPanels panels;
+    private float promptDuration = CampusClassroomTutorial.PromptSeconds;
     private readonly RectTransform demoStick;
     private readonly Image demoX, demoY, demoTrigger, demoStickImage, arcDot, playerDot;
     private readonly Image[] arc = new Image[18];
@@ -139,10 +140,11 @@ internal sealed class CampusTutorialView
             Vector3.one * .055f, Dark);
     }
 
-    internal void Show(Step next, string text, Demo animation)
+    internal void Show(Step next, string text, Demo animation, float readingSeconds)
     {
         step = next;
         demo = animation;
+        promptDuration = readingSeconds;
         if (step == Step.ToDoor) Button.BeginFreePractice();
         if (step != Step.FadePrompt) UpdatePrompt(text);
         fadeFrom = promptGroup.alpha;
@@ -173,8 +175,8 @@ internal sealed class CampusTutorialView
     internal void Tick(float age, float dt)
     {
         promptAge += dt;
-        // The main prompt lasts seven seconds. If input is still pending, leave a readable reminder.
-        float reminder = Fade(promptAge - CampusClassroomTutorial.PromptSeconds, .2f);
+        // Long instructions remain legible while the interaction is pending.
+        float reminder = Fade(promptAge - promptDuration, .2f);
         promptGroup.alpha = step == Step.FadePrompt ? fadeFrom * (1f - Fade(age, .65f)) :
             Fade(promptAge, .2f) * Mathf.Lerp(1f, .82f, reminder);
         float hintY = step == Step.MapClose || step == Step.TaskClose ? -.36f : .22f;
@@ -183,7 +185,7 @@ internal sealed class CampusTutorialView
         feedbackGroup.alpha = Fade(age, .45f);
         if (demo == Demo.Feedback)
         {
-            float blend = .5f - .5f * Mathf.Cos(age * Mathf.PI * 2f / CampusClassroomTutorial.PromptSeconds);
+            float blend = .5f - .5f * Mathf.Cos(age * Mathf.PI * 2f / promptDuration);
             feedbackIcons[0].localScale = Vector3.one * Mathf.Lerp(1.12f, .85f, blend);
             feedbackIcons[1].localScale = Vector3.one * Mathf.Lerp(.85f, 1.12f, blend);
         }
