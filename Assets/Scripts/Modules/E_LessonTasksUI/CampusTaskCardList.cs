@@ -23,7 +23,7 @@ public sealed class CampusTaskCardList
         Root = new GameObject("Received task cards", typeof(RectTransform), typeof(CanvasGroup));
         Root.transform.SetParent(parent, false);
         var heading = CampusTutorialView.CreateLabel(font, Root.transform, new Vector2(0, 205), new Vector2(860, 48), 28,
-            "任务详情 / Tasks");
+            "任务详情  Tasks");
         heading.color = Color.white;
         for (int i = 0; i < cards.Length; i++)
         {

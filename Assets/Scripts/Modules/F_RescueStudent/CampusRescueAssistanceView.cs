@@ -5,8 +5,6 @@ using UnityEngine.Rendering;
 // A centred mission-style card stays readable over the world and other HUD panels.
 public sealed class CampusRescueAssistanceView : MonoBehaviour
 {
-    private const string Reminder =
-        "传送后，同学会沿路线跟上你\nYour classmate will follow after each teleport";
     private Transform head, panel, routeAnchor, routeRoot;
     private TMP_Text status;
     private CampusRescueNoticeCard noticeCard;
@@ -92,7 +90,7 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
     private void Refresh()
     {
         if (status == null || head == null) return;
-        string objective = "同学正在跟随 · 前往二楼避难区\nClassmate following · Go to the 2F refuge";
+        string objective = "同学正在跟随  前往二楼避难区\nClassmate following  Go to the 2F refuge";
         if (waypoints != null && waypoints.Length > 0)
         {
             Vector3 toRoute = waypoints[Mathf.Min(route.WaypointIndex, waypoints.Length - 1)] - head.position;
@@ -100,16 +98,16 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
             float turn = Vector3.SignedAngle(Vector3.ProjectOnPlane(head.forward, Vector3.up), toRoute, Vector3.up);
             if (Mathf.Abs(turn) >= 35)
                 objective = Mathf.Abs(turn) > 135 ?
-                    "同学正在跟随 · 避难区在身后\nClassmate following · Refuge behind you" : turn > 0 ?
-                    "同学正在跟随 · 避难区在右侧\nClassmate following · Refuge on your right" :
-                    "同学正在跟随 · 避难区在左侧\nClassmate following · Refuge on your left";
+                    "同学正在跟随  避难区在身后\nClassmate following  Refuge behind you" : turn > 0 ?
+                    "同学正在跟随  避难区在右侧\nClassmate following  Refuge on your right" :
+                    "同学正在跟随  避难区在左侧\nClassmate following  Refuge on your left";
         }
         Vector3 toChair = Vector3.ProjectOnPlane(transform.position - head.position, Vector3.up);
         float angle = Vector3.SignedAngle(Vector3.ProjectOnPlane(head.forward, Vector3.up), toChair, Vector3.up);
         string location = Mathf.Abs(angle) < 55 ? "" : Mathf.Abs(angle) > 135 ?
             "\n同学在身后 / Classmate behind you" : angle > 0 ?
             "\n同学在右侧 / Classmate on your right" : "\n同学在左侧 / Classmate on your left";
-        string message = objective + "\n" + Reminder + location;
+        string message = objective + location;
         var messages = CampusMessagePresenter.Instance;
         bool warning = messages != null && (messages.HasPriorityWarning ||
             (messages.IsVisible && messages.CurrentMessage == CampusMessagePresenter.RescueStairWarning));

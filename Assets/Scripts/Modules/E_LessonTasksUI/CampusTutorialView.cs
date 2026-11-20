@@ -175,7 +175,7 @@ internal sealed class CampusTutorialView
         demoGroup.gameObject.SetActive(demo != Demo.None && demo != Demo.Feedback);
         feedbackGroup.gameObject.SetActive(demo == Demo.Feedback);
         promptGroup.gameObject.SetActive(step == Step.FadePrompt || !string.IsNullOrEmpty(text));
-        skipGroup.gameObject.SetActive(!string.IsNullOrEmpty(text) && step != Step.FadePrompt);
+        skipGroup.gameObject.SetActive(!string.IsNullOrEmpty(text) && CampusClassroomTutorial.CanSkipStep(step));
         healthGroup.gameObject.SetActive(step >= Step.Health);
         contact.gameObject.SetActive(step == Step.WindowDemo || step == Step.OpenWindow || step == Step.WindowDone);
         bookHighlight.gameObject.SetActive(false);
