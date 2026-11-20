@@ -87,8 +87,8 @@ internal sealed class CampusExerciseTasks
         if (floor == 2 && detour == Status.Complete && rescue == Status.Hidden && student != null)
         {
             rescue = Status.Active;
-            Announce("<b>可选任务 Optional task</b>\n\n与走廊里的同学交谈，选择“跟我来”，带他到二楼避难区。\n<size=83%>Talk to your classmate in the corridor, choose “Follow me”, and lead him to the 2F refuge.</size>",
-                "TASK_RESCUE_STARTED");
+            revision++;
+            SessionLogger.Write("TASK_RESCUE_STARTED");
         }
         previousFloor = floor;
 

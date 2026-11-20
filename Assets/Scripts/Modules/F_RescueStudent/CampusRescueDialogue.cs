@@ -11,22 +11,23 @@ internal sealed class CampusRescueDialogue
     internal CampusRescueDialogue(Transform head, UnityEngine.Events.UnityAction follow)
     {
         var canvas = CampusTutorialView.CanvasAt("Classmate conversation", head,
-            new Vector3(0, -.43f, 1.45f), .0017f);
+            new Vector3(0, -.43f, 1.45f), .0012f);
         root = canvas.gameObject;
         var font = CampusMessagePresenter.Instance != null
             ? CampusMessagePresenter.Instance.DisplayFont : TMP_Settings.defaultFontAsset;
         var ink = new Color(.025f, .07f, .085f, .96f);
-        var mint = new Color(.45f, .95f, .83f);
-        CampusTutorialView.Picture(root.transform, Vector2.zero, new Vector2(760, 230), mint);
-        CampusTutorialView.Picture(root.transform, Vector2.zero, new Vector2(754, 224), ink);
+        var background = CampusTutorialView.Picture(root.transform, Vector2.zero, new Vector2(760, 230),
+            Color.white, FireTrainingUIStyle.Load("panels/lesson_card_compact"));
+        background.preserveAspect = true;
         var speaker = CampusTutorialView.CreateLabel(font, root.transform, new Vector2(0, 81),
             new Vector2(706, 33), 23, "轮椅同学 / Classmate");
-        speaker.color = mint;
+        speaker.color = ink;
         speaker.alignment = TextAlignmentOptions.Left;
         var line = CampusTutorialView.CreateLabel(font, root.transform, new Vector2(0, 21),
             new Vector2(706, 80), 27,
             "我好慌，不知道该怎么办……\n<size=83%>I'm so lost. I don't know what to do...</size>");
         line.alignment = TextAlignmentOptions.Left;
+        line.color = ink;
         var answer = CampusTutorialView.Picture(root.transform, new Vector2(0, -70),
             new Vector2(700, 53), new Color(.10f, .24f, .27f));
         answer.gameObject.name = "Reply - Follow me";

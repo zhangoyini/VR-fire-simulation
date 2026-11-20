@@ -11,7 +11,7 @@ internal sealed class CampusNavigationPanels
 
     internal const float ZoomSeconds = .5f;
     private const float TaskTextWidth = 470f;
-    private static readonly Vector3 MapCorner = new Vector3(-.45f, -.34f, 1.45f);
+    private static readonly Vector3 MapCorner = new Vector3(-.53f, -.40f, 1.45f);
     private static readonly Vector3 TaskCorner = new Vector3(.57f, .26f, 1.45f);
     private static readonly Vector3 PanelCenter = new Vector3(0, 0, 1.45f);
     private const float ExpandedScale = .0033f;
