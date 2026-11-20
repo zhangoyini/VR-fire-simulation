@@ -7,6 +7,8 @@ using System.Collections.Generic;
 public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
 {
     public enum State { Waiting, Following, Delivered }
+    internal enum EscortStage { Door, Highlight, WaitForClassmate, Call, Complete }
+    internal const float DestinationRadius = .48f;
     public static bool Rescued { get; private set; }
 
     [SerializeField] private Transform followTarget;
@@ -20,6 +22,8 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
 
     public State Current { get; private set; } = State.Waiting;
     internal bool AssistanceStarted => started;
+    internal EscortStage Stage { get; private set; }
+    internal Vector3 Destination { get; private set; }
     public bool IsFollowing => isActiveAndEnabled && Current == State.Following && !Blocked;
     public float PlayerClearanceRadius => .2f - Mathf.Clamp(doorwayTolerance, 0, .1f);
 
@@ -31,6 +35,14 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
     private readonly List<Vector3> destinations = new List<Vector3>();
     public bool DialogueVisible => dialogue?.Visible ?? false;
     private CampusRescueAssistanceView assistanceView;
+    private CampusHingeInteractable refugeDoor;
+    private Transform refugeDoorway;
+    private Vector3[] refugeRoute;
+    private Vector3 refugeInward;
+    private BoxCollider refugeDoorLeaf;
+    private Vector3 closedLeafOffset;
+    private Quaternion closedLeafRotation;
+    private Transform playerRig;
     [SerializeField] private Vector3[] assistanceRoute = {
         new Vector3(-2.2f, 3.8f, 0),
         new Vector3(-2.2f, 3.8f, -3.4f),
@@ -63,6 +75,26 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
             var zone = GameObject.Find("2F Refuge Occupancy");
             if (zone != null) refugeVolume = zone.GetComponent<Collider>();
         }
+        var intercom = FindObjectOfType<CampusRefugeCall>();
+        refugeDoor = intercom != null ? intercom.transform.parent?.GetComponentInChildren<CampusHingeInteractable>() : null;
+        refugeDoorway = refugeDoor != null ? refugeDoor.transform.parent : null;
+        if (refugeDoorway != null && refugeVolume != null)
+        {
+            Vector3 center = refugeVolume.bounds.center;
+            Vector3 doorway = new Vector3(refugeDoorway.position.x, spawnY, refugeDoorway.position.z);
+            refugeInward = refugeDoorway.forward;
+            if (Vector3.Dot(refugeInward, center - doorway) < 0) refugeInward = -refugeInward;
+            Destination = new Vector3(center.x, spawnY, center.z);
+            // Leave space beyond the open leaf before turning toward the middle of the room.
+            refugeRoute = new[] { doorway - refugeInward * 1.05f, doorway + refugeInward * 2.2f, Destination };
+            refugeDoorLeaf = refugeDoor.transform.Find("Door leaf")?.GetComponent<BoxCollider>();
+            if (refugeDoorLeaf != null)
+            {
+                closedLeafOffset = refugeDoorLeaf.transform.position - refugeDoor.transform.position;
+                closedLeafRotation = refugeDoorLeaf.transform.rotation;
+            }
+        }
+        playerRig = followTarget != null ? followTarget.GetComponentInParent<CampusLocomotion>()?.transform : null;
         bodyCollider = GetComponent<BoxCollider>();
         bodyCollider.isTrigger = false;
         if (bodyCollider.size == Vector3.one) bodyCollider.size = new Vector3(.88f, 1.4f, 1.16f);
@@ -116,6 +148,7 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
         if (assistanceView == null)
             assistanceView = gameObject.AddComponent<CampusRescueAssistanceView>();
         assistanceView.Begin(followTarget, assistanceRoute);
+        CampusLessonDirector.Instance?.RescueStageChanged();
     }
 
     public bool TryGetFollowPosition(Vector3 fromFeet, Vector3 toFeet, out Vector3 position, out Quaternion rotation)
@@ -125,12 +158,76 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
         rotation = transform.rotation;
         if (!IsFollowing || followTarget == null || Mathf.Abs(fromFeet.y - spawnY) > .2f ||
             Mathf.Abs(toFeet.y - spawnY) > .2f) return false;
+        if (Stage == EscortStage.WaitForClassmate) return true;
         // Validate from the last queued corner so rapid teleports cannot cut across walls.
         Vector3 from = destinations.Count > 0 ? destinations[destinations.Count - 1] : transform.position;
         // A player who backtracks can lead a blocked chair out of its old route.
         if ((reversing || recoveryAttempted || blockedSeconds > 0) &&
             TryPlanTravel(transform.position, position, transform.rotation, out rotation)) return true;
+        if (RefugeDoorOpen && InsideDestination(position) &&
+            (TryPlanDestination(transform.position, out _) || TryPlanDestination(from, out _))) return true;
         return TryPlanTravel(from, position, transform.rotation, out rotation);
+    }
+
+    private bool RefugeDoorOpen => refugeDoor != null && Mathf.Abs(refugeDoor.Angle) >= 70f;
+
+    private bool BlocksDoorSwing(Vector3 position, Quaternion rotation)
+    {
+        if (refugeDoorLeaf == null || RefugeDoorOpen) return false;
+        Vector3 hinge = refugeDoor.transform.position;
+        if ((position - hinge).sqrMagnitude > 2.3f * 2.3f) return false;
+
+        // While the player opens the door, keep the chair out of either swing direction.
+        for (int degrees = -90; degrees <= 90; degrees += 15)
+        {
+            Quaternion swing = Quaternion.AngleAxis(degrees, refugeDoorway.up);
+            if (Physics.ComputePenetration(bodyCollider, position, rotation, refugeDoorLeaf,
+                hinge + swing * closedLeafOffset, swing * closedLeafRotation, out _, out _)) return true;
+        }
+        return false;
+    }
+
+    private bool InsideDestination(Vector3 feet) => refugeRoute != null &&
+        (feet - Destination).sqrMagnitude <= DestinationRadius * DestinationRadius;
+
+    private bool TryPlanDestination(Vector3 from, out int firstWaypoint)
+    {
+        firstWaypoint = 2;
+        if (TryPlanTravel(from, Destination, transform.rotation, out _)) return true;
+
+        Vector3 entry = refugeRoute[1];
+        if (!TryPlanTravel(entry, Destination, transform.rotation, out _)) return false;
+        firstWaypoint = 1;
+        if (TryPlanTravel(from, entry, transform.rotation, out _)) return true;
+
+        firstWaypoint = 0;
+        return Vector3.Dot(from - refugeDoorway.position, refugeInward) <= -.65f &&
+            TryPlanTravel(from, refugeRoute[0], transform.rotation, out _) &&
+            TryPlanTravel(refugeRoute[0], entry, transform.rotation, out _);
+    }
+
+    private void SetStage(EscortStage stage)
+    {
+        Stage = stage;
+        CampusLessonDirector.Instance?.RescueStageChanged();
+    }
+
+    private void UpdateDestination()
+    {
+        if (Stage == EscortStage.Door && RefugeDoorOpen) SetStage(EscortStage.Highlight);
+        if (Stage != EscortStage.Highlight || !RefugeDoorOpen) return;
+        Vector3 feet = followTarget.position;
+        feet.y = playerRig != null ? playerRig.position.y : followTarget.position.y - 1.65f;
+        if (!InsideDestination(feet)) return;
+
+        if (TryPlanDestination(transform.position, out int firstWaypoint))
+        {
+            destinations.Clear();
+            ClearRecovery();
+        }
+        else if (destinations.Count == 0 || !TryPlanDestination(destinations[destinations.Count - 1], out firstWaypoint)) return;
+        for (int i = firstWaypoint; i < refugeRoute.Length; i++) destinations.Add(refugeRoute[i]);
+        SetStage(EscortStage.WaitForClassmate);
     }
 
     private Quaternion TravelFacing(Vector3 travel, Quaternion current)
@@ -272,7 +369,7 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
     // Called after a successful player teleport. Never relocates the chair instantly.
     public void FollowTeleport(Vector3 position, Quaternion rotation)
     {
-        if (!IsFollowing) return;
+        if (!IsFollowing || Stage == EscortStage.WaitForClassmate || (RefugeDoorOpen && InsideDestination(position))) return;
         position.y = spawnY;
         if ((reversing || recoveryAttempted || blockedSeconds > 0) &&
             TryPlanTravel(transform.position, position, transform.rotation, out _))
@@ -292,16 +389,19 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
             if (!Blocked && CanSeeClassmate()) OpenDialogue();
             else dialogue?.Show(false);
         }
-        if (!IsFollowing || followTarget == null) { assistanceView?.SetVisible(false); return; }
-        ApplyPlayerClearance();
-        assistanceView?.SetVisible(true);
-        TickFollowing(Time.deltaTime);
+        if (IsFollowing && followTarget != null)
+        {
+            ApplyPlayerClearance();
+            TickFollowing(Time.deltaTime);
+        }
+        assistanceView?.SetVisible(!Blocked && (Current == State.Following || Stage == EscortStage.Call));
     }
 
     // Deterministic time step for hardware-free movement checks.
     public void TickFollowing(float dt)
     {
         if (!IsFollowing || followTarget == null || dt <= 0) return;
+        UpdateDestination();
         if (reversing)
         {
             Vector3 next = Vector3.MoveTowards(transform.position, reverseTarget, Mathf.Min(followSpeed, 1f) * dt);
@@ -320,11 +420,14 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
             Vector3 desired = destinations[0];
             Vector3 travel = desired - transform.position;
             float distance = travel.magnitude;
-            float gap = destinations.Count == 1 ? stoppingDistance : 0f;
+            float gap = destinations.Count == 1 && Stage != EscortStage.WaitForClassmate ? stoppingDistance : 0f;
             if (distance > gap + .01f)
             {
                 Quaternion targetFacing = TravelFacing(travel, transform.rotation);
                 Quaternion facing = Quaternion.RotateTowards(transform.rotation, targetFacing, 180f * dt);
+                Vector3 next = Vector3.MoveTowards(transform.position, desired,
+                    Mathf.Min(followSpeed * dt, distance - gap));
+                if (BlocksDoorSwing(transform.position, facing) || BlocksDoorSwing(next, facing)) return;
                 bool canTurn = CanTurnAt(transform.position, transform.rotation, facing);
                 bool turning = Quaternion.Angle(transform.rotation, facing) > .01f;
                 if (canTurn && turning)
@@ -333,8 +436,6 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
                     Physics.SyncTransforms();
                     blockedSeconds = 0;
                 }
-                Vector3 next = Vector3.MoveTowards(transform.position, desired,
-                    Mathf.Min(followSpeed * dt, distance - gap));
                 // Turn toward the player before rolling, so a destination behind the chair
                 // cannot cause ordinary following to look like backwards driving.
                 if (canTurn && Quaternion.Angle(facing, targetFacing) < 5f && CanTravel(transform.position, next, facing))
@@ -352,7 +453,7 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
             if (destinations.Count > 1 && Vector3.Distance(transform.position, desired) < .02f)
                 destinations.RemoveAt(0);
         }
-        if (refugeVolume != null && refugeVolume.bounds.Contains(transform.position + Vector3.up * .7f))
+        if (Stage == EscortStage.WaitForClassmate && (transform.position - Destination).sqrMagnitude <= .06f * .06f)
         {
             dwell += dt;
             if (dwell >= dwellSeconds) Deliver();
@@ -366,17 +467,24 @@ public sealed class CampusRescueStudent : MonoBehaviour, IInteractable
         ClearRecovery();
         RestorePlayerClearance();
         destinations.Clear();
-        assistanceView?.Hide();
-        Rescued = true;
+        SetStage(EscortStage.Call);
         dwell = 0;
         SessionLogger.Write("RESCUE_DELIVERED");
-        CampusLessonDirector.Instance?.StudentDelivered();
-        CampusMessagePresenter.Instance?.Show("同学已安全到达避难区，救援完成。\nClassmate reached the refuge safely. Rescue complete.");
+    }
+
+    internal bool ConfirmCall()
+    {
+        if (Blocked || Stage != EscortStage.Call) return false;
+        SetStage(EscortStage.Complete);
+        Rescued = true;
+        assistanceView?.Hide();
+        return true;
     }
 
     public void ResetQuest()
     {
         Current = State.Waiting;
+        SetStage(EscortStage.Door);
         ClearRecovery();
         RestorePlayerClearance();
         Rescued = false;

@@ -208,12 +208,15 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         Check(tutorial.CurrentStep==Step.ToWindow && marker.GetPosition(0)==windowMarker,
             "Unmarked jumps are allowed and leave the single window goal in place");
         Land(lesson,movement,tutorial.WindowSpot);
-        Check(tutorial.ShowingWindowDemo && lesson.MovementLocked,"Window arrival starts a locked 3D demonstration");
+        Check(tutorial.ShowingWindowDemo && lesson.MovementLocked &&
+            Field<CampusTutorialView.Demo>(Field<CampusTutorialView>(tutorial,"view"),"demo")==CampusTutorialView.Demo.Window,
+            "Window arrival uses the shared illustrated controller while movement is locked");
         var window=Field<CampusHingeInteractable>(tutorial,"window");
         Check(!owner.Begin(window),"The window cannot be pushed during its demo");
         float windowPromptDuration=tutorial.PromptDuration;
         lesson.Tick(Mathf.Max(0,windowPromptDuration-.1f));
-        Check(tutorial.ShowingWindowDemo,"The 3D window demo remains visible just before seven seconds");
+        Check(tutorial.ShowingWindowDemo,"The illustrated window demo remains visible until advanced");
+        tutorial.RequestAdvance();
         lesson.Tick(.2f);
         Vector3 contact=window.transform.TransformPoint(Field<Vector3>(tutorial,"windowContact"));
         var glass=window.GetComponentInChildren<BoxCollider>();
@@ -690,11 +693,8 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
             "Descending from 3F offers the rescue and ringing early cannot end the exercise");
         var student=FindObjectOfType<CampusRescueStudent>();
         MoveHead(movement,head,student.transform.position+Vector3.up*1.7f+Vector3.forward); lesson.Tick(.1f);
-        var classmateBounds = student.GetComponent<Collider>().bounds;
-        Check(primaryOutline.enabled && !secondOutline.enabled && Vector3.Distance(
-            (primaryOutline.GetPosition(0) + primaryOutline.GetPosition(2)) * .5f, classmateBounds.center) <
-            classmateBounds.extents.magnitude + .1f,
-            "The optional rescue highlights the classmate rather than the handles");
+        Check(!primaryOutline.enabled && !secondOutline.enabled,
+            "The optional rescue leaves the classmate free from an objective outline");
         MoveHead(movement,head,Field<Collider>(call,"refugeVolume").bounds.center);
         typeof(CampusRescueStudent).GetProperty(nameof(CampusRescueStudent.Current)).SetValue(student,CampusRescueStudent.State.Following);
         messages.Show(CampusMessagePresenter.RescueStairWarning);
@@ -703,7 +703,7 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         messages.Show("Ordinary task hint");
         Check(messages.CurrentMessage == CampusMessagePresenter.RescueStairWarning,
             "Ordinary hints cannot replace the refuge-first stair warning");
-        var warningCard = FindObjectsOfType<CampusRescueNoticeCard>(true).First(c => c.name == "Refuge stair warning");
+        var warningCard = FindObjectsOfType<CampusRescueNoticeCard>(true).First(c => c.GetComponent<CampusCompactWarning>() != null);
         var guidanceCard = CampusRescueNoticeCard.Create(head, messages.DisplayFont, "QA refuge guidance");
         guidanceCard.Show("前往二楼避难区 / Go to the 2F refuge", Color.white);
         foreach (bool testingMapPanel in new[] { true, false })
@@ -733,13 +733,24 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         lesson.Tick(.1f);
         Check(Outlines(primaryOutline,Field<Renderer>(highlights,"refugeSign").bounds.center) && !secondOutline.enabled,
             "Starting assistance moves the highlight to the refuge sign");
+        var refugeDoor = Field<CampusHingeInteractable>(student, "refugeDoor");
+        refugeDoor.SetAngle(-90f);
+        Physics.SyncTransforms();
+        student.TickFollowing(.02f);
+        lesson.Tick(.1f);
+        var refugeRing = Field<LineRenderer>(highlights, "refugeMarker");
+        Check(refugeRing.gameObject.activeInHierarchy && student.Stage == CampusRescueStudent.EscortStage.Highlight,
+            "Opening the refuge door shows the tutorial-style destination ring");
         typeof(CampusRescueStudent).GetMethod("Deliver",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(student,null);
         lesson.Tick(.1f);
-        Check(taskDetails.text.Contains("已完成</color>  可选支线") && resolution.CurrentOutcome==ResolutionCoordinator.Outcome.None && Time.timeScale==1,
-            "Classmate arrival completes only the optional rescue without ringing the bell");
-        Check(!primaryOutline.enabled,"The rescue highlight clears on arrival");
+        Check(lesson.ExerciseTasks.RescueActive && !CampusRescueStudent.Rescued &&
+            resolution.CurrentOutcome==ResolutionCoordinator.Outcome.None && Time.timeScale==1,
+            "Classmate arrival keeps rescue active while waiting for the call");
+        Check(!refugeRing.gameObject.activeSelf && !primaryOutline.enabled && !secondOutline.enabled,
+            "The destination ring clears after delivery and the call button has no outline");
         call.OnInteractStart(head); lesson.Tick(.1f);
-        Check(taskDetails.text.Contains("已完成</color>  可选支线"), "Ringing later does not restart the completed rescue");
+        Check(taskDetails.text.Contains("已完成</color>  可选支线") && CampusRescueStudent.Rescued,
+            "Ringing the wall button completes the optional rescue");
         for(int i=0;i<5;i++) lesson.Tick(6.1f);
         MoveHead(movement,head,new Vector3(22.6f,1.7f,0)); lesson.Tick(.51f);
         Check(taskDetails.text.Contains("当前目标") && taskDetails.text.Contains("任务 4"),"Arriving on 1F publishes the exit task");
@@ -794,8 +805,10 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         Check(backToSummary.isActiveAndEnabled,"Debrief details expose the Back to summary action");
         backToSummary.OnInteractStart(hand);
         yield return null;
+        buttons.Single(button=>button.name=="查看明细").OnInteractStart(hand);
+        yield return null;
         var restart=buttons.Single(button=>button.name=="重新开始");
-        Check(restart.isActiveAndEnabled,"The outcome summary exposes the Restart action");
+        Check(restart.isActiveAndEnabled,"The outcome details expose the Restart action");
         var previous=CampusLessonDirector.Instance;
         restart.OnInteractStart(hand);
         yield return WaitForRestart(previous);
@@ -859,18 +872,22 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         Check(panel.activeInHierarchy && report.success != failure && report.depleted == failure && report.smokeLossByFloor[2] >= 4,
             "The real outcome opens a report with attributed smoke damage");
         Check(!CampusMessagePresenter.Instance.IsVisible, "Exercise prompts are cleared before showing the debrief");
-        string result = failure ? "演练失败\n<size=78%>Evacuation incomplete" : "成功撤离\n<size=78%>Evacuation successful";
-        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text.StartsWith(result)),
-            "The bilingual outcome summary appears first");
+        string result = failure ? "逃离失败" : "成功逃离";
+        var summary = root.Find("Outcome summary");
+        Check(summary.Find(result).GetComponent<UnityEngine.UI.Image>().sprite != null,
+            "The illustrated bilingual outcome summary appears first");
         foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>()) CheckTextFit(text);
         var ray = hand.GetComponent<VRMenuRayPointer>();
         var details = buttons.Single(button=>button.name=="查看明细");
-        Check(details.isActiveAndEnabled && buttons.Count(button=>button.isActiveAndEnabled)==3,
-            "Summary actions are available immediately without an automatic carousel");
+        Check(details.isActiveAndEnabled && buttons.Count(button=>button.isActiveAndEnabled)==1,
+            "View details is immediately available as the sole summary action");
         yield return new WaitForSecondsRealtime(12f);
-        Check(panel.activeInHierarchy && root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text.StartsWith(result)) &&
-            buttons.Count(button=>button.isActiveAndEnabled)==3,
+        Check(panel.activeInHierarchy && summary.gameObject.activeInHierarchy &&
+            buttons.Count(button=>button.isActiveAndEnabled)==1,
             "The summary remains visible and actionable after twelve seconds");
+        Check(summary.GetComponentsInChildren<UnityEngine.UI.Image>().Count(image=>image.name.StartsWith("Rating star"))==5 &&
+            summary.GetComponentsInChildren<UnityEngine.UI.Image>().Count(image=>image.sprite.texture.name=="rating_earned")==report.Stars,
+            "The rating settles on five slots with the recorded number of gold stars");
         foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>()) CheckTextFit(text);
         Capture(failure ? "Lesson_18_GameOverSummary" : "Lesson_18_VictorySummary", head);
         hand.transform.position = head.position + head.rotation * new Vector3(.22f, -.2f, .05f);
@@ -878,7 +895,7 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         ray.ProcessInput(false);
         Check(ray.IsVisible && ray.CurrentTarget==details,"The controller ray selects the newly unlocked detail button");
         ray.ProcessInput(true);
-        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text.StartsWith("任务完成情况\n")) &&
+        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text.StartsWith("演练概览\n")) &&
             buttons.Any(button=>button.name=="下一页" && button.isActiveAndEnabled),"The detail action opens browsable review pages");
         foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>()) CheckTextFit(text);
         Capture(failure ? "Lesson_19_GameOverDetails" : "Lesson_19_VictoryDetails", head);
@@ -889,7 +906,7 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         ray.ProcessInput(false);
         Check(ray.CurrentTarget==next,"The controller ray can target the next detail page");
         ray.ProcessInput(true);
-        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text.StartsWith("血量与受伤\n")),
+        Check(root.GetComponentsInChildren<TMPro.TMP_Text>().Any(text=>text.text.StartsWith("任务完成情况\n")),
             "The next detail page is opened by player input");
         foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>()) CheckTextFit(text);
         Check(panel.activeInHierarchy,"Reading detail pages does not dismiss the outcome panel");

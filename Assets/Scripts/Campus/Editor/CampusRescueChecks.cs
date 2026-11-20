@@ -103,16 +103,18 @@ public static class CampusRescueChecks
                 "Refuge guidance is centred on an opaque mission-style card");
             Canvas.ForceUpdateCanvases();
             guidance.Label.ForceMeshUpdate();
-            Check(!guidance.Label.isTextOverflowing, "Bilingual guidance fits inside its mission card");
+            Check(!guidance.Label.isTextOverflowing && guidance.Label.textInfo.lineCount == 5,
+                "The two opening instructions in each language fit with a blank line between languages");
             Capture(camera, "Logs/refuge-guidance-card.png");
             Check(!(bool)resolve.Invoke(teleport, new object[] { stairHit, Vector3.zero }) &&
                 presenter.IsVisible && presenter.CurrentMessage == CampusMessagePresenter.RescueStairWarning,
                 "Aiming at stairs during escort blocks landing and explains the 2F refuge objective in both languages");
             student.GetComponent<CampusRescueAssistanceView>().SetVisible(true);
-            var warning = head.Find("Refuge stair warning").GetComponent<CampusRescueNoticeCard>();
+            var warning = head.GetComponentsInChildren<CampusRescueNoticeCard>(true)
+                .Single(card => card.GetComponent<CampusCompactWarning>() != null);
             Check(warning.gameObject.activeSelf && !guidance.gameObject.activeSelf &&
-                warning.transform.localPosition == guidance.transform.localPosition,
-                "Stair warning replaces guidance in the same centred card position");
+                warning.transform.parent == guidance.transform.parent,
+                "Compact stair warning replaces guidance on the tracked HUD");
             warning.GetComponent<CampusUIForeground>().Refresh();
             Call(warning, "LateUpdate");
             Check(warning.GetComponent<Canvas>().sortingOrder > 30000,
@@ -142,13 +144,42 @@ public static class CampusRescueChecks
             Check(!student.TryGetFollowPosition(rig.transform.position, new Vector3(-2, 0, 0), out _, out _),
                 "Wheelchair cannot follow onto another floor");
 
+            var intercom = UnityEngine.Object.FindObjectOfType<CampusRefugeCall>();
+            Call(intercom, "Start");
+            var cap = intercom.transform.Find("Refuge call button cap");
+            var icon = cap.Find("Refuge call symbol").GetComponent<MeshRenderer>();
+            var bounds = intercom.GetComponent<BoxCollider>().bounds;
+            Check(icon.sharedMaterial.GetTexture("_BaseMap").name == "icon_alarm_bell" &&
+                icon.bounds.size.x < cap.GetComponent<MeshRenderer>().bounds.size.x &&
+                icon.bounds.size.y < cap.GetComponent<MeshRenderer>().bounds.size.y,
+                "The supplied bell is integrated into the lit button face");
+            Check(bounds.size.x < .16f && bounds.size.y < .12f &&
+                intercom.GetComponentsInChildren<Collider>().Length == 1,
+                "The button still uses a single compact hit area");
+            Vector3 oldPosition = camera.transform.position;
+            Quaternion oldRotation = camera.transform.rotation;
+            var assistance = student.GetComponent<CampusRescueAssistanceView>();
+            assistance.SetVisible(false);
+            camera.transform.position = intercom.transform.position + new Vector3(.4f, .26f, -.72f);
+            camera.transform.LookAt(intercom.transform.position + Vector3.up * .23f);
+            Capture(camera, "Logs/refuge-call-button.png");
+            camera.transform.SetPositionAndRotation(oldPosition, oldRotation);
+            assistance.SetVisible(true);
+
             var refugeDoor = UnityEngine.Object.FindObjectsOfType<CampusHingeInteractable>()
                 .OrderBy(door => Vector3.Distance(door.transform.position, new Vector3(-2.2f, 3.8f, -2))).First();
             Call(refugeDoor, "Awake");
+            Vector3 destination = (Vector3)typeof(CampusRescueStudent)
+                .GetProperty("Destination", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(student);
+            Vector3 refugeCenter = GameObject.Find("2F Refuge Occupancy").GetComponent<Collider>().bounds.center;
+            Check(Vector2.Distance(new Vector2(destination.x, destination.z), new Vector2(refugeCenter.x, refugeCenter.z)) < .01f,
+                "The destination is centered on the refuge floor");
             Vector3[] hops = {
                 new Vector3(-2.2f, 3.8f, 0),
-                new Vector3(-2.2f, 3.8f, -1),
-                new Vector3(-2.2f, 3.8f, -4.2f)
+                new Vector3(-2.2f, 3.8f, -1.2f),
+                new Vector3(-2.2f, 3.8f, -4.15f),
+                new Vector3(-3.6f, 3.8f, -5.1f),
+                destination
             };
             Vector3 previousFeet = rig.transform.position;
             for (int i = 0; i < hops.Length; i++)
@@ -157,8 +188,13 @@ public static class CampusRescueChecks
                 {
                     Check(!student.TryGetFollowPosition(previousFeet, hops[i], out _, out _),
                         "Closed refuge door blocks the follower route");
-                    refugeDoor.SetAngle(-90f);
+                    bool outward = Environment.GetCommandLineArgs().Contains("-refugeOpensOutward");
+                    refugeDoor.SetAngle(outward ? 90f : -90f);
                     Physics.SyncTransforms();
+                    student.TickFollowing(.02f);
+                    Call(student, "Update");
+                    Check(guidance.Label.text.Contains("高亮圈") && guidance.Label.text.Contains("highlighted circle"),
+                        "Opening the door shows Chinese and English directions to the center");
                 }
                 Check(student.TryGetFollowPosition(previousFeet, hops[i], out var goal, out var facing),
                     "Saved scene permits follow route hop " + i);
@@ -182,10 +218,18 @@ public static class CampusRescueChecks
                     // Queue the corner before the chair catches up to exercise rapid teleports.
                 }
                 else
+                {
                     for (int frame = 0; frame < 300 && student.IsFollowing; frame++) student.TickFollowing(.02f);
+                    if (i < hops.Length - 1)
+                        Check(student.Current != CampusRescueStudent.State.Delivered, "Intermediate landings leave delivery pending");
+                }
             }
-            Check(student.Current == CampusRescueStudent.State.Delivered && CampusRescueStudent.Rescued,
-                "Actual chair arrival inside the refuge completes delivery");
+            Check(student.Current == CampusRescueStudent.State.Delivered && !CampusRescueStudent.Rescued &&
+                Vector3.Distance(student.transform.position, destination) < .06f,
+                "Chair rolls to the highlighted destination and waits for the call");
+            Call(student, "Update");
+            Check(guidance.Label.text.Contains("求救按钮") && guidance.Label.text.Contains("call button"),
+                "The call instruction is displayed in Chinese and English");
             presenter.Hide();
             resolve.Invoke(teleport, new object[] { stairHit, Vector3.zero });
             Check(!presenter.IsVisible, "Stair rescue warning stops after the classmate arrives");

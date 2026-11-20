@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Stage = CampusRescueStudent.EscortStage;
 
 // A centred mission-style card stays readable over the world and other HUD panels.
 public sealed class CampusRescueAssistanceView : MonoBehaviour
@@ -10,18 +11,18 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
     private CampusRescueNoticeCard noticeCard;
     private CampusLessonRoute route;
     private bool visible;
-    private Vector3[] waypoints;
     private Material markerMaterial;
+    private CampusRescueStudent student;
+    private Stage CurrentStage => student != null ? student.Stage : Stage.Door;
 
     public void Begin(Transform trackedHead, Vector3[] points)
     {
         head = trackedHead;
         if (head == null) return;
-        waypoints = points;
+        student = GetComponent<CampusRescueStudent>();
         EnsureView();
-        if (waypoints != null && waypoints.Length > 0) route.Show(waypoints);
+        if (points != null && points.Length > 0) route.Show(points);
         SetVisible(true);
-        Refresh();
     }
 
     private void EnsureView()
@@ -69,7 +70,7 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
     {
         visible = value;
         Refresh();
-        if (routeRoot != null) routeRoot.gameObject.SetActive(value);
+        if (routeRoot != null) routeRoot.gameObject.SetActive(value && CurrentStage == Stage.Door);
     }
 
     public void Hide()
@@ -82,37 +83,41 @@ public sealed class CampusRescueAssistanceView : MonoBehaviour
     {
         if (!visible || head == null) return;
         // Place the next arrows beyond the chair so its body cannot cover them.
-        routeAnchor.position = transform.position + Vector3.up * 1.65f;
-        route.Tick(routeAnchor);
-        Refresh();
+        if (routeRoot.gameObject.activeSelf)
+        {
+            routeAnchor.position = transform.position + Vector3.up * 1.65f;
+            route.Tick(routeAnchor);
+        }
     }
 
     private void Refresh()
     {
         if (status == null || head == null) return;
-        string objective = "同学正在跟随  前往二楼避难区\nClassmate following  Go to the 2F refuge";
-        if (waypoints != null && waypoints.Length > 0)
-        {
-            Vector3 toRoute = waypoints[Mathf.Min(route.WaypointIndex, waypoints.Length - 1)] - head.position;
-            toRoute.y = 0;
-            float turn = Vector3.SignedAngle(Vector3.ProjectOnPlane(head.forward, Vector3.up), toRoute, Vector3.up);
-            if (Mathf.Abs(turn) >= 35)
-                objective = Mathf.Abs(turn) > 135 ?
-                    "同学正在跟随  避难区在身后\nClassmate following  Refuge behind you" : turn > 0 ?
-                    "同学正在跟随  避难区在右侧\nClassmate following  Refuge on your right" :
-                    "同学正在跟随  避难区在左侧\nClassmate following  Refuge on your left";
-        }
-        Vector3 toChair = Vector3.ProjectOnPlane(transform.position - head.position, Vector3.up);
-        float angle = Vector3.SignedAngle(Vector3.ProjectOnPlane(head.forward, Vector3.up), toChair, Vector3.up);
-        string location = Mathf.Abs(angle) < 55 ? "" : Mathf.Abs(angle) > 135 ?
-            "\n同学在身后 / Classmate behind you" : angle > 0 ?
-            "\n同学在右侧 / Classmate on your right" : "\n同学在左侧 / Classmate on your left";
-        string message = objective + location;
+        Stage stage = CurrentStage;
+        string languageBreak = stage == Stage.Door ? "\n\n" : "\n";
+        string message = Instruction(stage) + languageBreak + "<size=88%>" + Instruction(stage, english: true) + "</size>";
+        panel.localPosition = new Vector3(0, stage == Stage.Door ? 0 : .31f, 1.3f);
+        panel.localScale = Vector3.one * (stage == Stage.Door ? .0016f : .0012f);
         var messages = CampusMessagePresenter.Instance;
         bool warning = messages != null && (messages.HasPriorityWarning ||
             (messages.IsVisible && messages.CurrentMessage == CampusMessagePresenter.RescueStairWarning));
         if (visible && !warning) noticeCard.Show(message, new Color(.85f, .97f, 1f));
         else panel.gameObject.SetActive(false);
+    }
+
+    internal static string Instruction(Stage stage, bool english = false)
+    {
+        switch (stage)
+        {
+            case Stage.Highlight: return english ? "Lead your classmate through the door to the highlighted circle in the center of the refuge." :
+                "请带同学穿过门，前往避难区中央的高亮圈。";
+            case Stage.WaitForClassmate: return english ? "You’ve reached the circle. Wait for your classmate to catch up." :
+                "已到达高亮圈，请等候同学跟上。";
+            case Stage.Call: return english ? "Your classmate has arrived. Press the call button with the red bell next to the door." :
+                "同学已到达避难区。请按门边墙上带红铃标识的求救按钮。";
+            default: return english ? "Lead your classmate to the 2F refuge and open the door.\nOpen it all the way so the wheelchair can pass." :
+                "请带同学前往二楼避难区，并打开避难区的门。\n开门时请将门完全打开，给轮椅留出通行空间。";
+        }
     }
 
     private void OnDestroy()

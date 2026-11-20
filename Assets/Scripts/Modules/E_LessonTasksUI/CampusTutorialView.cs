@@ -5,7 +5,7 @@ using Step = CampusClassroomTutorial.Step;
 
 internal sealed class CampusTutorialView
 {
-    internal enum Demo { None, Teleport, Feedback, Grab, Release, Press, X, Y, Menu }
+    internal enum Demo { None, Teleport, Feedback, Grab, Release, Press, X, Y, Menu, Window }
     private static readonly Color Ink = new Color(.025f, .07f, .085f, .96f);
     private static readonly Color Mint = new Color(.45f, .95f, .83f);
     private static readonly Color Green = new Color(.48f, .94f, .53f);
@@ -29,6 +29,7 @@ internal sealed class CampusTutorialView
     private readonly CampusNavigationPanels panels;
     private float promptDuration = CampusClassroomTutorial.PromptSeconds;
     private readonly RectTransform demoStick;
+    private readonly RectTransform demoController, windowFrame, windowSash;
     private readonly Image demoX, demoY, demoTrigger, demoStickImage, arcDot, playerDot;
     private readonly Image[] arc = new Image[18];
     private readonly LineRenderer marker, contact, bookHighlight, placement;
@@ -74,8 +75,16 @@ internal sealed class CampusTutorialView
 
         demoGroup = CanvasAt("2D controller animation", hud, new Vector3(0, -.07f, 1.38f), .00125f);
         Picture(demoGroup.transform, Vector2.zero, new Vector2(560, 270), Ink);
-        DrawController(demoGroup.transform, new Vector2(-128, 30), true, out demoStickImage, out demoX, out demoY, out demoTrigger);
+        demoController = new GameObject("Illustrated controller", typeof(RectTransform)).GetComponent<RectTransform>();
+        demoController.SetParent(demoGroup.transform, false);
+        DrawController(demoController, new Vector2(-128, 30), true, out demoStickImage, out demoX, out demoY, out demoTrigger);
         demoStick = demoStickImage.rectTransform;
+        windowFrame = Picture(demoGroup.transform, new Vector2(118, 35), new Vector2(164, 102), Dark).rectTransform;
+        windowFrame.SetSiblingIndex(1);
+        windowSash = Picture(windowFrame, Vector2.zero, new Vector2(156, 94), Blue).rectTransform;
+        windowSash.pivot = new Vector2(1, .5f);
+        windowSash.anchoredPosition = new Vector2(78, 0);
+        Picture(windowSash, new Vector2(-78, 0), new Vector2(142, 80), new Color(.15f, .34f, .40f));
         for (int i = 0; i < arc.Length; i++)
             arc[i] = Picture(demoGroup.transform, Vector2.zero, Vector2.one * 7, Blue, disc);
         arcDot = Picture(demoGroup.transform, Vector2.zero, Vector2.one * 18, Green, disc);
@@ -173,6 +182,7 @@ internal sealed class CampusTutorialView
         promptBackground.sizeDelta = new Vector2(width, height);
         prompt.rectTransform.sizeDelta = new Vector2(width - 50, height - 12);
         demoGroup.gameObject.SetActive(demo != Demo.None && demo != Demo.Feedback);
+        windowFrame.gameObject.SetActive(demo == Demo.Window);
         feedbackGroup.gameObject.SetActive(demo == Demo.Feedback);
         promptGroup.gameObject.SetActive(step == Step.FadePrompt || !string.IsNullOrEmpty(text));
         skipGroup.gameObject.SetActive(!string.IsNullOrEmpty(text) && CampusClassroomTutorial.CanSkipStep(step));
@@ -201,7 +211,6 @@ internal sealed class CampusTutorialView
         promptGroup.transform.localPosition = new Vector3(0, hintY, 1.35f);
         float bottom = hintY - promptBackground.rect.height * .0014f * .5f;
         if (demo != Demo.None) bottom = Mathf.Min(bottom, -.07f - 270 * .00125f * .5f);
-        if (step == Step.WindowDemo) bottom = Mathf.Min(bottom, -.40f);
         skipGroup.transform.localPosition = new Vector3(0, bottom - .025f - 77 * .0014f * .5f, 1.35f);
         demoGroup.alpha = Fade(age, .45f);
         feedbackGroup.alpha = Fade(age, .45f);
@@ -225,8 +234,18 @@ internal sealed class CampusTutorialView
         demoStick.localScale = Vector3.one * (demo == Demo.Menu ? Mathf.Lerp(1f, .79f, pulse) : 1f);
         demoX.color = demo == Demo.X ? active : Dark;
         demoY.color = demo == Demo.Y ? active : Dark;
-        bool trigger = demo == Demo.Grab || demo == Demo.Release || demo == Demo.Press;
-        bool squeezed = demo == Demo.Grab ? age >= 1.4f : demo == Demo.Release ? age < 2f : age >= 1.6f && age < 3.2f;
+        bool trigger = demo == Demo.Grab || demo == Demo.Release || demo == Demo.Press || demo == Demo.Window;
+        float cycle = Mathf.Repeat(age, 6.8f);
+        bool squeezed = demo == Demo.Window ? cycle >= 1.9f && cycle < 5.3f :
+            demo == Demo.Grab ? age >= 1.4f : demo == Demo.Release ? age < 2f : age >= 1.6f && age < 3.2f;
+        demoController.anchoredPosition = Vector2.zero;
+        if (demo == Demo.Window)
+        {
+            float reach = Fade(cycle - .4f, 1.5f) * (1f - Fade(cycle - 5.3f, 1f));
+            float swing = Fade(cycle - 2.2f, 2.5f) * (1f - Fade(cycle - 6.3f, .5f));
+            windowSash.localScale = new Vector3(1f - swing * .44f, 1f, 1f);
+            demoController.anchoredPosition = new Vector2(reach * (86f + swing * 69f), -reach * (16f + swing * 18f));
+        }
         demoTrigger.color = trigger ? squeezed ? Mint : Blue : Dark;
         demoTrigger.rectTransform.localScale = trigger && squeezed ? new Vector3(.65f, 1f, 1f) : Vector3.one;
         bool aiming = demo == Demo.Teleport && age >= 1f && age < 4.5f;
@@ -266,8 +285,15 @@ internal sealed class CampusTutorialView
 
     internal void SetMarker(Vector3? point, bool success)
     {
-        SetRing(marker, point + Vector3.up * .019f, .255f, .255f, true);
-        Tint(marker, success ? Green : Blue);
+        SetFloorMarker(marker, point, .255f, success, tint);
+    }
+
+    internal static void SetFloorMarker(LineRenderer line, Vector3? point, float radius, bool success,
+        MaterialPropertyBlock tint)
+    {
+        SetRing(line, point + Vector3.up * .019f, radius, radius, true);
+        tint.SetColor("_BaseColor", success ? Green : Blue);
+        line.SetPropertyBlock(tint);
     }
 
     internal void SetContact(Vector3? point) => SetRing(contact, point, .073f, .073f, false);
@@ -300,15 +326,21 @@ internal sealed class CampusTutorialView
 
     private LineRenderer Outline(string name, float width, int count)
     {
+        var line = CreateRing(world, name, worldMaterial, width, count);
+        Tint(line, Mint);
+        return line;
+    }
+
+    internal static LineRenderer CreateRing(Transform parent, string name, Material material, float width = .022f, int count = 48)
+    {
         var node = new GameObject(name);
-        node.transform.SetParent(world, false);
+        node.transform.SetParent(parent, false);
         var line = node.AddComponent<LineRenderer>();
-        line.sharedMaterial = worldMaterial;
+        line.sharedMaterial = material;
         line.positionCount = count;
         line.loop = true;
         line.widthMultiplier = width;
         line.numCornerVertices = 3;
-        Tint(line, Mint);
         node.SetActive(false);
         return line;
     }

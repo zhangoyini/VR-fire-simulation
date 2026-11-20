@@ -157,7 +157,7 @@ public sealed class CampusExperience : MonoBehaviour
     }
 
     /// <summary>合成一段短提示音，避免依赖外部音频资源。</summary>
-    internal static AudioClip MakeTone(float[] frequencies, float stepSeconds, float volume)
+    internal static AudioClip MakeTone(float[] frequencies, float stepSeconds, float volume, string name = "towel_protection")
     {
         const int sampleRate = 44100;
         int perStep = Mathf.Max(1, Mathf.RoundToInt(stepSeconds * sampleRate));
@@ -175,7 +175,7 @@ public sealed class CampusExperience : MonoBehaviour
                 data[index] = Mathf.Sin(2f * Mathf.PI * f * t) * volume * Mathf.Clamp01(fade);
             }
         }
-        var clip = AudioClip.Create("towel_protection", total, 1, sampleRate, false);
+        var clip = AudioClip.Create(name, total, 1, sampleRate, false);
         clip.SetData(data, 0);
         return clip;
     }

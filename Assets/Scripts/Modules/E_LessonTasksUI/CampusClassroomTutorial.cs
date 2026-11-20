@@ -186,7 +186,7 @@ internal sealed class CampusClassroomTutorial
                 if (advance) Enter(Step.ToWindow, "寻找窗边地面上的高亮点，尝试前往那里。\n<size=80%>Find the highlighted spot on the floor by the window and teleport there.</size>", WindowSpot);
                 break;
             case Step.ToWindow:
-                if (arrived) Enter(Step.WindowDemo, "将手靠近窗扇高亮处，持续按住扳机。\n握住后沿弧线向外推，松开扳机即可放手。\n<size=80%>Reach for the highlighted edge and hold the trigger.\nPush outward along the arc. Release the trigger to let go.</size>");
+                if (arrived) Enter(Step.WindowDemo, "将手靠近窗扇高亮处，持续按住扳机。\n握住后沿弧线向外推，松开扳机即可放手。\n<size=80%>Reach for the highlighted edge and hold the trigger.\nPush outward along the arc. Release the trigger to let go.</size>", demo: CampusTutorialView.Demo.Window);
                 break;
             case Step.WindowDemo:
                 if (advance) Enter(Step.OpenWindow, "手靠近高亮处，按住扳机握住窗扇，再向外推。\n<size=80%>Reach for the highlight, hold the trigger and push the window outward.</size>");

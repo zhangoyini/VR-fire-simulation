@@ -137,7 +137,8 @@ public sealed class CampusHandInteractor : MonoBehaviour
         if (candidate != null)
         {
             ((IInteractable)candidate).OnHoverEnter();
-            if(CampusLessonDirector.Instance==null || !CampusLessonDirector.Instance.ShowsTutorialContactMarker(candidate))
+            if (candidate is not CampusRescueStudent && candidate is not CampusRefugeCall &&
+                (CampusLessonDirector.Instance == null || !CampusLessonDirector.Instance.ShowsTutorialContactMarker(candidate)))
             {
                 highlight = candidate.GetComponent<CampusContactHighlight>() ?? candidate.gameObject.AddComponent<CampusContactHighlight>();
                 highlight.SetHover(this, true);

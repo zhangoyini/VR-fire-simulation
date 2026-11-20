@@ -338,11 +338,10 @@ public static partial class CampusSceneBuilder
         for(int i=0;i<3;i++) Bench(room,p+new Vector3(-2+i*2,0,-2));
         var zone=Group("2F Refuge Occupancy",zones); zone.position=p+Vector3.up*1.6f;
         var volume=zone.gameObject.AddComponent<BoxCollider>(); volume.size=new Vector3(9,3.2f,7.5f); volume.isTrigger=true;
-        var panel=Cube("Refuge intercom — trigger to call",room,p+new Vector3(3.8f,1.4f,2.5f),new Vector3(.6f,.8f,.18f),teal);
+        var panel=Cube("Refuge intercom — trigger to call",room,p+new Vector3(.61f,1.42f,3.895f),new Vector3(.148f,.11f,.04f),teal);
         var call=panel.AddComponent<CampusRefugeCall>(); Set(call,"trackedHead",head); Set(call,"refugeVolume",volume); Set(call,"resolution",resolution);
-        Cube("Intercom button",room,p+new Vector3(3.8f,1.3f,2.62f),new Vector3(.2f,.2f,.08f),green,false,false);
         Sign("2F REFUGE  /  二层避难区\n到达后使用对讲机确认，等待协助\nUSE INTERCOM TO CONFIRM AND WAIT",room,p+new Vector3(0,2.6f,3.74f),0,new Vector2(5.5f,1),green,.22f);
-        Sign("CALL  /  呼叫",room,p+new Vector3(3.8f,2.05f,2.4f),0,new Vector2(1.2f,.35f),green,.17f);
+        Sign("CALL  /  呼叫",room,p+new Vector3(.57f,1.96f,3.82f),0,new Vector2(.61f,.18f),green,.09f);
         FillLight(room,p+Vector3.up*3.1f,8,1.4f);
     }
 

@@ -179,18 +179,9 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if(CurrentPhase==Phase.Controls)
         {
             if(tutorial==null) return;
-            bool windowDemo=tutorial.ShowingWindowDemo;
             if(tutorial.Tick(dt,x,y))
             { BeginStory(); return; }
-            if(!windowDemo && tutorial.ShowingWindowDemo)
-            {
-                SetText("","","");
-                layout.Arrange(true);
-                demonstration.ShowWindowDemo();
-            }
             UpdatePresentationVisibility();
-            if(tutorial.ShowingWindowDemo)
-            { layout.SetReadingProgress(0); demonstration.Tick(windowDemo?dt:0); layout.Tick(windowDemo?dt:0); }
             return;
         }
         if(fireStarted && CurrentPhase>=Phase.OpenDoor && CurrentPhase<Phase.Complete) UpdateDoorwaySmoke();
@@ -464,11 +455,11 @@ public sealed class CampusLessonDirector : MonoBehaviour
     private void SetFade(float alpha) { if(fade!=null) fade.color=new Color(0,0,0,Mathf.Clamp01(alpha)); }
     private void UpdatePresentationVisibility()
     {
-        lessonPanel.SetActive(CurrentPhase==Phase.Controls ? tutorial!=null && tutorial.ShowingWindowDemo : WorldInteractionLocked);
+        lessonPanel.SetActive(CurrentPhase!=Phase.Controls && WorldInteractionLocked);
         if(gameplayHUD!=null) gameplayHUD.SetActive(ExerciseStarted);
     }
-    internal void StudentDelivered() => tasks?.StudentDelivered();
-    internal void ConfirmRescue() => tasks?.ConfirmRescue();
+    internal void RescueStageChanged() => tasks?.RescueStageChanged();
+    internal bool ConfirmRescue() => tasks?.ConfirmRescue() ?? false;
     internal void CompleteAssembly()
     {
         tasks?.CompleteAssembly();

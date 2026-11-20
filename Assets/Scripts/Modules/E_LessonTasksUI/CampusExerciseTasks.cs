@@ -122,22 +122,18 @@ internal sealed class CampusExerciseTasks
         return false;
     }
 
-    internal void StudentDelivered()
+    internal void RescueStageChanged()
     {
-        if (rescue != Status.Active) return;
-        CompleteRescue();
+        if (rescue == Status.Hidden && student != null && student.AssistanceStarted)
+            rescue = Status.Active;
+        revision++;
     }
 
-    internal void ConfirmRescue()
+    internal bool ConfirmRescue()
     {
-        if (rescue != Status.Active) return;
-        if (student.Current != CampusRescueStudent.State.Delivered)
-        {
-            CampusMessagePresenter.Instance?.Show("先与同学交谈，再带他进入避难区。\nTalk to your classmate, then lead him into the refuge.");
-            return;
-        }
-
+        if (rescue != Status.Active || student == null || !student.ConfirmCall()) return false;
         CompleteRescue();
+        return true;
     }
 
     private void CompleteRescue()
@@ -145,7 +141,7 @@ internal sealed class CampusExerciseTasks
         rescue = Status.Complete;
         JourneyDirector.Instance?.Request(JourneyState.Refuge);
         SessionLogger.Write("RESCUE_COMPLETED");
-        Announce("<b>可选任务 Optional task</b>\n\n轮椅救援已完成，继续前往一楼操场。\n<size=83%>Rescue complete. Continue to the schoolyard.</size>", "TASK_RESCUE_COMPLETED", complete: true);
+        Announce("<b>救援完成 Rescue complete</b>\n\n求救信号已发送。请继续撤离，前往一楼操场。\n<size=83%>Help requested. Continue evacuating to the schoolyard.</size>", "TASK_RESCUE_COMPLETED", complete: true);
     }
 
     internal void CompleteAssembly()
@@ -193,11 +189,10 @@ internal sealed class CampusExerciseTasks
         string rescueInstruction = null, rescueEnglish = null;
         if (current == Objective.Rescue)
         {
-            bool delivered = student.Current == CampusRescueStudent.State.Delivered;
-            rescueInstruction = delivered ? "同学已安全到达避难区。" :
-                "走近同学并选择“跟我来”。每次传送后，同学会平滑跟上；带他进入避难区。";
-            rescueEnglish = delivered ? "Your classmate has reached the refuge safely." :
-                "Approach your classmate and choose “Follow me”. He will roll after you each time you teleport. Lead him into the refuge.";
+            rescueInstruction = student.AssistanceStarted ? CampusRescueAssistanceView.Instruction(student.Stage) :
+                "走近同学并选择“跟我来”。";
+            rescueEnglish = student.AssistanceStarted ? CampusRescueAssistanceView.Instruction(student.Stage, english: true) :
+                "Approach your classmate and choose “Follow me”.";
         }
         AddRow(card, rescue, "可选支线 轮椅救援", "Optional Rescue", rescueInstruction, rescueEnglish);
         AddRow(card, exit, "任务 4 找到出口并撤离", "4 Find the exit and evacuate",
@@ -226,7 +221,7 @@ internal sealed class CampusExerciseTasks
             AddCard(phase == CampusLessonDirector.Phase.Complete ? Status.Complete : Status.Active,
                 "2 打湿毛巾并下到三楼", "2 Wet towel, reach 3F");
         AddCard(detour, "3 前往 B 楼梯", "3 Reach Stair B");
-        AddCard(rescue, "可选 护送同学到二楼避难区", "Optional Escort to 2F refuge");
+        AddCard(rescue, "可选 护送同学并按铃呼救", "Optional Escort and call for help");
         AddCard(exit, "4 找到出口并走到室外", "4 Find exit, go outside");
         return cardEntries;
     }

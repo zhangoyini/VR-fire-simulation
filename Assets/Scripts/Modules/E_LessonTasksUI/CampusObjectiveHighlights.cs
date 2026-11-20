@@ -15,15 +15,17 @@ internal sealed class CampusObjectiveHighlights
     private readonly Transform head;
     private readonly Material objectiveMaterial;
     private readonly LineRenderer primary, secondary;
+    private readonly LineRenderer refugeMarker;
+    private readonly MaterialPropertyBlock refugeMarkerTint = new MaterialPropertyBlock();
     private readonly TextMeshPro eastStairLabel;
-    private readonly Renderer classroomBar, refugeSign, callButton, assemblySign;
+    private readonly Renderer classroomBar, refugeSign, assemblySign;
     private readonly Transform debrisAnchor;
     private readonly Renderer[] debrisRenderers;
     private readonly Material[][] debrisOriginal, debrisLit;
     private readonly Dictionary<Material, Material> debrisMaterials = new Dictionary<Material, Material>();
     private readonly GameObject assemblyArea;
     private readonly Mesh assemblyMesh;
-    private readonly Renderer[] exitBars, pushGrips;
+    private readonly Renderer[] exitBars;
     private readonly CampusRescueStudent student;
     private bool debrisHighlighted;
 
@@ -38,10 +40,10 @@ internal sealed class CampusObjectiveHighlights
         objectiveMaterial = new Material(shader) { color = Cyan };
         primary = CreateOutline("Primary objective", objectiveMaterial);
         secondary = CreateOutline("Second handle", objectiveMaterial);
+        refugeMarker = CampusTutorialView.CreateRing(root.transform, "Refuge destination ring", objectiveMaterial);
 
         classroomBar = classroomDoor.transform.Find("Push bar")?.GetComponent<Renderer>();
         exitBars = FindParts(exitDoor, "Panic bar");
-        pushGrips = FindParts(student != null ? student.transform : null, "Push grip");
         var debrisRoot = GameObject.Find("3F Stair A collapsed storage pile");
         debrisAnchor = debrisRoot?.transform.Find("Toppled storage cabinet");
         debrisRenderers = debrisRoot != null ? debrisRoot.GetComponentsInChildren<MeshRenderer>()
@@ -49,7 +51,6 @@ internal sealed class CampusObjectiveHighlights
         debrisOriginal = debrisRenderers.Select(part => part.sharedMaterials).ToArray();
         debrisLit = new Material[debrisRenderers.Length][];
         refugeSign = SignBacking(GameObject.Find("Sign 2F REFUGE  /  二层避难区")?.transform);
-        callButton = GameObject.Find("Intercom button")?.GetComponent<Renderer>();
 
         var assemblyRoot = GameObject.Find("Assembly sign post")?.transform.parent;
         // The front-facing plaque is the one nearer the building entrance.
@@ -85,6 +86,8 @@ internal sealed class CampusObjectiveHighlights
     {
         root.SetActive(true);
         primary.enabled = secondary.enabled = false;
+        Vector3? refugePoint = null;
+        bool playerAtRefugePoint = false;
         bool showEastStair = false;
         SetDebrisHighlight(false);
         bool showAssembly = tasks.Floor == 1 && tasks.AssemblyApproach;
@@ -116,9 +119,17 @@ internal sealed class CampusObjectiveHighlights
                 break;
             case 2:
                 if (!tasks.RescueActive || student == null) break;
-                if (student.Current == CampusRescueStudent.State.Waiting)
-                    Draw(primary, student.GetComponent<Collider>().bounds, 5f);
-                else if (student.Current == CampusRescueStudent.State.Following) DrawFlat(primary, refugeSign, 30f);
+                switch (student.Stage)
+                {
+                    case CampusRescueStudent.EscortStage.Door:
+                        if (student.IsFollowing) DrawFlat(primary, refugeSign, 30f);
+                        break;
+                    case CampusRescueStudent.EscortStage.Highlight:
+                    case CampusRescueStudent.EscortStage.WaitForClassmate:
+                        refugePoint = student.Destination + Vector3.up * .025f;
+                        playerAtRefugePoint = student.Stage == CampusRescueStudent.EscortStage.WaitForClassmate;
+                        break;
+                }
                 break;
             case 1:
                 if (tasks.ExitActive)
@@ -129,6 +140,8 @@ internal sealed class CampusObjectiveHighlights
                 else if (showAssembly) DrawFlat(primary, assemblySign, 40f);
                 break;
         }
+        CampusTutorialView.SetFloorMarker(refugeMarker, refugePoint, CampusRescueStudent.DestinationRadius,
+            playerAtRefugePoint, refugeMarkerTint);
         if (eastStairLabel != null) eastStairLabel.gameObject.SetActive(showEastStair);
     }
 

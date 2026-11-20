@@ -50,6 +50,18 @@ public sealed class CampusManualTutorialDriver : MonoBehaviour
         if (tutorial.CurrentStep != Step.MapFolding) { Fail("Second X did not close map practice"); yield break; }
         Enter(tutorial,Step.TaskOpen); lesson.Tick(.1f,false,false); lesson.Tick(.1f,false,true);
         if (tutorial.CurrentStep != Step.TaskClose) { Fail("Real Y action did not advance task practice"); yield break; }
+        tutorial.GetType().GetMethod("Enter", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(tutorial,
+            new object[] { Step.ToWindow, "前往窗边 / Go to the window", tutorial.WindowSpot, CampusTutorialView.Demo.None, null, false });
+        tutorial.RecordTeleport(tutorial.WindowSpot);
+        lesson.Tick(.1f,false,false);
+        var diagram = hud.Find("2D controller animation");
+        if (!tutorial.ShowingWindowDemo || !diagram.gameObject.activeInHierarchy ||
+            Field<CampusTutorialView.Demo>(view, "demo") != CampusTutorialView.Demo.Window)
+        { Fail("Window landing did not open the shared illustrated controller demo"); yield break; }
+        lesson.Tick(3f,false,false);
+        if (Field<RectTransform>(view, "windowSash").localScale.x >= .99f ||
+            Field<RectTransform>(view, "demoController").anchoredPosition.x <= 0)
+        { Fail("Window demo did not animate the controller and sash together"); yield break; }
         Enter(tutorial,Step.OpenWindow); Field<CampusHingeInteractable>(tutorial,"window").SetAngle(1);
         lesson.Tick(.1f,false,false);
         if (tutorial.CurrentStep != Step.WindowDone) { Fail("Actual open window did not complete the action"); yield break; }

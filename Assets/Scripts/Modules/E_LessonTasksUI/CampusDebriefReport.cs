@@ -21,6 +21,17 @@ internal sealed class CampusDebriefReport
 
     private bool wasProtected;
     internal float TotalLoss => timeLoss + smokeLoss + otherLoss;
+    internal int Stars
+    {
+        get
+        {
+            if (!success) return 0;
+            int stars = 1;
+            foreach (var task in tasks)
+                if (task == CampusExerciseTasks.Status.Complete) stars++;
+            return stars;
+        }
+    }
 
     internal void Observe(int floor, CampusTowelInteractable towel, bool protection, float elapsed)
     {

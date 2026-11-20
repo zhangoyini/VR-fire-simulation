@@ -18,6 +18,8 @@ public static class FireTrainingUIStyle
         var rect = path.StartsWith("buttons/button_secondary_")
             ? new Rect(texture.width * .04f, texture.height * .13f, texture.width * .92f, texture.height * .74f)
             : new Rect(0, 0, texture.width, texture.height);
+        if (path == "icons/icon_alarm_bell")
+            rect = new Rect(texture.width * .10f, texture.height * .21f, texture.width * .80f, texture.height * .59f);
         var sprite = Sprite.Create(texture, rect, Vector2.one * .5f, 100);
         sprites[path] = sprite;
         return sprite;
