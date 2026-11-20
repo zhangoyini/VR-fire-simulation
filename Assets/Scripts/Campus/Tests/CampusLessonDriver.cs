@@ -483,7 +483,7 @@ public sealed partial class CampusLessonDriver : MonoBehaviour
         lesson.Tick(.25f,false,true);
         Check(mapPanel.localPosition.x<0 && taskPanel.localPosition==taskCorner,"Y folds the map before expanding task details");
         lesson.Tick(.55f,false,false);
-        Check(mapPanel.localPosition==mapCorner && Mathf.Abs(taskPanel.localPosition.x)<.001f && taskDetails.text.Contains("主任务 · 疏散到一楼操场"),
+        Check(mapPanel.localPosition==mapCorner && Mathf.Abs(taskPanel.localPosition.x)<.001f && taskDetails.text.Contains("主任务 疏散到一楼操场"),
             "Formal Y details show the main objective in the shared task panel");
         lesson.Tick(.55f,false,true);
         foreach(var hand in hands) { hand.GetComponent<CampusTrackedHandPose>().ApplyLocalPose(originalHead+new Vector3(hand.InputSource==Valve.VR.SteamVR_Input_Sources.LeftHand?-.22f:.22f,-.32f,.4f),Quaternion.identity); hand.GetComponent<CampusHandVisual>().SendMessage("LateUpdate"); }

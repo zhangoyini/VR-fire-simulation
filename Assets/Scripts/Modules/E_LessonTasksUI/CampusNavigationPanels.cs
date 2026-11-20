@@ -21,6 +21,7 @@ internal sealed class CampusNavigationPanels
     private readonly Transform head;
     private readonly CanvasGroup mapGroup, taskGroup, noticeGroup;
     private readonly TMP_Text mapLabel, taskLabel, taskText, noticeText, objectHint;
+    private readonly TMP_Text taskKeyLabel;
     private readonly Image mapBadge, objectHintBackground;
     private readonly GameObject objectHintRoot;
     private readonly RectTransform mapRect, mapContent, taskRect;
@@ -66,7 +67,7 @@ internal sealed class CampusNavigationPanels
 
         taskGroup = CampusTutorialView.CanvasAt("Task details panel", root.transform, TaskCorner, .0017f);
         taskRect = CampusTutorialView.Picture(taskGroup.transform, Vector2.zero, new Vector2(205, 52), Ink).rectTransform;
-        taskLabel = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(196, 48), 21, "Y  任务详情 / Tasks");
+        taskLabel = CampusTaskTab.CreateLabels(taskGroup.transform, font, out taskKeyLabel);
         taskText = CampusTutorialView.CreateLabel(font, taskGroup.transform, Vector2.zero, new Vector2(TaskTextWidth, 124), 20, "");
         taskText.alignment = TextAlignmentOptions.Left;
         // Retain the full instruction text as state for existing lesson diagnostics;
@@ -97,7 +98,7 @@ internal sealed class CampusNavigationPanels
         mapGroup.alpha = step == Step.MapDemo ? Mathf.SmoothStep(0, 1, age) : 1;
         taskGroup.alpha = step == Step.TaskDemo ? Mathf.SmoothStep(0, 1, age) : 1;
         SetTaskText("<b>任务详情 / Tasks</b>\n查看教室出口  /  Find the classroom exit\n\n到门内侧的标记处。\n<size=85%>Go to the marker inside the doorway.</size>");
-        taskCards.SetEntries(new[] { new CampusTaskCardList.Entry("练习 · 查看教室出口", "Practice · Find the classroom exit") });
+        taskCards.SetEntries(new[] { new CampusTaskCardList.Entry("练习 查看教室出口", "Practice Find the classroom exit") });
         if (lastPracticeStep != step)
             requested = step == Step.MapClose ? Panel.Map : step == Step.TaskClose ? Panel.Tasks : Panel.None;
         lastPracticeStep = step;
@@ -136,7 +137,7 @@ internal sealed class CampusNavigationPanels
         bool priorityWarning = messages?.HasPriorityWarning ?? false;
         if (IsExpanded && !priorityWarning) messages?.Hide();
         bool blocked = IsExpanded || priorityWarning;
-        taskLabel.text = IsExpanded && notices.Count > 0 ? "Y  新任务 / New task" : "Y  任务详情 / Tasks";
+        taskLabel.text = IsExpanded && notices.Count > 0 ? "新任务  New task" : "任务详情  Tasks";
         if (blocked || notices.Count == 0)
         {
             noticeGroup.gameObject.SetActive(false);
@@ -250,6 +251,7 @@ internal sealed class CampusNavigationPanels
         taskGroup.transform.localPosition = Vector3.Lerp(TaskCorner, PanelCenter + Vector3.down * .05f, taskScale);
         taskRect.sizeDelta = Vector2.Lerp(new Vector2(205, 52), new Vector2(TaskTextWidth + 24f, taskHeight), taskScale);
         taskLabel.alpha = 1f - taskScale;
+        taskKeyLabel.alpha = 1f - taskScale;
         taskRect.GetComponent<Image>().enabled = taskScale < .01f;
         taskCards.Show(taskScale);
         FireTrainingUIStyle.Apply(taskRect.GetComponent<Image>(), "panels/task_tab");

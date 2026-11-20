@@ -96,10 +96,10 @@ internal sealed class CampusDebriefView
         {
             title.text = report.success ? Bilingual("成功撤离", "Evacuation successful") : Bilingual("演练失败", "Evacuation incomplete");
             string result = report.success ? "已到达" + report.endLocation :
-                (report.depleted ? "血量耗尽" : "演练结束") + " · " + report.endLocation;
-            string englishResult = (report.success ? "Reached " : report.depleted ? "Health depleted · " : "Drill ended · ") + report.endLocationEnglish;
+                (report.depleted ? "血量耗尽" : "演练结束") + " " + report.endLocation;
+            string englishResult = (report.success ? "Reached " : report.depleted ? "Health depleted " : "Drill ended ") + report.endLocationEnglish;
             string task = report.success || string.IsNullOrEmpty(report.currentTask) ? "" :
-                "\n" + Bilingual("结束时的任务 · " + report.currentTask, "Task at end · " + report.currentTaskEnglish);
+                "\n" + Bilingual("结束时的任务 " + report.currentTask, "Task at end " + report.currentTaskEnglish);
             body.text = Bilingual(result, englishResult) +
                 $"\n正式演练用时 / Drill time   {Clock(report.duration)}\n剩余血量 / Health left   {Points(report.endHealth)} / {Points(report.initialHealth)}" + task;
             return;
@@ -115,40 +115,40 @@ internal sealed class CampusDebriefView
                     report.rescueDelivered ? "Delivered" : report.rescueStarted ? "Incomplete" : "Skipped";
                 body.text = $"1  寻找毛巾    {State(report.tasks[0])}\n2  浸湿毛巾并下到三楼    {State(report.tasks[1])}\n" +
                     $"3  遇阻后改走 B 楼梯    {State(report.tasks[2])}\n4  找到出口并撤离    {State(report.tasks[3])}\n" +
-                    $"可选 · 轮椅救援    {rescue}\n" +
-                    $"<size=82%>触发 {YesNo(report.rescue != Status.Hidden)}  ·  开始 {YesNo(report.rescueStarted)}\n" +
-                    $"送达 {YesNo(report.rescueDelivered)}  ·  完成 {YesNo(report.rescue == Status.Complete)}</size>";
-                englishBody.text = $"1  Find a towel · {State(report.tasks[0], true)}\n2  Wet towel, reach 3F · {State(report.tasks[1], true)}\n" +
-                    $"3  Detour via Stair B · {State(report.tasks[2], true)}\n4  Find exit and evacuate · {State(report.tasks[3], true)}\n" +
-                    $"Optional rescue · {rescueEnglish}\n" +
-                    $"<size=82%>Triggered {YesNo(report.rescue != Status.Hidden, true)} · Started {YesNo(report.rescueStarted, true)}\n" +
-                    $"Delivered {YesNo(report.rescueDelivered, true)} · Complete {YesNo(report.rescue == Status.Complete, true)}</size>";
+                    $"可选 轮椅救援    {rescue}\n" +
+                    $"<size=82%>触发 {YesNo(report.rescue != Status.Hidden)} 开始 {YesNo(report.rescueStarted)}\n" +
+                    $"送达 {YesNo(report.rescueDelivered)} 完成 {YesNo(report.rescue == Status.Complete)}</size>";
+                englishBody.text = $"1  Find a towel {State(report.tasks[0], true)}\n2  Wet towel, reach 3F {State(report.tasks[1], true)}\n" +
+                    $"3  Detour via Stair B {State(report.tasks[2], true)}\n4  Find exit and evacuate {State(report.tasks[3], true)}\n" +
+                    $"Optional rescue {rescueEnglish}\n" +
+                    $"<size=82%>Triggered {YesNo(report.rescue != Status.Hidden, true)} Started {YesNo(report.rescueStarted, true)}\n" +
+                    $"Delivered {YesNo(report.rescueDelivered, true)} Complete {YesNo(report.rescue == Status.Complete, true)}</size>";
                 break;
             case 2:
                 title.text = Bilingual("血量与受伤", "Health and damage");
                 int worst = 0;
                 for (int i = 1; i < report.smokeLossByFloor.Length; i++)
                     if (report.smokeLossByFloor[i] > report.smokeLossByFloor[worst]) worst = i;
-                body.text = $"初始 {Points(report.initialHealth)}  ·  剩余 {Points(report.endHealth)}\n累计损失  {Points(report.TotalLoss)} 点\n" +
+                body.text = $"初始 {Points(report.initialHealth)} 剩余 {Points(report.endHealth)}\n累计损失  {Points(report.TotalLoss)} 点\n" +
                     $"基础时间消耗  {Points(report.timeLoss)} 点\n烟雾伤害  {Points(report.smokeLoss)} 点" +
                     (report.otherLoss > 0 ? $"\n其他扣血  {Points(report.otherLoss)} 点" : "") +
                     (report.smokeLossByFloor[worst] > 0 ? $"\n烟雾扣血最多：{worst + 1} 楼，{Points(report.smokeLossByFloor[worst])} 点" : "");
-                englishBody.text = $"Start {Points(report.initialHealth)} · End {Points(report.endHealth)}\nTotal lost  {Points(report.TotalLoss)} HP\n" +
+                englishBody.text = $"Start {Points(report.initialHealth)} End {Points(report.endHealth)}\nTotal lost  {Points(report.TotalLoss)} HP\n" +
                     $"Time-based loss  {Points(report.timeLoss)} HP\nSmoke damage  {Points(report.smokeLoss)} HP" +
                     (report.otherLoss > 0 ? $"\nOther loss  {Points(report.otherLoss)} HP" : "") +
-                    (report.smokeLossByFloor[worst] > 0 ? $"\nMost smoke damage  {worst + 1}F · {Points(report.smokeLossByFloor[worst])} HP" : "");
+                    (report.smokeLossByFloor[worst] > 0 ? $"\nMost smoke damage  {worst + 1}F {Points(report.smokeLossByFloor[worst])} HP" : "");
                 break;
             case 3:
                 title.text = Bilingual("毛巾防护", "Towel protection");
                 string coverage = report.smokeSeconds > 0
-                    ? $"有效防护 {report.protectedSeconds:0.#} / {report.smokeSeconds:0.#} 秒 · {report.protectedSeconds / report.smokeSeconds:P0}"
+                    ? $"有效防护 {report.protectedSeconds:0.#} / {report.smokeSeconds:0.#} 秒 {report.protectedSeconds / report.smokeSeconds:P0}"
                     : "无烟雾暴露";
                 body.text = $"拿到毛巾  {Done(report.towelPickedUp)}\n打湿毛巾  {Done(report.towelWet)}\n" +
                     $"遮住口鼻  {Done(report.firstProtection >= 0)}\n" +
                     (report.firstProtection >= 0 ? $"首次启用防护  {Clock(report.firstProtection)}\n" : "") +
                     $"实际烟雾中  {coverage}";
                 string coverageEnglish = report.smokeSeconds > 0
-                    ? $"In smoke · {report.protectedSeconds:0.#} / {report.smokeSeconds:0.#} s protected ({report.protectedSeconds / report.smokeSeconds:P0})"
+                    ? $"In smoke {report.protectedSeconds:0.#} / {report.smokeSeconds:0.#} s protected ({report.protectedSeconds / report.smokeSeconds:P0})"
                     : "No smoke exposure";
                 englishBody.text = $"Towel picked up  {YesNo(report.towelPickedUp, true)}\nTowel wetted  {YesNo(report.towelWet, true)}\n" +
                     $"Nose and mouth covered  {YesNo(report.firstProtection >= 0, true)}\n" +

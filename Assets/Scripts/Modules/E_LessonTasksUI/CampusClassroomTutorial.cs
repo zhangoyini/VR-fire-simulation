@@ -36,7 +36,11 @@ internal sealed class CampusClassroomTutorial
     private bool leftRaised, rightRaised, arrived, wasX, wasY;
     private float age, dwell, placedFor, droppedFor;
     private bool advanceRequested;
-    internal void RequestAdvance() => advanceRequested = true;
+    internal static bool CanSkipStep(Step step) => step == Step.Introduction || step == Step.TeleportDemo ||
+        step == Step.TeleportFeedback || step == Step.Arrival || step == Step.WindowDemo || step == Step.WindowDone ||
+        step == Step.ButtonDemo || step == Step.ButtonDone || step == Step.GrabDemo || step == Step.InspectBook ||
+        step == Step.ReleaseDemo || step == Step.Health || step == Step.MapDemo || step == Step.TaskDemo || step == Step.Complete;
+    internal void RequestAdvance() { if (CanSkipStep(CurrentStep)) advanceRequested = true; }
     internal float PromptDuration { get; private set; } = PromptSeconds;
     private Vector3? destination;
     internal Step CurrentStep { get; private set; }
@@ -129,14 +133,10 @@ internal sealed class CampusClassroomTutorial
 
         bool advance = advanceRequested;
         advanceRequested = false;
-        // Only invisible fade/fold transitions may finish on their own. Visible
-        // instructions remain until SKIP is clicked, including completed actions.
-        if (!advance && CurrentStep != Step.FadePrompt && CurrentStep != Step.MapFolding && CurrentStep != Step.TaskFolding)
-            return false;
         switch (CurrentStep)
         {
             case Step.Introduction:
-                if (advance || age >= PromptDuration)
+                if (advance)
                     Enter(Step.LookAround, "看看四周，熟悉一下教室。\n<size=80%>Look around the classroom.</size>");
                 break;
             case Step.LookAround:
@@ -146,7 +146,7 @@ internal sealed class CampusClassroomTutorial
                     if (!lookStarted) { lookStarted = true; lookStart = heading; }
                     lookedAround |= Vector3.Angle(lookStart, heading) >= 35f;
                 }
-                if (advance || age >= PromptDuration && lookedAround)
+                if (lookedAround)
                     Enter(Step.LookDown, "低头看看你的双手\n<size=80%>Look down at your hands.</size>");
                 break;
             case Step.LookDown:
@@ -160,115 +160,113 @@ internal sealed class CampusClassroomTutorial
                         sawHands = true;
                     }
                 }
-                if (advance || age >= PromptDuration && sawHands) Enter(Step.MoveHands, "抬起双手，试着动一动\n<size=80%>Raise both hands and move them.</size>");
+                if (sawHands) Enter(Step.MoveHands, "抬起双手，试着动一动\n<size=80%>Raise both hands and move them.</size>");
                 break;
             case Step.MoveHands:
                 leftRaised |= Raised(left, leftLow);
                 rightRaised |= Raised(right, rightLow);
-                if (advance || age >= PromptDuration && leftRaised && rightRaised)
+                if (leftRaised && rightRaised)
                     Enter(Step.MenuPractice, "想暂停或退出时，按下左摇杆打开菜单。\n现在试一次。用手柄射线指向「继续」，按下扳机确认返回练习。\n<size=80%>Click the left stick to open the pause menu. Try it now.\nAim the controller ray at Resume and press the trigger to confirm.</size>", demo: CampusTutorialView.Demo.Menu);
                 break;
             case Step.MenuPractice:
             case Step.MenuResume:
-                Enter(Step.TeleportDemo, "前推任一摇杆，瞄准落点。\n让摇杆回中，完成瞬移。\n<size=80%>Push either stick forward to aim.\nRelease it to teleport.</size>", demo: CampusTutorialView.Demo.Teleport, marker: FirstSpot);
+                // The real pause/resume callbacks advance this exercise.
                 break;
             case Step.TeleportDemo:
-                if (advance || age >= PromptDuration)
+                if (advance)
                     Enter(Step.TeleportFeedback, "蓝色圆环表示可以到达，松开摇杆即可瞬移。\n红色叉号表示无法到达，请重新选择落点。\n<size=80%>Blue ring means you can teleport there.\nRed cross means choose another landing point.</size>", demo: CampusTutorialView.Demo.Feedback, marker: FirstSpot);
                 break;
             case Step.TeleportFeedback:
-                if (advance || age >= PromptDuration) Enter(Step.FirstLanding, "寻找过道地面上的高亮点，尝试瞬移到那里。\n<size=80%>Find the highlighted spot on the aisle floor and teleport there.</size>", FirstSpot);
+                if (advance) Enter(Step.FirstLanding, "寻找过道地面上的高亮点，尝试瞬移到那里。\n<size=80%>Find the highlighted spot on the aisle floor and teleport there.</size>", FirstSpot);
                 break;
             case Step.FirstLanding:
-                if (advance || arrived) Enter(Step.Arrival, "已到达\n<size=80%>Marker reached.</size>", marker: FirstSpot, success: true);
+                if (arrived) Enter(Step.Arrival, "已到达\n<size=80%>Marker reached.</size>", marker: FirstSpot, success: true);
                 break;
             case Step.Arrival:
-                if (advance || age >= PromptDuration) Enter(Step.ToWindow, "寻找窗边地面上的高亮点，尝试前往那里。\n<size=80%>Find the highlighted spot on the floor by the window and teleport there.</size>", WindowSpot);
+                if (advance) Enter(Step.ToWindow, "寻找窗边地面上的高亮点，尝试前往那里。\n<size=80%>Find the highlighted spot on the floor by the window and teleport there.</size>", WindowSpot);
                 break;
             case Step.ToWindow:
-                if (advance || arrived) Enter(Step.WindowDemo, "将手靠近窗扇高亮处，持续按住扳机。\n握住后沿弧线向外推，松开扳机即可放手。\n<size=80%>Reach for the highlighted edge and hold the trigger.\nPush outward along the arc. Release the trigger to let go.</size>");
+                if (arrived) Enter(Step.WindowDemo, "将手靠近窗扇高亮处，持续按住扳机。\n握住后沿弧线向外推，松开扳机即可放手。\n<size=80%>Reach for the highlighted edge and hold the trigger.\nPush outward along the arc. Release the trigger to let go.</size>");
                 break;
             case Step.WindowDemo:
-                if (advance || age >= PromptDuration) Enter(Step.OpenWindow, "手靠近高亮处，按住扳机握住窗扇，再向外推。\n<size=80%>Reach for the highlight, hold the trigger and push the window outward.</size>");
+                if (advance) Enter(Step.OpenWindow, "手靠近高亮处，按住扳机握住窗扇，再向外推。\n<size=80%>Reach for the highlight, hold the trigger and push the window outward.</size>");
                 break;
             case Step.OpenWindow:
-                if (advance || window.Angle >= WindowMotionThreshold)
+                if (window.Angle >= WindowMotionThreshold)
                     Enter(Step.WindowDone, "窗户已打开。门也用同样的方式打开。\n<size=80%>Window open. Doors work the same way.</size>");
                 break;
             case Step.WindowDone:
-                if (advance || age >= PromptDuration && !window.IsHeld)
+                if (advance && !window.IsHeld)
                     Enter(Step.ToButton, "寻找教学按钮旁地面上的高亮点，尝试前往那里。\n<size=80%>Find the highlighted floor spot beside the practice button and teleport there.</size>", ButtonSpot);
                 break;
             case Step.ToButton:
-                if (advance || arrived) Enter(Step.ButtonDemo, "手靠近按钮，按住扳机，再松开\n<size=80%>Reach for the button. Press and release the trigger.</size>", demo: CampusTutorialView.Demo.Press);
+                if (arrived) Enter(Step.ButtonDemo, "手靠近按钮，按住扳机，再松开\n<size=80%>Reach for the button. Press and release the trigger.</size>", demo: CampusTutorialView.Demo.Press);
                 break;
             case Step.ButtonDemo:
-                if (advance || age >= PromptDuration) Enter(Step.PressButton, "试着按下按钮\n<size=80%>Try pressing the button.</size>");
+                if (advance) Enter(Step.PressButton, "试着按下按钮\n<size=80%>Try pressing the button.</size>");
                 break;
             case Step.PressButton:
-                if (advance || view.Button.Pressed) Enter(Step.ButtonDone, "操作成功\n<size=80%>Button pressed.</size>");
+                if (view.Button.Pressed) Enter(Step.ButtonDone, "操作成功\n<size=80%>Button pressed.</size>");
                 break;
             case Step.ButtonDone:
-                if (advance || age >= PromptDuration && !view.Button.IsHeld)
+                if (advance && !view.Button.IsHeld)
                     Enter(Step.ToBook, "寻找书桌旁地面上的高亮点，前往那里拿起发光的书。\n<size=80%>Find the highlighted floor spot by the desk and go there to pick up the glowing book.</size>", BookSpot);
                 break;
             case Step.ToBook:
-                if (advance || arrived) Enter(Step.GrabDemo, "靠近书本，持续按住扳机\n<size=80%>Reach for the book and hold the trigger.</size>", demo: CampusTutorialView.Demo.Grab);
+                if (arrived) Enter(Step.GrabDemo, "靠近书本，持续按住扳机\n<size=80%>Reach for the book and hold the trigger.</size>", demo: CampusTutorialView.Demo.Grab);
                 break;
             case Step.GrabDemo:
-                if (advance || age >= PromptDuration) Enter(Step.PickUp, "按住扳机，拿起这本书\n<size=80%>Hold the trigger to pick up the book.</size>");
+                if (advance) Enter(Step.PickUp, "按住扳机，拿起这本书\n<size=80%>Hold the trigger to pick up the book.</size>");
                 break;
             case Step.PickUp:
-                if (advance || book.IsHeld && (book.transform.position.y >= bookHome.y + .045f ||
+                if (book.IsHeld && (book.transform.position.y >= bookHome.y + .045f ||
                     HorizontalDistance(book.transform.position, bookHome) >= .20f))
                     Enter(Step.InspectBook, "转动手腕，看看手里的书\n<size=80%>Turn your wrist to look at the book.</size>");
                 break;
             case Step.InspectBook:
-                if (advance || age >= PromptDuration)
+                if (advance)
                     Enter(Step.ReleaseDemo, "把书移到桌面轮廓上方，松开扳机放下。\n<size=80%>Move the book over the desk outline and release the trigger.</size>", demo: CampusTutorialView.Demo.Release);
                 break;
             case Step.ReleaseDemo:
-                if (advance || age >= PromptDuration) Enter(Step.PutBack, "把书放回桌上\n<size=80%>Put the book back on the desk.</size>");
+                if (advance) Enter(Step.PutBack, "把书放回桌上\n<size=80%>Put the book back on the desk.</size>");
                 break;
             case Step.PutBack:
-                foreach (var hand in head.GetComponentInParent<CampusLocomotion>().GetComponentsInChildren<CampusHandInteractor>(true)) hand.Release();
-                book.ResetBook();
-                Enter(Step.FadePrompt, "");
+                TickPlacement(dt);
                 break;
             case Step.FadePrompt:
                 if (age >= .65f) Enter(Step.Health, "上方是你的血量。受伤会扣血，耗尽后演练结束。\n教学期间不会受到伤害。\n<size=80%>Your health is shown above. The drill ends at zero HP.\nYou take no damage during the tutorial.</size>");
                 break;
             case Step.Health:
-                if (advance || age >= PromptDuration) Enter(Step.MapDemo, "按左手柄的 X 展开小地图，再按 X 收起\n<size=80%>Press X on the left controller to open or close the map.</size>", demo: CampusTutorialView.Demo.X);
+                if (advance) Enter(Step.MapDemo, "按左手柄的 X 展开小地图，再按 X 收起\n<size=80%>Press X on the left controller to open or close the map.</size>", demo: CampusTutorialView.Demo.X);
                 break;
             case Step.MapDemo:
-                if (advance || age >= PromptDuration) Enter(Step.MapOpen, "按 X 展开小地图\n<size=80%>Press X to open the map.</size>");
+                if (advance) Enter(Step.MapOpen, "按 X 展开小地图\n<size=80%>Press X to open the map.</size>");
                 break;
             case Step.MapOpen:
-                if (advance || xDown) Enter(Step.MapClose, "再按 X 收起小地图\n<size=80%>Press X again to close the map.</size>");
+                if (xDown) Enter(Step.MapClose, "再按 X 收起小地图\n<size=80%>Press X again to close the map.</size>");
                 break;
             case Step.MapClose:
-                if (advance || xDown) Enter(Step.MapFolding, "");
+                if (xDown) Enter(Step.MapFolding, "");
                 break;
             case Step.MapFolding:
                 if (age >= CampusNavigationPanels.ZoomSeconds)
                     Enter(Step.TaskDemo, "按左手柄的 Y 查看任务详情，再按 Y 收起\n<size=80%>Press Y on the left controller to open or close Tasks.</size>", demo: CampusTutorialView.Demo.Y);
                 break;
             case Step.TaskDemo:
-                if (advance || age >= PromptDuration) Enter(Step.TaskOpen, "按 Y 查看任务详情\n<size=80%>Press Y to view Tasks.</size>");
+                if (advance) Enter(Step.TaskOpen, "按 Y 查看任务详情\n<size=80%>Press Y to view Tasks.</size>");
                 break;
             case Step.TaskOpen:
-                if (advance || yDown) Enter(Step.TaskClose, "再按 Y 收起任务详情\n<size=80%>Press Y again to close Tasks.</size>");
+                if (yDown) Enter(Step.TaskClose, "再按 Y 收起任务详情\n<size=80%>Press Y again to close Tasks.</size>");
                 break;
             case Step.TaskClose:
-                if (advance || yDown) Enter(Step.TaskFolding, "");
+                if (yDown) Enter(Step.TaskFolding, "");
                 break;
             case Step.TaskFolding:
                 if (age >= CampusNavigationPanels.ZoomSeconds)
                     Enter(Step.ToDoor, "现在可以在教室内自由活动。\n寻找门前地面上的高亮点，到达后结束教学并开始演练。\n<size=80%>Explore the classroom freely. Find the highlighted floor spot\nby the door and reach it to finish training and start the drill.</size>", DoorSpot);
                 break;
             case Step.ToDoor:
-                if (advance || arrived) Enter(Step.Complete, "操作练习完成\n<size=80%>Tutorial complete.</size>", marker: DoorSpot, success: true);
+                if (arrived) Enter(Step.Complete, "操作练习完成\n<size=80%>Tutorial complete.</size>", marker: DoorSpot, success: true);
                 break;
             case Step.Complete:
                 return advance;

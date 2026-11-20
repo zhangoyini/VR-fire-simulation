@@ -19,7 +19,7 @@ public sealed class CampusRescueNoticeCard : MonoBehaviour
         if (!warning)
         {
             var backing = CampusTutorialView.Picture(group.transform, Vector2.zero, new Vector2(700, 270), Color.white);
-            FireTrainingUIStyle.Apply(backing, "panels/notice_card");
+            FireTrainingUIStyle.Apply(backing, "panels/lesson_card_large");
         }
         var card = group.gameObject.AddComponent<CampusRescueNoticeCard>();
         card.canvas = group.GetComponent<Canvas>();

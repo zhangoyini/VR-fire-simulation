@@ -7,6 +7,8 @@ using UnityEngine;
 [DefaultExecutionOrder(-80)]
 public sealed class CampusLessonDirector : MonoBehaviour
 {
+    public const string MainBriefHeading = "主任务 Main task";
+    public const string MainBriefCopy = "发生火灾，先离开教学楼，跑到操场等空旷处。\n不要返回取物，也不要乘电梯。\n<size=78%>In a fire, leave the building and get to open ground.\nDo not go back for your things, and do not use the elevator.</size>";
     public enum Phase { Controls, Ready, Classroom, Alarm, OpenDoor, FindTowel, WetTowel, Descend, Complete, MainBrief }
     public static CampusLessonDirector Instance { get; private set; }
     [SerializeField] private Transform trackedHead;
@@ -401,7 +403,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         if(CurrentPhase==Phase.Ready)
             SetText("准备开始 / Ready","开始后将播放短开场。\nA short intro plays before the drill.","长按右手柄 A 键开始。 / Hold right A to begin.");
         else if(CurrentPhase==Phase.MainBrief)
-            SetText("主任务 · 疏散到一楼操场 / Main objective", "先寻找毛巾，打湿后遮住口鼻，沿安全通道撤离至操场集合区。\nFind a towel, wet it and cover your nose and mouth. Evacuate to the schoolyard assembly area.", "即将恢复自由活动。 / Control resumes shortly.");
+            SetText(MainBriefHeading, MainBriefCopy, "");
         else if(CurrentPhase==Phase.Classroom)
             SetText("课间 / Between classes","","");
         else if(CurrentPhase==Phase.Alarm)
@@ -414,6 +416,7 @@ public sealed class CampusLessonDirector : MonoBehaviour
         bool cinema = CinematicLocked;
         if(cinema || CurrentPhase==Phase.Ready)
             layout?.Arrange(CurrentPhase==Phase.MainBrief || !cinema,cinema && CurrentPhase!=Phase.MainBrief);
+        if (CurrentPhase == Phase.MainBrief) layout?.ArrangeMainBrief();
     }
 
     private void UpdateExerciseGuidance()

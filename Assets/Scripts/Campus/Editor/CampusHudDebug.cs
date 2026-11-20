@@ -207,17 +207,18 @@ public sealed class CampusHudDebug : MonoBehaviour
         var panel = (GameObject)Get(director, "lessonPanel");
         if (layout == null || panel == null) return;
         panel.SetActive(true);
-        layout.ApplyArtwork();
-        layout.Arrange(true);
-        layout.Tick(1f);
         var title = (TMP_Text)Get(layout, "title");
         var body = (TMP_Text)Get(layout, "body");
         var footer = (TMP_Text)Get(layout, "footer");
         var textGroup = (CanvasGroup)Get(layout, "textGroup");
         if (title == null || body == null) return;
-        title.text = "操作教学 / Controls";
+        title.text = "主任务 · 逃到空旷处 / Main objective";
         body.text = LessonBody;
-        if (footer != null) footer.text = "长按右手柄 A 继续 / Hold right A to continue";
+        if (footer != null) footer.text = "即将恢复自由活动。 / Control resumes shortly.";
+        // Arrange after the copy is in place so the card measures the new text.
+        layout.ApplyArtwork();
+        layout.Arrange(true);
+        layout.Tick(1f);
         if (textGroup != null) textGroup.alpha = 1f;
         // Bind the body to itself: resizing grows the paragraph, not the whole card.
         Bind(Target.Lesson, "教学卡片 Lesson card", body.transform.parent, body.rectTransform, body, textGroup, false);

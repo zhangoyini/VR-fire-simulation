@@ -6,6 +6,74 @@ using UnityEngine.UI;
 
 public static class FireTrainingStylePreview
 {
+    public static void CaptureMainBrief()
+    {
+        EditorSceneManager.OpenScene("Assets/Scenes/Campus/CampusTraining.unity");
+        var director = Object.FindObjectOfType<CampusLessonDirector>(true);
+        var settings = new SerializedObject(director);
+        var title = (TMPro.TMP_Text)settings.FindProperty("title").objectReferenceValue;
+        var body = (TMPro.TMP_Text)settings.FindProperty("explanation").objectReferenceValue;
+        var footer = (TMPro.TMP_Text)settings.FindProperty("footer").objectReferenceValue;
+        ((GameObject)settings.FindProperty("lessonPanel").objectReferenceValue).SetActive(true);
+        for (Transform parent = title.transform; parent != null; parent = parent.parent) parent.gameObject.SetActive(true);
+        body.gameObject.SetActive(true);
+        title.text = CampusLessonDirector.MainBriefHeading; body.text = CampusLessonDirector.MainBriefCopy; footer.text = "";
+        var layout = director.GetComponent<CampusLessonLayout>();
+        layout.Arrange(true); layout.ArrangeMainBrief(); layout.Tick(2); layout.SendMessage("LateUpdate");
+        layout.SetReadingProgress(.5f);
+        var layoutSettings = new SerializedObject(layout);
+        var background = (RectTransform)layoutSettings.FindProperty("background").objectReferenceValue;
+        Canvas.ForceUpdateCanvases();
+        foreach (var text in new[] { title, body })
+        {
+            text.ForceMeshUpdate();
+            if (text.isTextOverflowing || text.alignment != TMPro.TextAlignmentOptions.Center)
+                throw new System.InvalidOperationException("Main objective text must fit and be centred: " + text.name);
+            var corners = new Vector3[4]; text.rectTransform.GetWorldCorners(corners);
+            foreach (var corner in corners)
+                if (!background.rect.Contains(background.InverseTransformPoint(corner)))
+                    throw new System.InvalidOperationException("Main objective text extends outside the card: " + text.name);
+        }
+        if (footer.gameObject.activeSelf) throw new System.InvalidOperationException("Main objective must not show an outside footer.");
+        var head = (Transform)settings.FindProperty("trackedHead").objectReferenceValue;
+        foreach (var foreground in Object.FindObjectsOfType<CampusUIForeground>()) foreground.Refresh();
+        Canvas.ForceUpdateCanvases();
+        foreach (var camera in Object.FindObjectsOfType<Camera>()) camera.enabled = false;
+        var shot = new GameObject("Main objective preview camera").AddComponent<Camera>();
+        shot.transform.SetPositionAndRotation(head.position, head.rotation); shot.fieldOfView = 65; shot.nearClipPlane = .01f;
+        var rt = new RenderTexture(1440, 900, 24); shot.targetTexture = rt; shot.Render(); RenderTexture.active = rt;
+        var png = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
+        png.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0); png.Apply();
+        File.WriteAllBytes("Documentation/Previews/MainBrief_Centred.png", png.EncodeToPNG());
+        RenderTexture.active = null; shot.targetTexture = null;
+        Object.DestroyImmediate(png); Object.DestroyImmediate(rt);
+        Debug.Log("MAIN_BRIEF_LAYOUT_PASS: requested bilingual copy, centred title/body inside card, no overflow or outside footer.");
+    }
+    public static void CaptureTaskTab()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var root = new GameObject("Task tab preview", typeof(RectTransform), typeof(Canvas), typeof(Image));
+        root.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
+        root.GetComponent<RectTransform>().sizeDelta = new Vector2(205, 52);
+        root.transform.localScale = Vector3.one * .01f;
+        FireTrainingUIStyle.Apply(root.GetComponent<Image>(), "panels/task_tab");
+        var font = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>("Assets/Fonts/NotoSansCJKsc-Regular SDF.asset");
+        var title = CampusTaskTab.CreateLabels(root.transform, font, out var key);
+        Canvas.ForceUpdateCanvases(); title.ForceMeshUpdate(); key.ForceMeshUpdate();
+        if (title.isTextOverflowing || key.isTextOverflowing || title.text.Contains("/") || key.text != "Y")
+            throw new System.InvalidOperationException("Task tab text layout failed.");
+        var camera = new GameObject("Task tab camera").AddComponent<Camera>();
+        camera.transform.position = new Vector3(0, 0, -2);
+        camera.orthographic = true; camera.orthographicSize = .38f;
+        camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(.16f, .20f, .24f);
+        var rt = new RenderTexture(1440, 420, 24); camera.targetTexture = rt; camera.Render(); RenderTexture.active = rt;
+        var png = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
+        png.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0); png.Apply();
+        File.WriteAllBytes("Documentation/Previews/TaskTab_CentredY.png", png.EncodeToPNG());
+        RenderTexture.active = null; camera.targetTexture = null;
+        Object.DestroyImmediate(png); Object.DestroyImmediate(rt);
+        Debug.Log("TASK_TAB_LAYOUT_PASS: separate centred Y, title outside key frame, no slash or text overflow.");
+    }
     public static void CaptureHealthStates()
     {
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -112,12 +180,56 @@ public static class FireTrainingStylePreview
         Debug.Log("FIRST_WINDOW_OPEN_WARNING_PASS");
         Debug.Log("COMPACT_WARNING_LAYOUT_PASS: five bilingual warnings fit; card is below health with a gap and under 0.75m wide.");
     }
+    public static void CaptureRescueFollowing()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var head = new GameObject("Rescue preview head").transform;
+        var font = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>("Assets/Fonts/NotoSansCJKsc-Regular SDF.asset");
+        var chair = new GameObject("Classmate behind player");
+        chair.transform.position = Vector3.back * 2;
+        var view = chair.AddComponent<CampusRescueAssistanceView>();
+        var camera = new GameObject("Rescue preview camera").AddComponent<Camera>();
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(.16f, .20f, .24f);
+        var rt = new RenderTexture(1440, 900, 24);
+        camera.targetTexture = rt;
+        var directions = new[] { Vector3.forward, Vector3.right, Vector3.left, Vector3.back };
+        for (int i = 0; i < directions.Length; i++)
+        {
+            view.Begin(head, new[] { directions[i] * 5 });
+            Canvas.ForceUpdateCanvases();
+            var label = head.GetComponentInChildren<TMPro.TMP_Text>();
+            label.font = font;
+            label.ForceMeshUpdate();
+            if (label.isTextOverflowing || label.text.Contains("传送后") || label.text.Contains("after each teleport"))
+                throw new System.InvalidOperationException("Invalid rescue following notice: " + label.text);
+            if (i != 1) continue;
+            camera.Render(); RenderTexture.active = rt;
+            var png = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
+            png.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0); png.Apply();
+            Directory.CreateDirectory("Documentation/Previews");
+            File.WriteAllBytes("Documentation/Previews/RescueFollowing_LessonCard.png", png.EncodeToPNG());
+            Object.DestroyImmediate(png);
+        }
+        RenderTexture.active = null; camera.targetTexture = null;
+        Object.DestroyImmediate(rt);
+        Debug.Log("RESCUE_FOLLOWING_LAYOUT_PASS: all four directions fit; teleport reminder removed.");
+    }
+
     public static void CaptureTaskNotice()
     {
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         var parent = new GameObject("Task notice preview");
         var font = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>("Assets/Fonts/NotoSansCJKsc-Regular SDF.asset");
         var group = FireTrainingTaskNotice.Create(parent.transform, font, out var label);
+        var tab = new GameObject("Task details tab", typeof(RectTransform), typeof(Canvas), typeof(Image));
+        tab.transform.SetParent(parent.transform, false);
+        tab.transform.localPosition = new Vector3(.57f, .26f, 1.45f);
+        tab.transform.localScale = Vector3.one * .0017f;
+        tab.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
+        tab.GetComponent<RectTransform>().sizeDelta = new Vector2(205, 52);
+        FireTrainingUIStyle.Apply(tab.GetComponent<Image>(), "panels/task_tab");
+        CampusTaskTab.CreateLabels(tab.transform, font, out var keyLabel);
         var source = File.ReadAllText("Assets/Scripts/Modules/E_LessonTasksUI/CampusExerciseTasks.cs");
         var matches = System.Text.RegularExpressions.Regex.Matches(source,
             @"(?:QueueNotice|Announce)\(""((?:\\.|[^""\\])*)""");
@@ -134,8 +246,13 @@ public static class FireTrainingStylePreview
         }
         label.text = longest;
         Canvas.ForceUpdateCanvases(); label.ForceMeshUpdate();
+        var noticeCorners = new Vector3[4]; var tabCorners = new Vector3[4];
+        group.GetComponentInChildren<Image>().rectTransform.GetWorldCorners(noticeCorners);
+        tab.GetComponent<RectTransform>().GetWorldCorners(tabCorners);
+        if (noticeCorners[1].y > tabCorners[0].y - .02f || Mathf.Abs(group.transform.position.x-tab.transform.position.x)>.001f || noticeCorners[0].x < .1f)
+            throw new System.InvalidOperationException("Task notification must sit below the task tab, leaving the centre clear.");
         var camera = new GameObject("Task notification camera").AddComponent<Camera>();
-        camera.transform.position = new Vector3(0, .09f, 0);
+        camera.transform.position = Vector3.zero;
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = new Color(.16f, .20f, .24f);
         var rt = new RenderTexture(1440, 900, 24);
@@ -144,9 +261,10 @@ public static class FireTrainingStylePreview
         png.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0); png.Apply();
         Directory.CreateDirectory("Documentation/Previews");
         File.WriteAllBytes("Documentation/Previews/TaskNotice_MainScreen.png", png.EncodeToPNG());
+        File.WriteAllBytes("Documentation/Previews/TaskNotice_BelowTasks.png", png.EncodeToPNG());
         RenderTexture.active = null; camera.targetTexture = null;
         Object.DestroyImmediate(png); Object.DestroyImmediate(rt);
-        Debug.Log("TASK_NOTICE_LAYOUT_PASS: " + matches.Count + " live bilingual notices fit the screen panel.");
+        Debug.Log("TASK_NOTICE_LAYOUT_PASS: " + matches.Count + " live bilingual notices fit; popup below Tasks, 30% smaller, centre clear.");
     }
     public static void CaptureTaskCards()
     {
@@ -157,12 +275,12 @@ public static class FireTrainingStylePreview
         var font = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>("Assets/Fonts/NotoSansCJKsc-Regular SDF.asset");
         var cards = new CampusTaskCardList(root.transform, font);
         cards.SetEntries(new[] {
-            new CampusTaskCardList.Entry("主任务 · 到操场集合", "Main · Reach the assembly area"),
-            new CampusTaskCardList.Entry("1 · 到 411 寻找毛巾", "1 · Find a towel in room 411", true),
-            new CampusTaskCardList.Entry("2 · 打湿毛巾并下到三楼", "2 · Wet towel, reach 3F", true),
-            new CampusTaskCardList.Entry("3 · 前往 B 楼梯", "3 · Reach Stair B", true),
-            new CampusTaskCardList.Entry("可选 · 护送同学到二楼避难区", "Optional · Escort to 2F refuge"),
-            new CampusTaskCardList.Entry("4 · 找到出口并走到室外", "4 · Find exit, go outside") });
+            new CampusTaskCardList.Entry("主任务 到操场集合", "Main Reach the assembly area"),
+            new CampusTaskCardList.Entry("1 到 411 寻找毛巾", "1 Find a towel in room 411", true),
+            new CampusTaskCardList.Entry("2 打湿毛巾并下到三楼", "2 Wet towel, reach 3F", true),
+            new CampusTaskCardList.Entry("3 前往 B 楼梯", "3 Reach Stair B", true),
+            new CampusTaskCardList.Entry("可选 护送同学到二楼避难区", "Optional Escort to 2F refuge"),
+            new CampusTaskCardList.Entry("4 找到出口并走到室外", "4 Find exit, go outside") });
         cards.Show(1);
         Canvas.ForceUpdateCanvases();
         foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>())
